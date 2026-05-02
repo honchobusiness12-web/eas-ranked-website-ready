@@ -1,25 +1,13 @@
 import Shell from "@/components/Shell";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { getRank, getNextRank } from "@/lib/ranks";
-import { getPlayerFromCache, getPlayerFromDB, secondsSinceUpdate } from "@/lib/cache";
+import { getPlayerFromDB } from "@/lib/cache";
 
-async function getProfile(userId: string) {
-  // Try cache first; fall back to a direct DB query.
-  const cached = getPlayerFromCache(userId);
-  if (cached) return cached;
-  return getPlayerFromDB(userId);
-}
+export const revalidate = 30;
 
 export default async function ProfilePage(context: { params: Promise<{ userId: string }> }) {
   const { userId } = await context.params;
-  const p = await getProfile(userId);
-  const lastUpdatedSecs = secondsSinceUpdate();
-  const lastUpdatedLabel =
-    lastUpdatedSecs === null
-      ? "DB fallback"
-      : lastUpdatedSecs < 60
-      ? `${lastUpdatedSecs}s ago`
-      : `${Math.floor(lastUpdatedSecs / 60)}m ago`;
+  const p = await getPlayerFromDB(userId);
 
   if (!p) {
     return <Shell><h1 className="text-4xl font-black">Player Not Found</h1><p className="mt-2 text-zinc-400">This player does not exist in the database.</p></Shell>;
@@ -40,7 +28,6 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             <h1 className="text-5xl font-black">{p.name}</h1>
             <p className="mt-2 text-zinc-400">{p.username || "No username saved yet"}</p>
             <p className="mt-3 inline-block rounded-xl border border-purple-600 px-4 py-2 text-purple-300">{rank}</p>
-            <p className="mt-2 text-xs text-purple-400/70">Last updated: {lastUpdatedLabel}</p>
           </div>
         </div>
       </section>

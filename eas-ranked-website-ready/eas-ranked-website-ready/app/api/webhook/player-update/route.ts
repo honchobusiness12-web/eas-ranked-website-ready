@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  updatePlayerInCache,
-  getPlayerFromDB,
-  type CachedPlayer,
-} from "@/lib/cache";
+import { revalidatePath } from "next/cache";
+import { getPlayerFromDB, type CachedPlayer } from "@/lib/cache";
 
 export async function POST(req: NextRequest) {
   // ------------------------------------------------------------------
@@ -59,12 +56,13 @@ export async function POST(req: NextRequest) {
   }
 
   // ------------------------------------------------------------------
-  // 4. Update the in-memory cache with the DB-verified record.
+  // 4. Invalidate all cached pages so Next.js regenerates them on the
+  //    next request with fresh data from PostgreSQL.
   // ------------------------------------------------------------------
-  updatePlayerInCache(userId, dbPlayer);
+  revalidatePath("/");
 
   console.log(
-    `[webhook] Updated cache for player ${userId} (${dbPlayer.name}) — CR: ${dbPlayer.cr}`
+    `[webhook] Revalidated pages for player ${userId} (${dbPlayer.name}) — CR: ${dbPlayer.cr}`
   );
 
   return NextResponse.json({ ok: true, player: dbPlayer }, { status: 200 });

@@ -1,23 +1,13 @@
 import Shell from "@/components/Shell";
 import { ranks } from "@/lib/ranks";
-import { secondsSinceUpdate } from "@/lib/cache";
+
+export const revalidate = 30;
 
 export default function RanksPage() {
-  const lastUpdatedSecs = secondsSinceUpdate();
-  const lastUpdatedLabel =
-    lastUpdatedSecs === null
-      ? "cache not yet populated"
-      : lastUpdatedSecs < 60
-      ? `${lastUpdatedSecs}s ago`
-      : `${Math.floor(lastUpdatedSecs / 60)}m ago`;
-
   return (
     <Shell>
       <h1 className="text-4xl font-black">🏷️ Rank System</h1>
-      <p className="mt-2 text-zinc-400">
-        CR thresholds for the EAS competitive ladder.{" "}
-        <span className="text-purple-400">Cache last updated: {lastUpdatedLabel}</span>
-      </p>
+      <p className="mt-2 text-zinc-400">CR thresholds for the EAS competitive ladder.</p>
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {ranks.map((rank) => (
           <div key={rank.name} className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
