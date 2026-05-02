@@ -11,6 +11,7 @@ const links = [
   { label: "⚔️ Compare",      href: "/compare" },
   { label: "📋 Placements",   href: "/placements" },
   { label: "🏷️ Ranks",        href: "/ranks" },
+  { label: "📖 How Ranked Works", href: "/guide" },
 ];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
@@ -37,22 +38,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               </SoundLink>
             ))}
           </nav>
-
-          {/* Quick Stats widget */}
-          <div className="mb-4 rounded-2xl border border-white/10 bg-[#0d0d14] p-4">
-            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">Quick Links</p>
-            <div className="space-y-1 text-xs">
-              <SoundLink href="/ranks" soundType="click" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-zinc-400 hover:bg-purple-950/40 hover:text-white transition">
-                <span>🏷️</span><span>Rank Guide</span>
-              </SoundLink>
-              <SoundLink href="/placements" soundType="click" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-zinc-400 hover:bg-purple-950/40 hover:text-white transition">
-                <span>📋</span><span>Placements</span>
-              </SoundLink>
-              <SoundLink href="/compare" soundType="click" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-zinc-400 hover:bg-purple-950/40 hover:text-white transition">
-                <span>⚔️</span><span>Compare Players</span>
-              </SoundLink>
-            </div>
-          </div>
 
           {/* Season status card */}
           <div className="rounded-2xl border border-orange-700/40 bg-orange-950/20 p-4">
