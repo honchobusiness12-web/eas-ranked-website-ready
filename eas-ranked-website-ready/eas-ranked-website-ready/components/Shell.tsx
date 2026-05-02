@@ -2,7 +2,6 @@
 
 import SoundLink from "@/components/SoundLink";
 import SoundToggle from "@/components/SoundToggle";
-import ThemeToggle from "@/components/ThemeToggle";
 import { useState } from "react";
 
 const links = [
@@ -82,7 +81,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <p className="text-lg font-black">Ranked Dashboard</p>
             </div>
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <SoundToggle />
               <SoundLink
                 href="/leaderboard"

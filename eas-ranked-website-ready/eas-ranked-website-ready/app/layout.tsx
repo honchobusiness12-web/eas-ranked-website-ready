@@ -1,7 +1,5 @@
 import "./globals.css";
-import "../styles/theme.css";
 import SoundProvider from "@/components/SoundProvider";
-import ThemeProvider from "@/components/ThemeProvider";
 import ToastProvider from "@/components/ToastProvider";
 
 export const metadata = {
@@ -14,11 +12,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <SoundProvider>
-          <ThemeProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
-          </ThemeProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </SoundProvider>
       </body>
     </html>
