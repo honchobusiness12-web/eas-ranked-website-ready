@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import SoundLink from "@/components/SoundLink";
+import SoundToggle from "@/components/SoundToggle";
 
 const links = [
   ["Dashboard", "/"],
@@ -13,15 +16,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <main className="min-h-screen bg-[#05050b] text-white">
       <div className="flex">
         <aside className="fixed left-0 top-0 hidden h-screen w-64 border-r border-white/10 bg-[#07070f] p-6 md:block">
-          <Link href="/" className="mb-10 block text-2xl font-black">
+          <SoundLink href="/" soundType="click" className="mb-10 block text-2xl font-black">
             EAS <span className="text-purple-500">ARENA</span>
-          </Link>
+          </SoundLink>
 
           <nav className="space-y-3 text-sm">
             {links.map(([label, href]) => (
-              <Link key={href} href={href} className="block rounded-xl px-4 py-3 text-zinc-400 hover:bg-purple-950/40 hover:text-white">
+              <SoundLink key={href} href={href} soundType="success" className="block rounded-xl px-4 py-3 text-zinc-400 hover:bg-purple-950/40 hover:text-white">
                 {label}
-              </Link>
+              </SoundLink>
             ))}
           </nav>
 
@@ -40,9 +43,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <p className="text-xs uppercase tracking-[0.3em] text-purple-400">Elevate All-Stars</p>
               <p className="text-lg font-black">Ranked Dashboard</p>
             </div>
-            <Link href="/leaderboard" className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-bold hover:bg-purple-500">
-              Live Leaderboard
-            </Link>
+            <div className="flex items-center gap-3">
+              <SoundToggle />
+              <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-bold hover:bg-purple-500">
+                Live Leaderboard
+              </SoundLink>
+            </div>
           </header>
 
           <div className="p-5 md:p-8">{children}</div>

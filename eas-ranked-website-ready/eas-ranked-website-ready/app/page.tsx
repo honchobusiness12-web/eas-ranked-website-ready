@@ -1,6 +1,6 @@
-import Link from "next/link";
 import Shell from "@/components/Shell";
 import PlayerAvatar from "@/components/PlayerAvatar";
+import SoundLink from "@/components/SoundLink";
 import { getRank } from "@/lib/ranks";
 import { syncPlayersFromDB } from "@/lib/cache";
 
@@ -28,9 +28,9 @@ export default async function HomePage() {
             <h1 className="max-w-3xl text-4xl font-black leading-tight md:text-6xl">Climb the ranks. Own the arena.</h1>
             <p className="mt-4 max-w-2xl text-zinc-300">Track CR, ranks, placements, MVPs, player profiles, and live competitive activity powered by PostgreSQL.</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/leaderboard" className="rounded-xl bg-purple-600 px-5 py-3 font-bold hover:bg-purple-500">View Leaderboard</Link>
-              <Link href="/ranks" className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 font-bold hover:bg-white/10">Learn Ranks</Link>
-              <Link href="/players" className="rounded-xl border border-purple-700/60 bg-purple-950/30 px-5 py-3 font-bold hover:bg-purple-950">Search Players</Link>
+              <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-purple-600 px-5 py-3 font-bold hover:bg-purple-500">View Leaderboard</SoundLink>
+              <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 font-bold hover:bg-white/10">Learn Ranks</SoundLink>
+              <SoundLink href="/players" soundType="success" className="rounded-xl border border-purple-700/60 bg-purple-950/30 px-5 py-3 font-bold hover:bg-purple-950">Search Players</SoundLink>
             </div>
           </div>
           <div className="hidden text-9xl opacity-30 lg:block">🏆</div>
@@ -50,14 +50,14 @@ export default async function HomePage() {
             <div>
               <h2 className="text-2xl font-black">🏆 Top Players</h2>
             </div>
-            <Link href="/leaderboard" className="rounded-xl border border-purple-700 px-4 py-2 text-sm font-bold text-purple-300 hover:bg-purple-950">Full Board</Link>
+            <SoundLink href="/leaderboard" soundType="success" className="rounded-xl border border-purple-700 px-4 py-2 text-sm font-bold text-purple-300 hover:bg-purple-950">Full Board</SoundLink>
           </div>
 
           {players.length === 0 ? (
             <p className="p-6 text-zinc-400">No players found. Check DATABASE_URL in Railway.</p>
           ) : (
             players.slice(0, 10).map((p: any, index: number) => (
-              <Link href={`/profile/${p.user_id}`} key={p.user_id} className="grid grid-cols-[50px_1fr_95px_100px] items-center border-b border-white/10 px-6 py-4 hover:bg-white/5">
+              <SoundLink href={`/profile/${p.user_id}`} key={p.user_id} soundType="click" className="grid grid-cols-[50px_1fr_95px_100px] items-center border-b border-white/10 px-6 py-4 hover:bg-white/5">
                 <span className="text-xl">{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</span>
                 <div className="flex items-center gap-4">
                   <PlayerAvatar name={p.name} avatar={p.avatar_url} />
@@ -68,7 +68,7 @@ export default async function HomePage() {
                 </div>
                 <span className="rounded-lg border border-purple-600 px-3 py-1 text-center text-xs text-purple-300">{getRank(Number(p.cr || 0)).split(" ").slice(0, 2).join(" ")}</span>
                 <span className="text-right text-xl font-black text-purple-400">{p.cr || 0}</span>
-              </Link>
+              </SoundLink>
             ))
           )}
         </div>
@@ -85,13 +85,13 @@ export default async function HomePage() {
             <h3 className="text-xl font-black">⚡ Recent Activity</h3>
             <div className="mt-5 space-y-4">
               {players.slice(0, 5).map((p: any) => (
-                <Link href={`/profile/${p.user_id}`} key={p.user_id} className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5">
+                <SoundLink href={`/profile/${p.user_id}`} key={p.user_id} soundType="click" className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5">
                   <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-9 w-9" />
                   <div>
                     <p className="font-bold">{p.name || "Unknown Player"}</p>
                     <p className="text-xs text-zinc-500">Currently at {p.cr || 0} CR</p>
                   </div>
-                </Link>
+                </SoundLink>
               ))}
             </div>
           </div>

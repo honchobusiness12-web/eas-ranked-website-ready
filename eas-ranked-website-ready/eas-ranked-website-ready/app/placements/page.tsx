@@ -1,6 +1,6 @@
-import Link from "next/link";
 import Shell from "@/components/Shell";
 import PlayerAvatar from "@/components/PlayerAvatar";
+import SoundLink from "@/components/SoundLink";
 import { syncPlayersFromDB } from "@/lib/cache";
 
 export const revalidate = 30;
@@ -25,7 +25,7 @@ export default async function PlacementsPage() {
             const done = Number(p.placement_matches || 0);
             const percent = Math.min(100, Math.round((done / 7) * 100));
             return (
-              <Link href={`/profile/${p.user_id}`} key={p.user_id} className="block border-b border-white/10 p-6 hover:bg-white/5">
+              <SoundLink href={`/profile/${p.user_id}`} key={p.user_id} soundType="click" className="block border-b border-white/10 p-6 hover:bg-white/5">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <PlayerAvatar name={p.name} avatar={p.avatar_url} />
@@ -39,7 +39,7 @@ export default async function PlacementsPage() {
                 <div className="mt-4 h-2 rounded-full bg-zinc-800">
                   <div className="h-2 rounded-full bg-purple-500" style={{ width: `${percent}%` }} />
                 </div>
-              </Link>
+              </SoundLink>
             );
           })
         )}

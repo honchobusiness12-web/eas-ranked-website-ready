@@ -1,6 +1,6 @@
-import Link from "next/link";
 import Shell from "@/components/Shell";
 import PlayerAvatar from "@/components/PlayerAvatar";
+import SoundLink from "@/components/SoundLink";
 import { getRank } from "@/lib/ranks";
 import { syncPlayersFromDB } from "@/lib/cache";
 
@@ -19,7 +19,7 @@ export default async function LeaderboardPage() {
         <div>
           <h1 className="text-4xl font-black">🏆 Leaderboard</h1>
         </div>
-        <a href="/leaderboard" className="rounded-xl bg-purple-600 px-4 py-2 font-bold hover:bg-purple-500">Refresh</a>
+        <SoundLink href="/leaderboard" soundType="click" className="rounded-xl bg-purple-600 px-4 py-2 font-bold hover:bg-purple-500">Refresh</SoundLink>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-[#0d0d14]">
@@ -27,7 +27,7 @@ export default async function LeaderboardPage() {
           <p className="p-6 text-zinc-400">No leaderboard data found.</p>
         ) : (
           players.map((p: any, index: number) => (
-            <Link href={`/profile/${p.user_id}`} key={p.user_id} className="grid grid-cols-[60px_1fr_120px_100px_100px] items-center border-b border-white/10 px-6 py-4 hover:bg-white/5">
+            <SoundLink href={`/profile/${p.user_id}`} key={p.user_id} soundType="click" className="grid grid-cols-[60px_1fr_120px_100px_100px] items-center border-b border-white/10 px-6 py-4 hover:bg-white/5">
               <span className="text-xl font-black">#{index + 1}</span>
               <div className="flex items-center gap-4">
                 <PlayerAvatar name={p.name} avatar={p.avatar_url} />
@@ -39,7 +39,7 @@ export default async function LeaderboardPage() {
               <span className="text-sm text-purple-300">{getRank(Number(p.cr || 0))}</span>
               <span className="text-right font-black text-purple-400">{p.cr || 0} CR</span>
               <span className="text-right text-sm text-zinc-400">{p.wins || 0}W - {p.losses || 0}L</span>
-            </Link>
+            </SoundLink>
           ))
         )}
       </div>
