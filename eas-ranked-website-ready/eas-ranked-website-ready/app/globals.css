@@ -48,13 +48,25 @@ a { text-decoration: none; }
   animation: fade-in 0.35s ease-out both;
 }
 
-/* Shimmer skeleton override */
+/* Shimmer skeleton override — dark mode */
 .animate-pulse {
   background: linear-gradient(
     90deg,
     rgba(255,255,255,0.04) 25%,
     rgba(255,255,255,0.09) 50%,
     rgba(255,255,255,0.04) 75%
+  ) !important;
+  background-size: 800px 100% !important;
+  animation: shimmer 1.6s infinite linear !important;
+}
+
+/* Shimmer skeleton override — light mode */
+[data-theme="light"] .animate-pulse {
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.04) 25%,
+    rgba(0,0,0,0.08) 50%,
+    rgba(0,0,0,0.04) 75%
   ) !important;
   background-size: 800px 100% !important;
   animation: shimmer 1.6s infinite linear !important;

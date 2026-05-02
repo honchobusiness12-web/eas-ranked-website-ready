@@ -39,13 +39,30 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <div className="rounded-2xl border border-purple-700/50 bg-purple-950/30 p-4">
-            <p className="font-bold">Season One Live</p>
-            <p className="mt-1 text-sm text-zinc-400">2026 Season</p>
-            <div className="mt-4 h-2 rounded-full bg-zinc-800">
-              <div className="h-2 w-2/3 rounded-full bg-purple-500" />
+          {/* Quick Stats widget */}
+          <div className="mb-4 rounded-2xl border border-white/10 bg-[#0d0d14] p-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">Quick Links</p>
+            <div className="space-y-1 text-xs">
+              <SoundLink href="/ranks" soundType="click" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-zinc-400 hover:bg-purple-950/40 hover:text-white transition">
+                <span>🏷️</span><span>Rank Guide</span>
+              </SoundLink>
+              <SoundLink href="/placements" soundType="click" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-zinc-400 hover:bg-purple-950/40 hover:text-white transition">
+                <span>📋</span><span>Placements</span>
+              </SoundLink>
+              <SoundLink href="/compare" soundType="click" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-zinc-400 hover:bg-purple-950/40 hover:text-white transition">
+                <span>⚔️</span><span>Compare Players</span>
+              </SoundLink>
             </div>
-            <span className="mt-3 inline-block rounded-lg bg-green-600 px-2 py-0.5 text-xs font-bold">LIVE</span>
+          </div>
+
+          {/* Season status card */}
+          <div className="rounded-2xl border border-orange-700/40 bg-orange-950/20 p-4">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm">Season One</p>
+              <span className="rounded-md bg-orange-600 px-2 py-0.5 text-xs font-black text-white">OFF</span>
+            </div>
+            <p className="mt-1 text-xs text-zinc-400">2026 Season</p>
+            <p className="mt-3 text-xs text-orange-300/80">⏸ Off season — next season coming soon</p>
           </div>
         </aside>
 

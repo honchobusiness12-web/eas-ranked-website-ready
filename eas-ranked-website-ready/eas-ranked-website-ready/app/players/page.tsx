@@ -72,7 +72,7 @@ export default function PlayersPage() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search by name or username…"
-            className="rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition w-64"
+            className="rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition w-64 [data-theme=light]:text-[#0a0a14]"
           />
         </div>
         <div className="flex gap-2">

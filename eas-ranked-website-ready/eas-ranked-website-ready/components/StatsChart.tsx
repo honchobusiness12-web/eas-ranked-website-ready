@@ -186,20 +186,85 @@ export function CompareBar({ label, valueA, valueB, nameA, nameB, format }: Comp
   const pctB = 100 - pctA;
   const fmt = format || ((v: number) => v.toLocaleString());
 
+  const aWins = valueA > valueB;
+  const bWins = valueB > valueA;
+
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs text-zinc-400">
-        <span className="font-bold text-purple-300">{fmt(valueA)}</span>
-        <span className="text-zinc-500">{label}</span>
-        <span className="font-bold text-blue-300">{fmt(valueB)}</span>
+    <div className="space-y-1.5">
+      {/* Label row */}
+      <div className="flex items-center justify-center">
+        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">{label}</span>
       </div>
-      <div className="flex h-3 rounded-full overflow-hidden">
-        <div className="bg-purple-500 transition-all duration-500" style={{ width: `${pctA}%` }} />
-        <div className="bg-blue-500 transition-all duration-500" style={{ width: `${pctB}%` }} />
+      {/* Value + bar row */}
+      <div className="flex items-center gap-2">
+        {/* Player A value */}
+        <span
+          className={`w-16 text-right text-sm font-black tabular-nums ${
+            aWins ? "text-violet-400" : "text-zinc-400"
+          }`}
+        >
+          {fmt(valueA)}
+        </span>
+        {/* Bar */}
+        <div className="flex flex-1 h-4 rounded-full overflow-hidden bg-zinc-800/60">
+          <div
+            className="h-full rounded-l-full transition-all duration-500"
+            style={{
+              width: `${pctA}%`,
+              background: "linear-gradient(90deg, #7c3aed, #a855f7)",
+            }}
+          />
+          <div
+            className="h-full rounded-r-full transition-all duration-500"
+            style={{
+              width: `${pctB}%`,
+              background: "linear-gradient(90deg, #f97316, #ef4444)",
+            }}
+          />
+        </div>
+        {/* Player B value */}
+        <span
+          className={`w-16 text-left text-sm font-black tabular-nums ${
+            bWins ? "text-orange-400" : "text-zinc-400"
+          }`}
+        >
+          {fmt(valueB)}
+        </span>
       </div>
-      <div className="flex justify-between text-xs text-zinc-600">
-        <span>{nameA}</span>
-        <span>{nameB}</span>
+      {/* Name labels */}
+      <div className="flex justify-between px-[4.5rem] text-xs text-zinc-500">
+        <span className="font-medium text-violet-400/70 truncate max-w-[45%]">{nameA}</span>
+        <span className="font-medium text-orange-400/70 truncate max-w-[45%] text-right">{nameB}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   CompareBar legend — renders once above the bars
+   ============================================================ */
+
+interface CompareLegendProps {
+  nameA: string;
+  nameB: string;
+}
+
+export function CompareLegend({ nameA, nameB }: CompareLegendProps) {
+  return (
+    <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5 text-xs font-bold">
+      <div className="flex items-center gap-2">
+        <span
+          className="inline-block h-3 w-8 rounded-full"
+          style={{ background: "linear-gradient(90deg, #7c3aed, #a855f7)" }}
+        />
+        <span className="text-violet-400">{nameA}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-orange-400">{nameB}</span>
+        <span
+          className="inline-block h-3 w-8 rounded-full"
+          style={{ background: "linear-gradient(90deg, #f97316, #ef4444)" }}
+        />
       </div>
     </div>
   );

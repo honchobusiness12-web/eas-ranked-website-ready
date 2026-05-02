@@ -2,7 +2,7 @@
 
 import PlayerAvatar from "@/components/PlayerAvatar";
 import RankBadge from "@/components/RankBadge";
-import { CompareBar } from "@/components/StatsChart";
+import { CompareBar, CompareLegend } from "@/components/StatsChart";
 import { WinLossChart } from "@/components/StatsChart";
 
 interface Player {
@@ -58,14 +58,14 @@ export default function PlayerComparison({ playerA, playerB }: PlayerComparisonP
         <div className="text-2xl font-black text-zinc-600">VS</div>
 
         {/* Player B */}
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-blue-700/40 bg-blue-950/20 p-5">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-orange-700/40 bg-orange-950/20 p-5">
           <PlayerAvatar name={playerB.name} avatar={playerB.avatar_url} size="h-16 w-16" />
           <div className="text-center">
             <p className="text-lg font-black">{playerB.name}</p>
             <p className="text-xs text-zinc-500">{playerB.username || "—"}</p>
           </div>
           <RankBadge cr={crB} size="md" />
-          <p className="text-3xl font-black text-blue-400">{crB} CR</p>
+          <p className="text-3xl font-black text-orange-400">{crB} CR</p>
         </div>
       </div>
 
@@ -84,6 +84,7 @@ export default function PlayerComparison({ playerA, playerB }: PlayerComparisonP
       {/* Comparison bars */}
       <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6 space-y-5">
         <h3 className="text-lg font-black">📊 Head-to-Head Stats</h3>
+        <CompareLegend nameA={playerA.name} nameB={playerB.name} />
         <CompareBar label="CR" valueA={crA} valueB={crB} nameA={playerA.name} nameB={playerB.name} />
         <CompareBar label="Wins" valueA={winsA} valueB={winsB} nameA={playerA.name} nameB={playerB.name} />
         <CompareBar label="Kills" valueA={killsA} valueB={killsB} nameA={playerA.name} nameB={playerB.name} />
@@ -107,16 +108,19 @@ export default function PlayerComparison({ playerA, playerB }: PlayerComparisonP
             label="Higher CR"
             winner={crA > crB ? playerA.name : crB > crA ? playerB.name : "Tied"}
             tied={crA === crB}
+            nameA={playerA.name}
           />
           <VerdictCell
             label="More Wins"
             winner={winsA > winsB ? playerA.name : winsB > winsA ? playerB.name : "Tied"}
             tied={winsA === winsB}
+            nameA={playerA.name}
           />
           <VerdictCell
             label="Better Win Rate"
             winner={winRateA > winRateB ? playerA.name : winRateB > winRateA ? playerB.name : "Tied"}
             tied={winRateA === winRateB}
+            nameA={playerA.name}
           />
         </div>
       </div>
@@ -124,11 +128,27 @@ export default function PlayerComparison({ playerA, playerB }: PlayerComparisonP
   );
 }
 
-function VerdictCell({ label, winner, tied }: { label: string; winner: string; tied: boolean }) {
+function VerdictCell({
+  label,
+  winner,
+  tied,
+  nameA,
+}: {
+  label: string;
+  winner: string;
+  tied: boolean;
+  nameA: string;
+}) {
+  const isA = !tied && winner === nameA;
+  const colorClass = tied
+    ? "text-zinc-400"
+    : isA
+    ? "text-violet-400"
+    : "text-orange-400";
   return (
     <div className="rounded-xl bg-white/5 p-3">
       <p className="text-xs text-zinc-500">{label}</p>
-      <p className={`mt-1 font-black ${tied ? "text-zinc-400" : "text-purple-300"}`}>{winner}</p>
+      <p className={`mt-1 font-black ${colorClass}`}>{winner}</p>
     </div>
   );
 }
