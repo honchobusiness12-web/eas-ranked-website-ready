@@ -8,7 +8,6 @@ import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import TrendingIndicator from "@/components/TrendingIndicator";
 import Pagination from "@/components/Pagination";
-import ExportButton from "@/components/ExportButton";
 import PlayerSearch from "@/components/PlayerSearch";
 import { SkeletonTable } from "@/components/LoadingSkeleton";
 
@@ -83,8 +82,7 @@ export default function LeaderboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {!loading && <ExportButton players={players} filename="eas-leaderboard" />}
-          <SoundLink
+<SoundLink
             href="/leaderboard"
             soundType="click"
             className="rounded-xl bg-purple-600 px-4 py-2 font-bold hover:bg-purple-500"
