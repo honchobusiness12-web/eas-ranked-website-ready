@@ -1,12 +1,15 @@
 import "./globals.css";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "EAS Ranked Dashboard",
-  description: "EAS competitive ranked leaderboard and player profiles"
+  description: "Elevate All-Stars Ranked Dashboard",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>{children}</body>
