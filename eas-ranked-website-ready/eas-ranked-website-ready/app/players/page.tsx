@@ -1,6 +1,6 @@
-import Link from "next/link";
 import Shell from "@/components/Shell";
 import PlayerAvatar from "@/components/PlayerAvatar";
+import SoundLink from "@/components/SoundLink";
 import { syncPlayersFromDB } from "@/lib/cache";
 
 export const revalidate = 30;
@@ -18,7 +18,7 @@ export default async function PlayersPage() {
       <p className="mt-2 text-zinc-400">All stored players from the EAS database.</p>
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {players.map((p: any) => (
-          <Link href={`/profile/${p.user_id}`} key={p.user_id} className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 hover:border-purple-700">
+          <SoundLink href={`/profile/${p.user_id}`} key={p.user_id} soundType="click" className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 hover:border-purple-700">
             <div className="flex items-center gap-4">
               <PlayerAvatar name={p.name} avatar={p.avatar_url} />
               <div>
@@ -31,7 +31,7 @@ export default async function PlayersPage() {
               <Mini label="Wins" value={p.wins || 0} />
               <Mini label="Kills" value={p.kills || 0} />
             </div>
-          </Link>
+          </SoundLink>
         ))}
       </div>
     </Shell>
