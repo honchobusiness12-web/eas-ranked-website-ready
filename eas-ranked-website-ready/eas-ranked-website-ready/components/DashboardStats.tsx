@@ -1,15 +1,20 @@
+"use client";
+
 import { getRankDistribution } from "@/lib/charts";
 import { RankDistributionChart } from "@/components/StatsChart";
 import type { CachedPlayer } from "@/lib/cache";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import TrendingIndicator from "@/components/TrendingIndicator";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface DashboardStatsProps {
   players: CachedPlayer[];
 }
 
 export default function DashboardStats({ players }: DashboardStatsProps) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const ranked = players.filter((p) => p.ranked);
   const buckets = getRankDistribution(ranked);
 
@@ -32,17 +37,27 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
     .sort((a, b) => b.winRate - a.winRate)
     .slice(0, 5);
 
+  const cardClass = isLight
+    ? "rounded-2xl border border-black/10 bg-white shadow-sm"
+    : "rounded-2xl border border-white/10 bg-[#0d0d14]";
+
+  const rowClass = isLight
+    ? "flex items-center gap-3 rounded-xl p-2 hover:bg-purple-50 transition"
+    : "flex items-center gap-3 rounded-xl p-2 hover:bg-white/5 transition";
+
+  const rankClass = isLight ? "w-5 text-sm font-black text-[#7070a0]" : "w-5 text-sm font-black text-zinc-500";
+
   return (
     <div className="space-y-6">
       {/* Rank Distribution */}
-      <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+      <div className={`${cardClass} p-6`}>
         <h3 className="mb-5 text-xl font-black">📊 Rank Distribution</h3>
         <RankDistributionChart buckets={buckets} totalPlayers={ranked.length} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Top CR */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
+        <div className={`${cardClass} p-5`}>
           <h3 className="mb-4 text-lg font-black">🏆 Top CR</h3>
           <div className="space-y-3">
             {topPlayers.map((p, i) => (
@@ -50,35 +65,35 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
                 key={p.user_id}
                 href={`/profile/${p.user_id}`}
                 soundType="click"
-                className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5 transition"
+                className={rowClass}
               >
-                <span className="w-5 text-sm font-black text-zinc-500">#{i + 1}</span>
+                <span className={rankClass}>#{i + 1}</span>
                 <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
                 <span className="flex-1 text-sm font-bold truncate">{p.name}</span>
-                <span className="text-sm font-black text-purple-400">{p.cr}</span>
+                <span className={`text-sm font-black ${isLight ? "text-purple-700" : "text-purple-400"}`}>{p.cr}</span>
               </SoundLink>
             ))}
           </div>
         </div>
 
         {/* Top MVPs */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
+        <div className={`${cardClass} p-5`}>
           <h3 className="mb-4 text-lg font-black">🌟 Top MVPs</h3>
           <div className="space-y-3">
             {topMvps.length === 0 ? (
-              <p className="text-sm text-zinc-500">No MVP data yet.</p>
+              <p className={`text-sm ${isLight ? "text-[#7070a0]" : "text-zinc-500"}`}>No MVP data yet.</p>
             ) : (
               topMvps.map((p, i) => (
                 <SoundLink
                   key={p.user_id}
                   href={`/profile/${p.user_id}`}
                   soundType="click"
-                  className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5 transition"
+                  className={rowClass}
                 >
-                  <span className="w-5 text-sm font-black text-zinc-500">#{i + 1}</span>
+                  <span className={rankClass}>#{i + 1}</span>
                   <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
                   <span className="flex-1 text-sm font-bold truncate">{p.name}</span>
-                  <span className="text-sm font-black text-yellow-400">{p.mvp_count} MVP</span>
+                  <span className={`text-sm font-black ${isLight ? "text-yellow-600" : "text-yellow-400"}`}>{p.mvp_count} MVP</span>
                 </SoundLink>
               ))
             )}
@@ -86,24 +101,24 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
         </div>
 
         {/* Top Win Rates */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
+        <div className={`${cardClass} p-5`}>
           <h3 className="mb-4 text-lg font-black">📈 Best Win Rate</h3>
-          <p className="mb-3 text-xs text-zinc-600">Min. 10 matches</p>
+          <p className={`mb-3 text-xs ${isLight ? "text-[#9090b8]" : "text-zinc-600"}`}>Min. 10 matches</p>
           <div className="space-y-3">
             {topWinRates.length === 0 ? (
-              <p className="text-sm text-zinc-500">Not enough match data.</p>
+              <p className={`text-sm ${isLight ? "text-[#7070a0]" : "text-zinc-500"}`}>Not enough match data.</p>
             ) : (
               topWinRates.map((p, i) => (
                 <SoundLink
                   key={p.user_id}
                   href={`/profile/${p.user_id}`}
                   soundType="click"
-                  className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5 transition"
+                  className={rowClass}
                 >
-                  <span className="w-5 text-sm font-black text-zinc-500">#{i + 1}</span>
+                  <span className={rankClass}>#{i + 1}</span>
                   <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
                   <span className="flex-1 text-sm font-bold truncate">{p.name}</span>
-                  <span className="text-sm font-black text-green-400">{p.winRate}%</span>
+                  <span className={`text-sm font-black ${isLight ? "text-green-700" : "text-green-400"}`}>{p.winRate}%</span>
                 </SoundLink>
               ))
             )}

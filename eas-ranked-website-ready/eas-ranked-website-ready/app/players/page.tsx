@@ -8,6 +8,7 @@ import RankBadge from "@/components/RankBadge";
 import { SkeletonCardsGrid } from "@/components/LoadingSkeleton";
 import Pagination from "@/components/Pagination";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
+import { useTheme } from "@/components/ThemeProvider";
 
 const ITEMS_PER_PAGE = 18;
 
@@ -19,6 +20,8 @@ export default function PlayersPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterRank>("all");
   const [page, setPage] = useState(1);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   useEffect(() => {
     fetch("/api/leaderboard")
@@ -57,7 +60,7 @@ export default function PlayersPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black">👥 Players</h1>
-          <p className="mt-2 text-zinc-400">
+          <p className={`mt-2 ${isLight ? "text-[#7070a0]" : "text-zinc-400"}`}>
             {loading ? "Loading…" : `${filtered.length} players`}
           </p>
         </div>
@@ -66,13 +69,17 @@ export default function PlayersPage() {
       {/* Search + filters */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">🔍</span>
+          <span className={`absolute left-3 top-1/2 -translate-y-1/2 ${isLight ? "text-[#7070a0]" : "text-zinc-500"}`}>🔍</span>
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search by name or username…"
-            className="rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition w-64"
+            className={`rounded-xl border py-2.5 pl-9 pr-4 text-sm outline-none transition w-64 ${
+              isLight
+                ? "border-black/15 bg-white text-[#0f0f1a] placeholder-[#7070a0] shadow-sm focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20"
+                : "border-white/10 bg-white/5 text-white placeholder-zinc-500 focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+            }`}
           />
         </div>
         <div className="flex gap-2">
@@ -83,7 +90,9 @@ export default function PlayersPage() {
               className={`rounded-xl border px-3 py-1.5 text-xs font-bold capitalize transition ${
                 filter === f
                   ? "border-purple-600 bg-purple-600 text-white"
-                  : "border-white/10 bg-white/5 text-zinc-400 hover:border-purple-700 hover:text-white"
+                  : isLight
+                    ? "border-black/12 bg-white text-[#3d3d5c] shadow-sm hover:border-purple-500 hover:text-purple-700"
+                    : "border-white/10 bg-white/5 text-zinc-400 hover:border-purple-700 hover:text-white"
               }`}
             >
               {f}
@@ -95,10 +104,12 @@ export default function PlayersPage() {
       {loading ? (
         <SkeletonCardsGrid count={9} />
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-12 text-center">
+        <div className={`rounded-2xl border p-12 text-center ${
+          isLight ? "border-black/10 bg-white shadow-sm" : "border-white/10 bg-[#0d0d14]"
+        }`}>
           <p className="text-4xl mb-3">🔍</p>
-          <p className="text-xl font-black text-zinc-400">No players found</p>
-          <p className="mt-2 text-sm text-zinc-600">Try adjusting your search or filter</p>
+          <p className={`text-xl font-black ${isLight ? "text-[#7070a0]" : "text-zinc-400"}`}>No players found</p>
+          <p className={`mt-2 text-sm ${isLight ? "text-[#9090b8]" : "text-zinc-600"}`}>Try adjusting your search or filter</p>
         </div>
       ) : (
         <>
@@ -114,22 +125,26 @@ export default function PlayersPage() {
                   href={`/profile/${p.user_id}`}
                   key={p.user_id}
                   soundType="click"
-                  className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 hover:border-purple-700 transition group"
+                  className={`rounded-2xl border p-5 transition group ${
+                    isLight
+                      ? "border-black/10 bg-white shadow-sm hover:border-purple-400 hover:shadow-md"
+                      : "border-white/10 bg-[#0d0d14] hover:border-purple-700"
+                  }`}
                 >
                   <div className="flex items-center gap-4">
                     <PlayerAvatar name={p.name} avatar={p.avatar_url} />
                     <div className="flex-1 min-w-0">
                       <p className="text-lg font-black truncate">{p.name}</p>
-                      <p className="text-xs text-zinc-500 truncate">{p.username || "No username saved"}</p>
+                      <p className={`text-xs truncate ${isLight ? "text-[#7070a0]" : "text-zinc-500"}`}>{p.username || "No username saved"}</p>
                     </div>
                     {p.ranked && <RankBadge cr={Number(p.cr || 0)} size="sm" showLabel={false} />}
                   </div>
 
                   <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-                    <Mini label="CR" value={p.cr || 0} highlight />
-                    <Mini label="Wins" value={p.wins || 0} />
-                    <Mini label="Kills" value={p.kills || 0} />
-                    <Mini label="Win%" value={`${winRate}%`} />
+                    <Mini label="CR" value={p.cr || 0} highlight isLight={isLight} />
+                    <Mini label="Wins" value={p.wins || 0} isLight={isLight} />
+                    <Mini label="Kills" value={p.kills || 0} isLight={isLight} />
+                    <Mini label="Win%" value={`${winRate}%`} isLight={isLight} />
                   </div>
 
                   {/* Achievement preview */}
@@ -144,10 +159,10 @@ export default function PlayersPage() {
                           </span>
                         ))}
                       {unlockedCount === 0 && (
-                        <span className="text-xs text-zinc-600">No achievements yet</span>
+                        <span className={`text-xs ${isLight ? "text-[#9090b8]" : "text-zinc-600"}`}>No achievements yet</span>
                       )}
                     </div>
-                    <span className="text-xs text-zinc-600">
+                    <span className={`text-xs ${isLight ? "text-[#9090b8]" : "text-zinc-600"}`}>
                       {unlockedCount}/{achievements.length} 🏅
                     </span>
                   </div>
@@ -169,11 +184,11 @@ export default function PlayersPage() {
   );
 }
 
-function Mini({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) {
+function Mini({ label, value, highlight, isLight }: { label: string; value: any; highlight?: boolean; isLight?: boolean }) {
   return (
-    <div className="rounded-xl bg-white/5 p-2">
-      <p className="text-xs text-zinc-500">{label}</p>
-      <p className={`font-black text-sm ${highlight ? "text-purple-400" : ""}`}>{value}</p>
+    <div className={`rounded-xl p-2 ${isLight ? "bg-[#f0f0f7]" : "bg-white/5"}`}>
+      <p className={`text-xs ${isLight ? "text-[#7070a0]" : "text-zinc-500"}`}>{label}</p>
+      <p className={`font-black text-sm ${highlight ? (isLight ? "text-purple-600" : "text-purple-400") : (isLight ? "text-[#0f0f1a]" : "")}`}>{value}</p>
     </div>
   );
 }

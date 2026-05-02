@@ -163,14 +163,16 @@ function Stat({
   note: string;
   color?: "purple" | "green" | "yellow" | "blue" | "red";
 }) {
+  // Note colors work in both modes — purple/green/etc are vivid enough
   const noteColors = {
-    purple: "text-purple-400",
-    green:  "text-green-400",
-    yellow: "text-yellow-400",
-    blue:   "text-blue-400",
-    red:    "text-red-400",
+    purple: "text-purple-500",
+    green:  "text-green-600",
+    yellow: "text-yellow-600",
+    blue:   "text-blue-600",
+    red:    "text-red-500",
   };
   return (
+    // bg-[#0d0d14] and border-white/10 are overridden by theme.css in light mode
     <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
       <p className="text-xs text-zinc-400">{title}</p>
       <p className="mt-2 text-2xl font-black">{value.toLocaleString()}</p>

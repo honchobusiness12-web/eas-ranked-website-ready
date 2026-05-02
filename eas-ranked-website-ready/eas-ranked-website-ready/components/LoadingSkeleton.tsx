@@ -1,4 +1,5 @@
 // Skeleton loader components — pure CSS shimmer, no dependencies
+// Uses CSS variable overrides from theme.css for light/dark mode
 
 function SkeletonBase({ className }: { className?: string }) {
   return (

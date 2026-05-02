@@ -2,6 +2,7 @@
 
 import { useSounds } from "@/components/SoundProvider";
 import { useToast } from "@/components/ToastProvider";
+import { useTheme } from "@/components/ThemeProvider";
 import { getRank } from "@/lib/ranks";
 
 interface Player {
@@ -25,6 +26,8 @@ interface ExportButtonProps {
 export default function ExportButton({ players, filename = "leaderboard" }: ExportButtonProps) {
   const { click } = useSounds();
   const { addToast } = useToast();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   function exportCSV() {
     click();
@@ -86,14 +89,22 @@ export default function ExportButton({ players, filename = "leaderboard" }: Expo
     <div className="flex items-center gap-2">
       <button
         onClick={exportCSV}
-        className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-zinc-300 hover:border-green-600 hover:bg-green-950/30 hover:text-green-300 transition"
+        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold transition ${
+          isLight
+            ? "border-black/12 bg-white text-[#3d3d5c] shadow-sm hover:border-green-600 hover:bg-green-50 hover:text-green-700"
+            : "border-white/10 bg-white/5 text-zinc-300 hover:border-green-600 hover:bg-green-950/30 hover:text-green-300"
+        }`}
         title="Export as CSV"
       >
         📥 CSV
       </button>
       <button
         onClick={exportJSON}
-        className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-zinc-300 hover:border-blue-600 hover:bg-blue-950/30 hover:text-blue-300 transition"
+        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold transition ${
+          isLight
+            ? "border-black/12 bg-white text-[#3d3d5c] shadow-sm hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700"
+            : "border-white/10 bg-white/5 text-zinc-300 hover:border-blue-600 hover:bg-blue-950/30 hover:text-blue-300"
+        }`}
         title="Export as JSON"
       >
         📋 JSON
