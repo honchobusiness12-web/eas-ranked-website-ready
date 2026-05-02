@@ -13,6 +13,8 @@ interface Player {
   wins: number;
   losses: number;
   kills: number;
+  matches: number;
+  mvp_count: number;
   ranked: boolean;
 }
 
