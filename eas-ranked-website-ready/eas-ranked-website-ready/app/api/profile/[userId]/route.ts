@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 
-export async function GET(
-  req: NextRequest,
-  context: { params: Promise<{ userId: string }> }
-) {
+export async function GET(req: NextRequest, context: { params: Promise<{ userId: string }> }) {
   try {
     const { userId } = await context.params;
+
     const result = await pool.query(
       `
       SELECT
+        guild_id,
         user_id,
         COALESCE(data->>'display_name', data->>'username', 'Unknown Player') AS name,
         data->>'username' AS username,
@@ -23,7 +22,9 @@ export async function GET(
         COALESCE((data->>'placement_matches')::int, 0) AS placement_matches,
         COALESCE((data->>'ranked')::boolean, false) AS ranked,
         COALESCE((data->>'registered')::boolean, false) AS registered,
-        COALESCE(data->'history', '[]'::jsonb) AS history
+        COALESCE((data->>'blacklisted')::boolean, false) AS blacklisted,
+        COALESCE(data->'history', '[]'::jsonb) AS history,
+        COALESCE(data->'notes', '[]'::jsonb) AS notes
       FROM players
       WHERE user_id = $1
       LIMIT 1
@@ -38,10 +39,6 @@ export async function GET(
     return NextResponse.json(result.rows[0]);
   } catch (error) {
     console.error("Profile API error:", error);
-    return NextResponse.json(
-      { error: "Failed to load profile" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to load profile" }, { status: 500 });
   }
 }
-

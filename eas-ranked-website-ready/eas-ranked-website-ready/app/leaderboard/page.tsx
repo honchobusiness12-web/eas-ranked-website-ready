@@ -1,0 +1,48 @@
+import Link from "next/link";
+import Shell from "@/components/Shell";
+import PlayerAvatar from "@/components/PlayerAvatar";
+import { getRank } from "@/lib/ranks";
+
+async function getPlayers() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/leaderboard`, { cache: "no-store" });
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export default async function LeaderboardPage() {
+  const players = await getPlayers();
+
+  return (
+    <Shell>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-black">🏆 Leaderboard</h1>
+          <p className="mt-2 text-zinc-400">Live CR rankings from PostgreSQL.</p>
+        </div>
+        <a href="/leaderboard" className="rounded-xl bg-purple-600 px-4 py-2 font-bold hover:bg-purple-500">Refresh Live Data</a>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-[#0d0d14]">
+        {players.length === 0 ? (
+          <p className="p-6 text-zinc-400">No leaderboard data found.</p>
+        ) : (
+          players.map((p: any, index: number) => (
+            <Link href={`/profile/${p.user_id}`} key={p.user_id} className="grid grid-cols-[60px_1fr_120px_100px_100px] items-center border-b border-white/10 px-6 py-4 hover:bg-white/5">
+              <span className="text-xl font-black">#{index + 1}</span>
+              <div className="flex items-center gap-4">
+                <PlayerAvatar name={p.name} avatar={p.avatar_url} />
+                <div>
+                  <p className="font-black">{p.name}</p>
+                  <p className="text-xs text-zinc-500">{p.username || "No username saved"}</p>
+                </div>
+              </div>
+              <span className="text-sm text-purple-300">{getRank(Number(p.cr || 0))}</span>
+              <span className="text-right font-black text-purple-400">{p.cr || 0} CR</span>
+              <span className="text-right text-sm text-zinc-400">{p.wins || 0}W - {p.losses || 0}L</span>
+            </Link>
+          ))
+        )}
+      </div>
+    </Shell>
+  );
+}

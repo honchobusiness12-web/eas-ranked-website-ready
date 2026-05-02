@@ -1,10 +1,16 @@
 import { Pool } from "pg";
 
-if (!process.env.DATABASE_URL) {
-  console.warn("DATABASE_URL is missing. Add it in Railway Variables.");
+declare global {
+  var easPool: Pool | undefined;
 }
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-});
+export const pool =
+  global.easPool ||
+  new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : undefined,
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  global.easPool = pool;
+}

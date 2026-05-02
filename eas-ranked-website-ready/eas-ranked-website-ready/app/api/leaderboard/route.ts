@@ -5,8 +5,8 @@ export async function GET() {
   try {
     const result = await pool.query(`
       SELECT
-        guild_id::text AS guild_id,
-        user_id::text AS user_id,
+        guild_id,
+        user_id,
         COALESCE(data->>'display_name', data->>'username', 'Unknown Player') AS name,
         data->>'username' AS username,
         data->>'avatar_url' AS avatar_url,
@@ -16,13 +16,14 @@ export async function GET() {
         COALESCE((data->>'kills')::int, 0) AS kills,
         COALESCE((data->>'matches')::int, 0) AS matches,
         COALESCE((data->>'mvp_count')::int, 0) AS mvp_count,
+        COALESCE((data->>'placement_matches')::int, 0) AS placement_matches,
         COALESCE((data->>'ranked')::boolean, false) AS ranked,
         COALESCE((data->>'registered')::boolean, false) AS registered,
-        COALESCE((data->>'placement_matches')::int, 0) AS placement_matches
+        COALESCE((data->>'blacklisted')::boolean, false) AS blacklisted
       FROM players
       WHERE COALESCE((data->>'blacklisted')::boolean, false) = false
-      ORDER BY cr DESC, wins DESC, kills DESC
-      LIMIT 100
+      ORDER BY cr DESC
+      LIMIT 250
     `);
 
     return NextResponse.json(result.rows);
