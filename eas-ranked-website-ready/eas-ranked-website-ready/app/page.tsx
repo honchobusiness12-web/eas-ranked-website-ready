@@ -2,19 +2,61 @@ import Link from "next/link";
 import Shell from "@/components/Shell";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { getRank } from "@/lib/ranks";
+import {
+  getPlayersFromCache,
+  syncPlayersFromDB,
+  secondsSinceUpdate,
+} from "@/lib/cache";
+import { pool } from "@/lib/db";
 
 async function getPlayers() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/leaderboard`, { cache: "no-store" });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
+  // Try cache first; fall back to a direct DB query if the cache is empty.
+  let players = getPlayersFromCache();
+  if (players.length === 0) {
+    await syncPlayersFromDB();
+    players = getPlayersFromCache();
   }
+  if (players.length === 0) {
+    // Last-resort DB fallback (bypasses cache entirely).
+    try {
+      const result = await pool.query(`
+        SELECT
+          guild_id, user_id,
+          COALESCE(data->>'display_name', data->>'username', 'Unknown Player') AS name,
+          data->>'username' AS username,
+          data->>'avatar_url' AS avatar_url,
+          COALESCE((data->>'cr')::int, 0) AS cr,
+          COALESCE((data->>'wins')::int, 0) AS wins,
+          COALESCE((data->>'losses')::int, 0) AS losses,
+          COALESCE((data->>'kills')::int, 0) AS kills,
+          COALESCE((data->>'matches')::int, 0) AS matches,
+          COALESCE((data->>'mvp_count')::int, 0) AS mvp_count,
+          COALESCE((data->>'placement_matches')::int, 0) AS placement_matches,
+          COALESCE((data->>'ranked')::boolean, false) AS ranked,
+          COALESCE((data->>'registered')::boolean, false) AS registered,
+          COALESCE((data->>'blacklisted')::boolean, false) AS blacklisted
+        FROM players
+        WHERE COALESCE((data->>'blacklisted')::boolean, false) = false
+        ORDER BY cr DESC LIMIT 250
+      `);
+      return result.rows;
+    } catch {
+      return [];
+    }
+  }
+  return players;
 }
 
 export default async function HomePage() {
   const players = await getPlayers();
+  const lastUpdatedSecs = secondsSinceUpdate();
+  const lastUpdatedLabel =
+    lastUpdatedSecs === null
+      ? "DB fallback"
+      : lastUpdatedSecs < 60
+      ? `${lastUpdatedSecs}s ago`
+      : `${Math.floor(lastUpdatedSecs / 60)}m ago`;
+
   const totalPlayers = players.length;
   const rankedPlayers = players.filter((p: any) => p.ranked).length;
   const placementPlayers = players.filter((p: any) => p.registered && !p.ranked).length;
@@ -51,7 +93,7 @@ export default async function HomePage() {
           <div className="flex items-center justify-between border-b border-white/10 p-6">
             <div>
               <h2 className="text-2xl font-black">🏆 Top Players</h2>
-              <p className="text-sm text-zinc-400">Pulled live from PostgreSQL</p>
+              <p className="text-sm text-zinc-400">Last updated: {lastUpdatedLabel}</p>
             </div>
             <Link href="/leaderboard" className="rounded-xl border border-purple-700 px-4 py-2 text-sm font-bold text-purple-300 hover:bg-purple-950">Full Board</Link>
           </div>
