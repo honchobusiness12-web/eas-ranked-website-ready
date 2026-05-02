@@ -1,13 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 
-export async function GET(req: Request, { params }: { params: { userId: string } }) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ userId: string }> }
+) {
   try {
+    const { userId } = await context.params;
     const result = await pool.query(
       `
       SELECT
-        guild_id::text AS guild_id,
-        user_id::text AS user_id,
+        user_id,
         COALESCE(data->>'display_name', data->>'username', 'Unknown Player') AS name,
         data->>'username' AS username,
         data->>'avatar_url' AS avatar_url,
@@ -25,7 +28,7 @@ export async function GET(req: Request, { params }: { params: { userId: string }
       WHERE user_id = $1
       LIMIT 1
       `,
-      [params.userId]
+      [userId]
     );
 
     if (result.rows.length === 0) {
@@ -35,6 +38,10 @@ export async function GET(req: Request, { params }: { params: { userId: string }
     return NextResponse.json(result.rows[0]);
   } catch (error) {
     console.error("Profile API error:", error);
-    return NextResponse.json({ error: "Failed to load profile" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load profile" },
+      { status: 500 }
+    );
   }
 }
+
