@@ -108,15 +108,21 @@ export default async function HomePage() {
 
         <div className="space-y-6">
           {/* Season card */}
-          <div className="rounded-2xl border border-purple-700/50 bg-purple-950/30 p-6">
-            <h3 className="text-xl font-black">Season One Live</h3>
-            <p className="mt-2 text-sm text-zinc-400">2026 Season</p>
-            <span className="mt-4 inline-block rounded-lg bg-green-600 px-3 py-1 text-xs font-bold">LIVE</span>
-            <p className="mt-4 text-zinc-300">Compete, climb, and become a legend.</p>
-            <div className="mt-4 h-2 rounded-full bg-zinc-800">
-              <div className="h-2 w-2/3 rounded-full bg-purple-500" />
+          <div className="rounded-2xl border border-orange-700/50 bg-orange-950/20 p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-black">Season One</h3>
+              <span className="rounded-lg bg-orange-600 px-3 py-1 text-xs font-black tracking-wider text-white">
+                OFF SEASON
+              </span>
             </div>
-            <p className="mt-2 text-xs text-zinc-500">Season progress</p>
+            <p className="mt-2 text-sm text-zinc-400">2026 Season</p>
+            <div className="mt-4 rounded-xl border border-orange-700/30 bg-orange-950/30 px-4 py-3">
+              <p className="text-sm font-bold text-orange-300">⏸ Season Paused</p>
+              <p className="mt-1 text-xs text-zinc-400">
+                The ranked season is currently on break. Stay tuned for the next season start date.
+              </p>
+            </div>
+            <p className="mt-4 text-xs text-zinc-500">Next season coming soon</p>
           </div>
 
           {/* Recent activity */}
@@ -164,17 +170,17 @@ function Stat({
   color?: "purple" | "green" | "yellow" | "blue" | "red";
 }) {
   const noteColors = {
-    purple: "text-purple-400",
-    green:  "text-green-400",
-    yellow: "text-yellow-400",
-    blue:   "text-blue-400",
-    red:    "text-red-400",
+    purple: "text-purple-500",
+    green:  "text-green-600",
+    yellow: "text-yellow-600",
+    blue:   "text-blue-500",
+    red:    "text-red-500",
   };
   return (
     <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
       <p className="text-xs text-zinc-400">{title}</p>
       <p className="mt-2 text-2xl font-black">{value.toLocaleString()}</p>
-      <p className={`mt-1 text-xs ${noteColors[color]}`}>{note}</p>
+      <p className={`mt-1 text-xs font-semibold ${noteColors[color]}`}>{note}</p>
     </div>
   );
 }

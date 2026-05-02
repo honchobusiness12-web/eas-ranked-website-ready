@@ -20,22 +20,22 @@
 }
 
 [data-theme="light"] {
-  --bg-base:        #f4f4f8;
+  --bg-base:        #f0f0f6;
   --bg-surface:     #ffffff;
-  --bg-elevated:    #ebebf3;
-  --border-subtle:  rgba(0,0,0,0.08);
-  --border-accent:  rgba(109,40,217,0.35);
-  --text-primary:   #0f0f1a;
-  --text-secondary: #4b4b6b;
-  --text-muted:     #9090a8;
+  --bg-elevated:    #e8e8f0;
+  --border-subtle:  rgba(0,0,0,0.10);
+  --border-accent:  rgba(109,40,217,0.40);
+  --text-primary:   #0a0a14;
+  --text-secondary: #3a3a5c;
+  --text-muted:     #7070a0;
   --accent:         #7c3aed;
   --accent-hover:   #6d28d9;
-  --green:          #16a34a;
-  --red:            #dc2626;
+  --green:          #15803d;
+  --red:            #b91c1c;
 }
 
 /* ============================================================
-   Light mode overrides for key structural elements
+   Light mode — structural elements
    ============================================================ */
 
 [data-theme="light"] body {
@@ -54,9 +54,17 @@
 }
 
 [data-theme="light"] header {
-  background: rgba(244,244,248,0.85) !important;
+  background: rgba(240,240,246,0.92) !important;
   border-color: var(--border-subtle) !important;
 }
+
+[data-theme="light"] footer {
+  border-color: rgba(0,0,0,0.10) !important;
+}
+
+/* ============================================================
+   Light mode — background utility overrides
+   ============================================================ */
 
 [data-theme="light"] .bg-\[\#0d0d14\] {
   background: var(--bg-surface) !important;
@@ -70,6 +78,46 @@
   background: var(--bg-base) !important;
 }
 
+[data-theme="light"] .bg-white\/5 {
+  background: rgba(0,0,0,0.05) !important;
+}
+
+[data-theme="light"] .bg-white\/10 {
+  background: rgba(0,0,0,0.08) !important;
+}
+
+[data-theme="light"] .hover\:bg-white\/5:hover {
+  background: rgba(0,0,0,0.06) !important;
+}
+
+[data-theme="light"] .hover\:bg-white\/10:hover {
+  background: rgba(0,0,0,0.09) !important;
+}
+
+/* ============================================================
+   Light mode — border overrides
+   ============================================================ */
+
+[data-theme="light"] .border-white\/10 {
+  border-color: rgba(0,0,0,0.10) !important;
+}
+
+[data-theme="light"] .border-white\/5 {
+  border-color: rgba(0,0,0,0.06) !important;
+}
+
+/* ============================================================
+   Light mode — text overrides
+   ============================================================ */
+
+[data-theme="light"] .text-white {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .text-zinc-300 {
+  color: #2a2a45 !important;
+}
+
 [data-theme="light"] .text-zinc-400 {
   color: var(--text-secondary) !important;
 }
@@ -78,16 +126,67 @@
   color: var(--text-muted) !important;
 }
 
-[data-theme="light"] .border-white\/10 {
-  border-color: var(--border-subtle) !important;
+[data-theme="light"] .text-zinc-600 {
+  color: #8080b0 !important;
 }
 
-[data-theme="light"] .bg-white\/5 {
-  background: rgba(0,0,0,0.04) !important;
+[data-theme="light"] .placeholder-zinc-500::placeholder {
+  color: var(--text-muted) !important;
 }
+
+/* ============================================================
+   Light mode — input fields
+   ============================================================ */
+
+[data-theme="light"] input[type="text"] {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.14) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] input[type="text"]:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
+}
+
+/* ============================================================
+   Light mode — buttons
+   ============================================================ */
+
+[data-theme="light"] .bg-purple-600 {
+  color: #ffffff !important;
+}
+
+/* ============================================================
+   Light mode — zinc backgrounds (chart rings, progress bars)
+   ============================================================ */
+
+[data-theme="light"] .bg-zinc-800 {
+  background: #d4d4e8 !important;
+}
+
+[data-theme="light"] .bg-zinc-700 {
+  background: #c0c0d8 !important;
+}
+
+/* ============================================================
+   Light mode — hero gradient (keep it dark so white text stays readable)
+   ============================================================ */
+
+[data-theme="light"] .from-black {
+  --tw-gradient-from: #1a0a3a !important;
+}
+
+/* ============================================================
+   Light mode — scrollbar
+   ============================================================ */
 
 [data-theme="light"] ::-webkit-scrollbar-track {
   background: var(--bg-base);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #a78bfa;
 }
 
 /* ============================================================
