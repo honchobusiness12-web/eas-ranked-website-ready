@@ -1,0 +1,148 @@
+/* ============================================================
+   EAS Arena — Theme CSS Variables
+   Dark mode is the default; light mode overrides via [data-theme="light"]
+   ============================================================ */
+
+:root,
+[data-theme="dark"] {
+  --bg-base:        #05050b;
+  --bg-surface:     #0d0d14;
+  --bg-elevated:    #07070f;
+  --border-subtle:  rgba(255,255,255,0.08);
+  --border-accent:  rgba(139,92,246,0.4);
+  --text-primary:   #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted:     #52525b;
+  --accent:         #8b5cf6;
+  --accent-hover:   #7c3aed;
+  --green:          #22c55e;
+  --red:            #ef4444;
+}
+
+[data-theme="light"] {
+  --bg-base:        #f4f4f8;
+  --bg-surface:     #ffffff;
+  --bg-elevated:    #ebebf3;
+  --border-subtle:  rgba(0,0,0,0.08);
+  --border-accent:  rgba(109,40,217,0.35);
+  --text-primary:   #0f0f1a;
+  --text-secondary: #4b4b6b;
+  --text-muted:     #9090a8;
+  --accent:         #7c3aed;
+  --accent-hover:   #6d28d9;
+  --green:          #16a34a;
+  --red:            #dc2626;
+}
+
+/* ============================================================
+   Light mode overrides for key structural elements
+   ============================================================ */
+
+[data-theme="light"] body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] main {
+  background: var(--bg-base) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] aside {
+  background: var(--bg-elevated) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+[data-theme="light"] header {
+  background: rgba(244,244,248,0.85) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+[data-theme="light"] .bg-\[\#0d0d14\] {
+  background: var(--bg-surface) !important;
+}
+
+[data-theme="light"] .bg-\[\#07070f\] {
+  background: var(--bg-elevated) !important;
+}
+
+[data-theme="light"] .bg-\[\#05050b\] {
+  background: var(--bg-base) !important;
+}
+
+[data-theme="light"] .text-zinc-400 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .text-zinc-500 {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .border-white\/10 {
+  border-color: var(--border-subtle) !important;
+}
+
+[data-theme="light"] .bg-white\/5 {
+  background: rgba(0,0,0,0.04) !important;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.25s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+/* Shimmer override for skeleton loaders */
+.animate-pulse {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* Page transition fade */
+.page-enter {
+  animation: fade-in 0.35s ease-out both;
+}
+
+/* Smooth transitions on interactive elements */
+button, a {
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
