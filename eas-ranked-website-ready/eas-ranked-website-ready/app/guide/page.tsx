@@ -61,7 +61,76 @@ export default function GuidePage() {
           </p>
         </GuideSection>
 
-        {/* Section 2 — CR explained */}
+        {/* Section 2 — How Ranked Works */}
+        <GuideSection
+          emoji="🎮"
+          title="How Ranked Works"
+          color="blue"
+        >
+          <p className="text-zinc-300 leading-relaxed">
+            The ranked system is split into two distinct phases — <strong className="text-white">Placements</strong> and <strong className="text-white">Ranked</strong>. Understanding how each phase works will help you make the most of every match you play.
+          </p>
+
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            {/* Placements Phase card */}
+            <div className="rounded-xl border border-blue-700/30 bg-blue-950/20 p-4">
+              <p className="flex items-center gap-2 text-sm font-black text-blue-300">
+                <span>📋</span> Placements Phase
+              </p>
+              <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
+                All players begin in placements with <strong className="text-white">0 CR</strong>. This phase is designed to quickly evaluate skill and determine a fair starting rank.
+              </p>
+              <ul className="mt-3 space-y-1.5">
+                {[
+                  { icon: "✅", text: "Winning matches grants high CR" },
+                  { icon: "🔼", text: "Losing still grants a small amount of CR" },
+                  { icon: "💪", text: "Strong performance and consistency improve results" },
+                  { icon: "🎯", text: "Focuses on measuring skill, not punishing losses" },
+                ].map(({ icon, text }) => (
+                  <li key={text} className="flex items-start gap-2 text-sm text-zinc-400">
+                    <span className="mt-0.5 shrink-0">{icon}</span>
+                    <span>{text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Ranked Phase card */}
+            <div className="rounded-xl border border-purple-700/30 bg-purple-950/20 p-4">
+              <p className="flex items-center gap-2 text-sm font-black text-purple-300">
+                <span>🏆</span> Ranked Phase
+              </p>
+              <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
+                After completing placements, players enter the full ranked system where every result has real consequences.
+              </p>
+              <ul className="mt-3 space-y-1.5">
+                {[
+                  { icon: "📈", text: "Winning increases CR based on performance and match difficulty" },
+                  { icon: "📉", text: "Losing decreases CR, with harsher penalties at higher ranks" },
+                  { icon: "⚔️", text: "Playing against stronger opponents grants higher rewards" },
+                  { icon: "🔝", text: "Climbing becomes more challenging as rank increases" },
+                ].map(({ icon, text }) => (
+                  <li key={text} className="flex items-start gap-2 text-sm text-zinc-400">
+                    <span className="mt-0.5 shrink-0">{icon}</span>
+                    <span>{text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Philosophy callout */}
+          <div className="mt-4 rounded-xl border border-blue-700/30 bg-blue-950/20 px-4 py-3">
+            <p className="text-sm font-bold text-blue-300">🌟 Overall Philosophy</p>
+            <p className="mt-1 text-sm text-zinc-400">
+              The system is designed to reward <strong className="text-white">consistency</strong>, <strong className="text-white">performance</strong>, and <strong className="text-white">competitive play</strong> while maintaining a fair and balanced ranking environment.
+            </p>
+          </div>
+        </GuideSection>
+
+        {/* Section 3 — CR explained */}
         <GuideSection
           emoji="📊"
           title="Competitive Rating (CR) Explained"
