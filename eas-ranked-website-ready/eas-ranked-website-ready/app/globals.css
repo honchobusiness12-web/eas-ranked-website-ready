@@ -19,7 +19,24 @@ a { text-decoration: none; }
 
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: #05050b; }
-::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 999px; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FF6B6B, #FF9F43);
+  border-radius: 999px;
+}
+
+/* ============================================================
+   Summer Color Palette Variables
+   ============================================================ */
+
+:root {
+  --summer-coral:    #FF6B6B;
+  --summer-orange:   #FF9F43;
+  --summer-yellow:   #FFD93D;
+  --summer-teal:     #00D4FF;
+  --summer-blue:     #0099FF;
+  --summer-lime:     #00FF88;
+  --summer-bg-warm:  #0e0905;
+}
 
 /* ============================================================
    Animations — referenced by Tailwind animate-* classes
@@ -40,12 +57,31 @@ a { text-decoration: none; }
   100% { background-position: 800px 0; }
 }
 
+@keyframes sun-pulse {
+  0%, 100% { opacity: 0.28; transform: scale(1) rotate(0deg); }
+  50%       { opacity: 0.38; transform: scale(1.06) rotate(8deg); }
+}
+
+@keyframes wave {
+  0%   { transform: translateX(0) scaleY(1); }
+  50%  { transform: translateX(-12px) scaleY(1.04); }
+  100% { transform: translateX(0) scaleY(1); }
+}
+
 .animate-slide-in {
   animation: slide-in 0.25s ease-out both;
 }
 
 .animate-fade-in {
   animation: fade-in 0.35s ease-out both;
+}
+
+.animate-sun-pulse {
+  animation: sun-pulse 4s ease-in-out infinite;
+}
+
+.animate-wave {
+  animation: wave 3s ease-in-out infinite;
 }
 
 /* Shimmer skeleton override — dark mode */
@@ -58,6 +94,27 @@ a { text-decoration: none; }
   ) !important;
   background-size: 800px 100% !important;
   animation: shimmer 1.6s infinite linear !important;
+}
+
+/* ============================================================
+   Summer gradient utility
+   ============================================================ */
+
+.summer-hero-gradient {
+  background: linear-gradient(
+    135deg,
+    #0e0905 0%,
+    #1a0e05 35%,
+    #1f1005 65%,
+    #120a10 100%
+  );
+}
+
+.summer-text-gradient {
+  background: linear-gradient(90deg, var(--summer-coral), var(--summer-orange), var(--summer-yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 
