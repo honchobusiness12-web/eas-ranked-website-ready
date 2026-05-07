@@ -1,8 +1,9 @@
 /**
  * Sound effects using the Web Audio API.
  * All sounds are generated programmatically — no external files needed.
- * Designed to be short (80–250ms), subtle, and summer-themed:
- * bright, warm, and playful with smooth fade in/out to avoid clicks.
+ * Designed to be creamy, smooth, and buttery: pure sine waves, soft volumes,
+ * longer durations (120–300ms), and gentle frequency transitions for a
+ * premium, velvety feel with smooth fade in/out to avoid clicks/pops.
  */
 
 let audioCtx: AudioContext | null = null;
@@ -100,47 +101,48 @@ function playChord(
 }
 
 /**
- * Bright, punchy click — like a beach ball pop or summer snap.
- * Square wave at 400 Hz dropping to 350 Hz (120ms) with a subtle
- * sine harmonic layer for added richness.
+ * Creamy, smooth click — like pressing a soft, satisfying button.
+ * Pure sine wave gliding from 350 Hz down to 320 Hz (150ms) with a
+ * subtle lower harmonic at 175 Hz for added warmth and body.
  */
-export function playClick(volume = 0.35): void {
-  // Primary punch: square wave with a quick pitch drop
-  playTone({ startFreq: 400, endFreq: 350, duration: 120, volume: volume * 0.75, type: "square" });
-  // Harmonic layer: softer sine an octave up for brightness
-  playTone({ startFreq: 800, endFreq: 700, duration: 80, volume: volume * 0.25, type: "sine" });
+export function playClick(volume = 0.25): void {
+  // Primary tone: smooth sine glide for a buttery click feel
+  playTone({ startFreq: 350, endFreq: 320, duration: 150, volume: volume * 0.8, type: "sine" });
+  // Warm harmonic: half-frequency layer adds depth and creaminess
+  playTone({ startFreq: 175, endFreq: 160, duration: 150, volume: volume * 0.2, type: "sine" });
 }
 
 /**
- * Light, playful chime — like a beach bell or wind chime.
- * Triangle wave rising gently from 500 Hz to 520 Hz (100ms).
- * Very subtle and pleasant on repeated hover events.
+ * Creamy, buttery hover — like butter gently melting.
+ * Pure sine wave rising softly from 420 Hz to 450 Hz (120ms).
+ * Extremely subtle and velvety on repeated hover events.
  */
-export function playHover(volume = 0.2): void {
-  playTone({ startFreq: 500, endFreq: 520, duration: 100, volume, type: "triangle" });
+export function playHover(volume = 0.18): void {
+  playTone({ startFreq: 420, endFreq: 450, duration: 120, volume, type: "sine" });
 }
 
 /**
- * Bright, triumphant summer chord — like a beach celebration.
- * Two oscillators rise together (500→600 Hz and 750→900 Hz) to
- * create a full, satisfying major-interval chord over 250ms.
+ * Creamy, warm success chord — like a smooth, velvety celebration.
+ * Three pure sine waves rise together across a warm major chord
+ * (330→360 Hz, 495→540 Hz, 660→720 Hz) over a luxurious 300ms.
  */
-export function playSuccess(volume = 0.35): void {
+export function playSuccess(volume = 0.28): void {
   playChord(
     [
-      { startFreq: 500, endFreq: 600, type: "sine" },
-      { startFreq: 750, endFreq: 900, type: "sine" },
+      { startFreq: 330, endFreq: 360, type: "sine" },
+      { startFreq: 495, endFreq: 540, type: "sine" },
+      { startFreq: 660, endFreq: 720, type: "sine" },
     ],
-    250,
+    300,
     volume
   );
 }
 
 /**
- * Warm, gentle warning — clear but never harsh.
- * Triangle wave falling from 280 Hz to 200 Hz (150ms) for a soft,
- * rounded tone that signals an error without jarring the user.
+ * Creamy, warm warning — gentle and soft, never harsh.
+ * Pure sine wave falling from 240 Hz to 200 Hz (180ms) for a
+ * rounded, velvety tone that signals an error with warmth.
  */
-export function playError(volume = 0.25): void {
-  playTone({ startFreq: 280, endFreq: 200, duration: 150, volume, type: "triangle" });
+export function playError(volume = 0.2): void {
+  playTone({ startFreq: 240, endFreq: 200, duration: 180, volume, type: "sine" });
 }
