@@ -43,7 +43,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold disabled:opacity-30 hover:bg-purple-950/40 hover:border-purple-700 transition"
+          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold disabled:opacity-30 hover:bg-orange-950/40 hover:border-orange-600 transition"
         >
           ← Prev
         </button>
@@ -57,8 +57,8 @@ export default function Pagination({
               onClick={() => onPageChange(p as number)}
               className={`rounded-lg border px-3 py-1.5 text-sm font-bold transition ${
                 p === page
-                  ? "border-purple-600 bg-purple-600 text-white"
-                  : "border-white/10 bg-white/5 text-zinc-400 hover:bg-purple-950/40 hover:border-purple-700"
+                  ? "border-orange-500 bg-gradient-to-r from-orange-500 to-red-500 text-white"
+                  : "border-white/10 bg-white/5 text-zinc-400 hover:bg-orange-950/40 hover:border-orange-600"
               }`}
             >
               {p}
@@ -69,7 +69,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page === totalPages}
-          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold disabled:opacity-30 hover:bg-purple-950/40 hover:border-purple-700 transition"
+          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold disabled:opacity-30 hover:bg-orange-950/40 hover:border-orange-600 transition"
         >
           Next →
         </button>

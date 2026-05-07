@@ -31,7 +31,7 @@ export function WinLossChart({ wins, losses, matches }: WinLossChartProps) {
           <circle
             cx={cx} cy={cy} r={r}
             fill="none"
-            stroke="#8b5cf6"
+            stroke="#f97316"
             strokeWidth="14"
             strokeDasharray={`${winArc} ${circumference - winArc}`}
             strokeLinecap="round"
@@ -39,13 +39,13 @@ export function WinLossChart({ wins, losses, matches }: WinLossChartProps) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-black text-purple-400">{winRate}%</span>
+          <span className="text-2xl font-black text-orange-400">{winRate}%</span>
           <span className="text-xs text-zinc-500">Win Rate</span>
         </div>
       </div>
       <div className="flex gap-6 text-sm">
         <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-purple-500 inline-block" />
+          <span className="h-3 w-3 rounded-full bg-orange-500 inline-block" />
           <span className="text-zinc-300">{wins} Wins</span>
         </div>
         <div className="flex items-center gap-2">
@@ -102,18 +102,18 @@ export function CrSparkline({ points }: CrSparklineProps) {
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" style={{ height: 120 }}>
         <defs>
           <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={isUp ? "#8b5cf6" : "#ef4444"} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={isUp ? "#8b5cf6" : "#ef4444"} stopOpacity="0" />
+            <stop offset="0%" stopColor={isUp ? "#f97316" : "#ef4444"} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={isUp ? "#f97316" : "#ef4444"} stopOpacity="0" />
           </linearGradient>
         </defs>
         <path d={fillD} fill="url(#sparkGrad)" />
-        <path d={pathD} fill="none" stroke={isUp ? "#8b5cf6" : "#ef4444"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathD} fill="none" stroke={isUp ? "#f97316" : "#ef4444"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         {/* Last point dot */}
         <circle
           cx={toX(points.length - 1)}
           cy={toY(lastPoint.cr)}
           r="4"
-          fill={isUp ? "#8b5cf6" : "#ef4444"}
+          fill={isUp ? "#f97316" : "#ef4444"}
         />
       </svg>
       <div className="mt-2 flex justify-between text-xs text-zinc-500">
@@ -200,7 +200,7 @@ export function CompareBar({ label, valueA, valueB, nameA, nameB, format }: Comp
         {/* Player A value */}
         <span
           className={`w-16 text-right text-sm font-black tabular-nums ${
-            aWins ? "text-violet-400" : "text-zinc-400"
+            aWins ? "text-orange-400" : "text-zinc-400"
           }`}
         >
           {fmt(valueA)}
@@ -211,7 +211,7 @@ export function CompareBar({ label, valueA, valueB, nameA, nameB, format }: Comp
             className="h-full rounded-l-full transition-all duration-500"
             style={{
               width: `${pctA}%`,
-              background: "linear-gradient(90deg, #7c3aed, #a855f7)",
+              background: "linear-gradient(90deg, #f97316, #fb923c)",
             }}
           />
           <div
@@ -233,8 +233,8 @@ export function CompareBar({ label, valueA, valueB, nameA, nameB, format }: Comp
       </div>
       {/* Name labels */}
       <div className="flex justify-between px-[4.5rem] text-xs text-zinc-500">
-        <span className="font-medium text-violet-400/70 truncate max-w-[45%]">{nameA}</span>
-        <span className="font-medium text-orange-400/70 truncate max-w-[45%] text-right">{nameB}</span>
+        <span className="font-medium text-orange-400/70 truncate max-w-[45%]">{nameA}</span>
+        <span className="font-medium text-yellow-400/70 truncate max-w-[45%] text-right">{nameB}</span>
       </div>
     </div>
   );
@@ -255,9 +255,9 @@ export function CompareLegend({ nameA, nameB }: CompareLegendProps) {
       <div className="flex items-center gap-2">
         <span
           className="inline-block h-3 w-8 rounded-full"
-          style={{ background: "linear-gradient(90deg, #7c3aed, #a855f7)" }}
+          style={{ background: "linear-gradient(90deg, #f97316, #fb923c)" }}
         />
-        <span className="text-violet-400">{nameA}</span>
+        <span className="text-orange-400">{nameA}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-orange-400">{nameB}</span>

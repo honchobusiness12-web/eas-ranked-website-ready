@@ -85,7 +85,7 @@ export default function LeaderboardPage() {
 <SoundLink
             href="/leaderboard"
             soundType="click"
-            className="rounded-xl bg-purple-600 px-4 py-2 font-bold hover:bg-purple-500"
+            className="rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 font-bold hover:from-orange-400 hover:to-red-400 transition-all"
             onClick={() => { setLoading(true); window.location.reload(); }}
           >
             🔄 Refresh
@@ -107,8 +107,8 @@ export default function LeaderboardPage() {
               onClick={() => handleSort(key)}
               className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
                 sortKey === key
-                  ? "border-purple-600 bg-purple-600 text-white"
-                  : "border-white/10 bg-white/5 text-zinc-400 hover:border-purple-700 hover:text-white"
+                  ? "border-orange-500 bg-gradient-to-r from-orange-500 to-red-500 text-white"
+                  : "border-white/10 bg-white/5 text-zinc-400 hover:border-orange-600 hover:text-white"
               }`}
             >
               {key === "cr" ? "CR" : key === "mvp_count" ? "MVPs" : key.charAt(0).toUpperCase() + key.slice(1)}
@@ -129,13 +129,13 @@ export default function LeaderboardPage() {
               <span>#</span>
               <span>Player</span>
               <span>Rank</span>
-              <button onClick={() => handleSort("cr")} className="text-left hover:text-purple-300 transition">
+              <button onClick={() => handleSort("cr")} className="text-left hover:text-orange-300 transition">
                 CR{sortIcon("cr")}
               </button>
-              <button onClick={() => handleSort("wins")} className="text-left hover:text-purple-300 transition">
+              <button onClick={() => handleSort("wins")} className="text-left hover:text-orange-300 transition">
                 W/L{sortIcon("wins")}
               </button>
-              <button onClick={() => handleSort("kills")} className="text-left hover:text-purple-300 transition">
+              <button onClick={() => handleSort("kills")} className="text-left hover:text-orange-300 transition">
                 Kills{sortIcon("kills")}
               </button>
             </div>
@@ -168,7 +168,7 @@ export default function LeaderboardPage() {
                       <RankBadge cr={Number(p.cr || 0)} size="sm" />
                     </div>
                     <div className="hidden md:flex items-center gap-2">
-                      <span className="font-black text-purple-400">{p.cr || 0}</span>
+                      <span className="font-black text-orange-400">{p.cr || 0}</span>
                       <TrendingIndicator delta={0} />
                     </div>
                     <div className="hidden md:block text-sm text-zinc-400">

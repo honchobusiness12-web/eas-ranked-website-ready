@@ -63,17 +63,17 @@ const tierMeta: Record<string, { emoji: string; color: string; border: string; b
   },
   R8: {
     emoji: "👑",
-    color: "text-purple-300",
-    border: "border-purple-500/40",
-    bg: "bg-purple-950/20",
+    color: "text-yellow-300",
+    border: "border-yellow-500/40",
+    bg: "bg-yellow-950/20",
     description: "Legend status. Only the most dedicated and skilled players reach this tier. Your name is known across the arena.",
     tip: "Consistency over long periods defines Legends. Maintain your standard every single match.",
   },
   R9: {
     emoji: "🌌",
-    color: "text-violet-300",
-    border: "border-violet-500/40",
-    bg: "bg-violet-950/20",
+    color: "text-teal-300",
+    border: "border-teal-500/40",
+    bg: "bg-teal-950/20",
     description: "Unreal is near the pinnacle of competitive play. Players here are considered among the greatest to ever compete in EAS.",
     tip: "At this level, the mental game is everything. Confidence, focus, and adaptability are your greatest weapons.",
   },
@@ -111,7 +111,7 @@ export default function RanksPage() {
         <SoundLink
           href="/guide"
           soundType="success"
-          className="inline-flex items-center gap-2 rounded-xl border border-purple-700/60 bg-purple-950/30 px-4 py-2 text-sm font-bold text-purple-300 hover:bg-purple-950 transition"
+          className="inline-flex items-center gap-2 rounded-xl border border-orange-600/60 bg-orange-950/30 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/60 transition"
         >
           📖 How Ranked Works →
         </SoundLink>
@@ -128,7 +128,7 @@ export default function RanksPage() {
         ].map(({ label, value, note }) => (
           <div key={label} className="rounded-2xl border border-white/10 bg-[#0d0d14] p-4">
             <p className="text-xs text-zinc-500">{label}</p>
-            <p className="mt-1 text-2xl font-black text-purple-300">{value}</p>
+            <p className="mt-1 text-2xl font-black text-orange-300">{value}</p>
             <p className="mt-0.5 text-xs text-zinc-500">{note}</p>
           </div>
         ))}
@@ -199,13 +199,13 @@ export default function RanksPage() {
       </div>
 
       {/* Footer CTA */}
-      <div className="mt-10 rounded-2xl border border-purple-700/40 bg-purple-950/20 p-6 text-center">
+      <div className="mt-10 rounded-2xl border border-orange-700/40 bg-orange-950/20 p-6 text-center">
         <p className="text-lg font-black">Ready to climb?</p>
         <p className="mt-1 text-sm text-zinc-400">
           Complete your 7 placement matches to earn your starting rank, then grind your way to Hall of Fame.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-3">
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-bold hover:bg-purple-500 transition">
+          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-5 py-2.5 text-sm font-bold hover:from-orange-400 hover:to-red-400 transition-all">
             🏆 View Leaderboard
           </SoundLink>
           <SoundLink href="/guide" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition">

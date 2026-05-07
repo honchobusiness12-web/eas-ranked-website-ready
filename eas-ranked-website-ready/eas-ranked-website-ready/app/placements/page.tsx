@@ -34,10 +34,10 @@ export default async function PlacementsPage() {
                       <p className="text-xs text-zinc-500">{done}/7 placement matches complete</p>
                     </div>
                   </div>
-                  <p className="font-black text-purple-400">{percent}%</p>
+                  <p className="font-black text-orange-400">{percent}%</p>
                 </div>
                 <div className="mt-4 h-2 rounded-full bg-zinc-800">
-                  <div className="h-2 rounded-full bg-purple-500" style={{ width: `${percent}%` }} />
+                  <div className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500" style={{ width: `${percent}%` }} />
                 </div>
               </SoundLink>
             );

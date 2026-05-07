@@ -7,8 +7,8 @@ export default function GuidePage() {
   return (
     <Shell>
       {/* Hero */}
-      <section className="rounded-3xl border border-purple-800/40 bg-gradient-to-r from-black via-[#10051d] to-purple-950 p-8 shadow-2xl">
-        <p className="mb-2 text-sm font-bold uppercase tracking-[0.3em] text-purple-300">
+      <section className="rounded-3xl border border-orange-700/40 bg-gradient-to-r from-black via-[#1a0e05] to-orange-950 p-8 shadow-2xl">
+        <p className="mb-2 text-sm font-bold uppercase tracking-[0.3em] text-orange-300">
           EAS Arena
         </p>
         <h1 className="text-4xl font-black md:text-5xl">📖 How Ranked Works</h1>
@@ -16,7 +16,7 @@ export default function GuidePage() {
           Everything you need to know about the EAS competitive ranking system — from your first placement match to Hall of Fame.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-purple-700/60 bg-purple-950/30 px-4 py-2 text-sm font-bold text-purple-300 hover:bg-purple-950 transition">
+          <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-orange-600/60 bg-orange-950/30 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/60 transition">
             🏷️ View All Ranks
           </SoundLink>
           <SoundLink href="/placements" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold hover:bg-white/10 transition">
@@ -38,7 +38,7 @@ export default function GuidePage() {
         ].map(({ emoji, label, value, sub }) => (
           <div key={label} className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 text-center">
             <span className="text-2xl">{emoji}</span>
-            <p className="mt-2 text-2xl font-black text-purple-300">{value}</p>
+            <p className="mt-2 text-2xl font-black text-orange-300">{value}</p>
             <p className="mt-0.5 text-xs font-bold text-white">{label}</p>
             <p className="text-xs text-zinc-500">{sub}</p>
           </div>
@@ -97,8 +97,8 @@ export default function GuidePage() {
             </div>
 
             {/* Ranked Phase card */}
-            <div className="rounded-xl border border-purple-700/30 bg-purple-950/20 p-4">
-              <p className="flex items-center gap-2 text-sm font-black text-purple-300">
+            <div className="rounded-xl border border-orange-700/30 bg-orange-950/20 p-4">
+              <p className="flex items-center gap-2 text-sm font-black text-orange-300">
                 <span>🏆</span> Ranked Phase
               </p>
               <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
@@ -122,8 +122,8 @@ export default function GuidePage() {
           </div>
 
           {/* Philosophy callout */}
-          <div className="mt-4 rounded-xl border border-blue-700/30 bg-blue-950/20 px-4 py-3">
-            <p className="text-sm font-bold text-blue-300">🌟 Overall Philosophy</p>
+          <div className="mt-4 rounded-xl border border-teal-700/30 bg-teal-950/20 px-4 py-3">
+            <p className="text-sm font-bold text-teal-300">🌟 Overall Philosophy</p>
             <p className="mt-1 text-sm text-zinc-400">
               The system is designed to reward <strong className="text-white">consistency</strong>, <strong className="text-white">performance</strong>, and <strong className="text-white">competitive play</strong> while maintaining a fair and balanced ranking environment.
             </p>
@@ -170,8 +170,8 @@ export default function GuidePage() {
               </div>
             ))}
           </div>
-          <div className="mt-4 rounded-xl border border-blue-700/30 bg-blue-950/20 px-4 py-3">
-            <p className="text-sm font-bold text-blue-300">💡 Example</p>
+          <div className="mt-4 rounded-xl border border-yellow-700/30 bg-yellow-950/20 px-4 py-3">
+            <p className="text-sm font-bold text-yellow-300">💡 Example</p>
             <p className="mt-1 text-sm text-zinc-400">
               A team at 800 CR (R3 Pro Mid) beats a team at 1200 CR (R5 All-Star Low). Because they defeated a much stronger opponent, they might earn <strong className="text-white">+35 CR</strong> instead of the standard +20. The stronger team loses less CR because losing to a lower-ranked opponent is expected to happen occasionally.
             </p>
@@ -195,7 +195,7 @@ export default function GuidePage() {
                   <span className="w-16 shrink-0 text-xs text-zinc-500">Match {match}</span>
                   <div className="flex-1 rounded-full bg-zinc-800 h-2">
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
+                      className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500"
                       style={{ width: `${(match / 7) * 100}%` }}
                     />
                   </div>
@@ -232,8 +232,8 @@ export default function GuidePage() {
               { tier: "R5", name: "All-Star",    range: "1,200 – 1,599", emoji: "⭐", color: "text-yellow-300" },
               { tier: "R6", name: "SuperStar",   range: "1,600 – 2,099", emoji: "🌟", color: "text-orange-300" },
               { tier: "R7", name: "Remorseless", range: "2,100 – 2,749", emoji: "🔥", color: "text-red-400" },
-              { tier: "R8", name: "Legend",      range: "2,750 – 3,549", emoji: "👑", color: "text-purple-300" },
-              { tier: "R9", name: "Unreal",      range: "3,550 – 4,499", emoji: "🌌", color: "text-violet-300" },
+              { tier: "R8", name: "Legend",      range: "2,750 – 3,549", emoji: "👑", color: "text-yellow-300" },
+              { tier: "R9", name: "Unreal",      range: "3,550 – 4,499", emoji: "🌌", color: "text-teal-300" },
               { tier: "R10", name: "Hall of Fame", range: "4,500+",   emoji: "🏛️", color: "text-amber-300" },
             ].map(({ tier, name, range, emoji, color }) => (
               <div key={tier} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3">
@@ -256,7 +256,7 @@ export default function GuidePage() {
             <SoundLink
               href="/ranks"
               soundType="success"
-              className="inline-flex items-center gap-2 rounded-xl border border-purple-700/60 bg-purple-950/30 px-4 py-2 text-sm font-bold text-purple-300 hover:bg-purple-950 transition"
+              className="inline-flex items-center gap-2 rounded-xl border border-orange-600/60 bg-orange-950/30 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/60 transition"
             >
               🏷️ See Full Rank Details →
             </SoundLink>
@@ -454,13 +454,13 @@ export default function GuidePage() {
       </div>
 
       {/* Footer CTA */}
-      <div className="mt-10 rounded-2xl border border-purple-700/40 bg-purple-950/20 p-8 text-center">
+      <div className="mt-10 rounded-2xl border border-orange-700/40 bg-orange-950/20 p-8 text-center">
         <p className="text-2xl font-black">Ready to compete?</p>
         <p className="mt-2 text-zinc-400 max-w-lg mx-auto">
           Check the leaderboard to see where you stand, view all rank tiers, or track players currently in placements.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-bold hover:bg-purple-500 transition">
+          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-5 py-2.5 text-sm font-bold hover:from-orange-400 hover:to-red-400 transition-all">
             🏆 Leaderboard
           </SoundLink>
           <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition">
@@ -489,22 +489,22 @@ function GuideSection({
   children: React.ReactNode;
 }) {
   const borderColors = {
-    purple: "border-purple-700/40",
-    blue:   "border-blue-700/40",
+    purple: "border-orange-700/40",
+    blue:   "border-teal-700/40",
     yellow: "border-yellow-600/40",
     green:  "border-green-700/40",
     orange: "border-orange-700/40",
   };
   const bgColors = {
-    purple: "bg-purple-950/10",
-    blue:   "bg-blue-950/10",
+    purple: "bg-orange-950/10",
+    blue:   "bg-teal-950/10",
     yellow: "bg-yellow-950/10",
     green:  "bg-green-950/10",
     orange: "bg-orange-950/10",
   };
   const headingColors = {
-    purple: "text-purple-300",
-    blue:   "text-blue-300",
+    purple: "text-orange-300",
+    blue:   "text-teal-300",
     yellow: "text-yellow-300",
     green:  "text-green-300",
     orange: "text-orange-300",
