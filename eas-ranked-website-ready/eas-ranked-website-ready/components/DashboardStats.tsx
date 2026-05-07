@@ -55,7 +55,7 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
                 <span className="w-5 text-sm font-black text-zinc-500">#{i + 1}</span>
                 <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
                 <span className="flex-1 text-sm font-bold truncate">{p.name}</span>
-                <span className="text-sm font-black text-purple-400">{p.cr}</span>
+                <span className="text-sm font-black text-orange-400">{p.cr}</span>
               </SoundLink>
             ))}
           </div>

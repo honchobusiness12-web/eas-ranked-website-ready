@@ -22,7 +22,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
           <p className="text-5xl mb-4">❓</p>
           <h1 className="text-4xl font-black">Player Not Found</h1>
           <p className="mt-2 text-zinc-400">This player does not exist in the database.</p>
-          <SoundLink href="/players" soundType="success" className="mt-6 inline-block rounded-xl bg-purple-600 px-5 py-3 font-bold hover:bg-purple-500">
+          <SoundLink href="/players" soundType="success" className="mt-6 inline-block rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-5 py-3 font-bold hover:from-orange-400 hover:to-red-400 transition-all">
             Browse Players
           </SoundLink>
         </div>
@@ -53,7 +53,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   return (
     <Shell>
       {/* Hero */}
-      <section className="rounded-3xl border border-purple-800/40 bg-gradient-to-r from-black via-[#10051d] to-purple-950 p-8">
+      <section className="rounded-3xl border border-orange-700/40 bg-gradient-to-r from-black via-[#1a0e05] to-orange-950 p-8">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex flex-wrap items-center gap-6">
             <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-24 w-24" />
@@ -73,7 +73,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
           <SoundLink
             href={`/compare?a=${p.user_id}`}
             soundType="success"
-            className="rounded-xl border border-purple-700 px-4 py-2 text-sm font-bold text-purple-300 hover:bg-purple-950 transition"
+            className="rounded-xl border border-orange-600/60 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/40 transition"
           >
             ⚔️ Compare
           </SoundLink>
@@ -82,12 +82,12 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
       {/* Stats grid */}
       <section className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <StatCard title="CR" value={cr.toLocaleString()} color="purple" />
+        <StatCard title="CR" value={cr.toLocaleString()} color="orange" />
         <StatCard title="Wins" value={wins.toString()} color="green" />
         <StatCard title="Losses" value={losses.toString()} color="red" />
         <StatCard title="Win Rate" value={`${winRate}%`} color="blue" />
         <StatCard title="Kills" value={kills.toLocaleString()} color="yellow" />
-        <StatCard title="MVPs" value={mvps.toString()} color="purple" />
+        <StatCard title="MVPs" value={mvps.toString()} color="yellow" />
       </section>
 
       {/* Charts + progress */}
@@ -107,17 +107,17 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               <>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-zinc-400">Current: <span className="font-bold text-white">{rank}</span></span>
-                  <span className="text-zinc-400">Next: <span className="font-bold text-purple-300">{next.name}</span></span>
+                  <span className="text-zinc-400">Next: <span className="font-bold text-orange-300">{next.name}</span></span>
                 </div>
                 <div className="h-3 rounded-full bg-zinc-800">
                   <div
-                    className="h-3 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 transition-all duration-700"
+                    className="h-3 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 transition-all duration-700"
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
                 <div className="mt-2 flex justify-between text-xs text-zinc-500">
                   <span>{cr} CR</span>
-                  <span className="text-purple-400 font-bold">{next.min - cr} CR to go</span>
+                  <span className="text-orange-400 font-bold">{next.min - cr} CR to go</span>
                   <span>{next.min} CR</span>
                 </div>
               </>
@@ -197,7 +197,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
       <section className="mt-6 rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-2xl font-black">🏅 Achievements</h2>
-          <span className="rounded-xl border border-purple-700/50 bg-purple-950/30 px-3 py-1 text-sm font-bold text-purple-300">
+          <span className="rounded-xl border border-orange-600/50 bg-orange-950/30 px-3 py-1 text-sm font-bold text-orange-300">
             {unlockedCount} / {achievements.length} Unlocked
           </span>
         </div>
@@ -214,17 +214,18 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 function StatCard({
   title,
   value,
-  color = "purple",
+  color = "orange",
 }: {
   title: string;
   value: string;
-  color?: "purple" | "green" | "red" | "blue" | "yellow";
+  color?: "orange" | "purple" | "green" | "red" | "blue" | "yellow";
 }) {
   const colors = {
-    purple: "text-purple-400",
+    orange: "text-orange-400",
+    purple: "text-orange-400",
     green:  "text-green-400",
     red:    "text-red-400",
-    blue:   "text-blue-400",
+    blue:   "text-teal-400",
     yellow: "text-yellow-400",
   };
   return (

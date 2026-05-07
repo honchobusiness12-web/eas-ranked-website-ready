@@ -72,7 +72,7 @@ export default function PlayersPage() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search by name or username…"
-            className="rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition w-64"
+            className="rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition w-64"
           />
         </div>
         <div className="flex gap-2">
@@ -82,8 +82,8 @@ export default function PlayersPage() {
               onClick={() => handleFilterChange(f)}
               className={`rounded-xl border px-3 py-1.5 text-xs font-bold capitalize transition ${
                 filter === f
-                  ? "border-purple-600 bg-purple-600 text-white"
-                  : "border-white/10 bg-white/5 text-zinc-400 hover:border-purple-700 hover:text-white"
+                  ? "border-orange-500 bg-gradient-to-r from-orange-500 to-red-500 text-white"
+                  : "border-white/10 bg-white/5 text-zinc-400 hover:border-orange-600 hover:text-white"
               }`}
             >
               {f}
@@ -114,7 +114,7 @@ export default function PlayersPage() {
                   href={`/profile/${p.user_id}`}
                   key={p.user_id}
                   soundType="click"
-                  className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 hover:border-purple-700 transition group"
+                  className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 hover:border-orange-600 transition group"
                 >
                   <div className="flex items-center gap-4">
                     <PlayerAvatar name={p.name} avatar={p.avatar_url} />
@@ -173,7 +173,7 @@ function Mini({ label, value, highlight }: { label: string; value: any; highligh
   return (
     <div className="rounded-xl bg-white/5 p-2">
       <p className="text-xs text-zinc-500">{label}</p>
-      <p className={`font-black text-sm ${highlight ? "text-purple-400" : ""}`}>{value}</p>
+      <p className={`font-black text-sm ${highlight ? "text-orange-400" : ""}`}>{value}</p>
     </div>
   );
 }

@@ -45,14 +45,14 @@ export default function PlayerComparison({ playerA, playerB }: PlayerComparisonP
       {/* Header — side by side */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         {/* Player A */}
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-purple-700/40 bg-purple-950/20 p-5">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-orange-700/40 bg-orange-950/20 p-5">
           <PlayerAvatar name={playerA.name} avatar={playerA.avatar_url} size="h-16 w-16" />
           <div className="text-center">
             <p className="text-lg font-black">{playerA.name}</p>
             <p className="text-xs text-zinc-500">{playerA.username || "—"}</p>
           </div>
           <RankBadge cr={crA} size="md" />
-          <p className="text-3xl font-black text-purple-400">{crA} CR</p>
+          <p className="text-3xl font-black text-orange-400">{crA} CR</p>
         </div>
 
         <div className="text-2xl font-black text-zinc-600">VS</div>
@@ -143,8 +143,8 @@ function VerdictCell({
   const colorClass = tied
     ? "text-zinc-400"
     : isA
-    ? "text-violet-400"
-    : "text-orange-400";
+    ? "text-orange-400"
+    : "text-yellow-400";
   return (
     <div className="rounded-xl bg-white/5 p-3">
       <p className="text-xs text-zinc-500">{label}</p>

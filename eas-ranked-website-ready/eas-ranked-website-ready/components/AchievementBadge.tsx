@@ -17,7 +17,7 @@ export default function AchievementBadge({ achievement, size = "md" }: Achieveme
       className={`relative flex flex-col items-center gap-1 rounded-xl border transition group ${
         isLocked
           ? "border-white/5 bg-white/3 opacity-40 grayscale"
-          : "border-purple-700/40 bg-purple-950/20 hover:border-purple-500/60"
+          : "border-orange-700/40 bg-orange-950/20 hover:border-orange-500/60"
       } ${sizeClasses}`}
       title={`${achievement.name}: ${achievement.description}${isLocked ? " (Locked)" : ""}`}
     >

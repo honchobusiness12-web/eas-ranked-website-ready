@@ -91,7 +91,7 @@ export default function PlayerSearch({
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition"
+          className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition"
         />
         {query && (
           <button
@@ -117,7 +117,7 @@ export default function PlayerSearch({
                 <p className="text-xs text-zinc-500 truncate">{player.username || "No username"}</p>
               </div>
               <RankBadge cr={Number(player.cr || 0)} size="sm" showLabel={false} />
-              <span className="text-sm font-black text-purple-400">{player.cr}</span>
+              <span className="text-sm font-black text-orange-400">{player.cr}</span>
             </button>
           ))}
         </div>

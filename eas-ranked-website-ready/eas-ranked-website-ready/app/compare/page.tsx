@@ -49,8 +49,8 @@ export default function ComparePage() {
         <>
           {/* Player selectors */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-8">
-            <div className="rounded-2xl border border-purple-700/40 bg-purple-950/10 p-5">
-              <p className="mb-3 text-sm font-bold text-purple-300">Player A</p>
+            <div className="rounded-2xl border border-orange-700/40 bg-orange-950/10 p-5">
+              <p className="mb-3 text-sm font-bold text-orange-300">Player A</p>
               <PlayerSearch
                 players={players}
                 onSelect={setPlayerA}
