@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Shell from "@/components/Shell";
+import SoundLink from "@/components/SoundLink";
 import PlayerSearch from "@/components/PlayerSearch";
 import PlayerComparison from "@/components/PlayerComparison";
+import PremiumUpsell from "@/components/PremiumUpsell";
 import { SkeletonCardsGrid } from "@/components/LoadingSkeleton";
 
 interface Player {
@@ -98,6 +100,14 @@ export default function ComparePage() {
               <p className="mt-2 text-sm text-zinc-600">Search by name or username</p>
             </div>
           )}
+
+          {/* Premium upsell */}
+          <div className="mt-6">
+            <PremiumUpsell
+              compact
+              message="Save comparisons and view your comparison history with Premium."
+            />
+          </div>
         </>
       )}
     </Shell>

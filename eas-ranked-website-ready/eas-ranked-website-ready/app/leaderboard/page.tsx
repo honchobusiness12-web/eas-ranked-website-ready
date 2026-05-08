@@ -10,6 +10,7 @@ import TrendingIndicator from "@/components/TrendingIndicator";
 import Pagination from "@/components/Pagination";
 import PlayerSearch from "@/components/PlayerSearch";
 import { SkeletonTable } from "@/components/LoadingSkeleton";
+import PremiumUpsell from "@/components/PremiumUpsell";
 
 type SortKey = "cr" | "wins" | "kills" | "mvp_count" | "matches";
 const ITEMS_PER_PAGE = 25;
@@ -21,6 +22,9 @@ export default function LeaderboardPage() {
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [rankFilter, setRankFilter] = useState<string>("all");
+  const [winRateFilter, setWinRateFilter] = useState<string>("all");
+  const [showPremiumFilters, setShowPremiumFilters] = useState(false);
 
   useEffect(() => {
     fetch("/api/leaderboard")
@@ -32,14 +36,43 @@ export default function LeaderboardPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Filter by search
+  // Filter by search + premium filters
   const filtered = useMemo(() => {
-    if (!searchQuery) return players;
-    const q = searchQuery.toLowerCase();
-    return players.filter(
-      (p) => p.name?.toLowerCase().includes(q) || p.username?.toLowerCase().includes(q)
-    );
-  }, [players, searchQuery]);
+    let result = players;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (p) => p.name?.toLowerCase().includes(q) || p.username?.toLowerCase().includes(q)
+      );
+    }
+    if (rankFilter !== "all") {
+      result = result.filter((p) => {
+        const cr = Number(p.cr || 0);
+        if (rankFilter === "rookie") return cr < 400;
+        if (rankFilter === "amateur") return cr >= 400 && cr < 700;
+        if (rankFilter === "pro") return cr >= 700 && cr < 1000;
+        if (rankFilter === "elite") return cr >= 1000 && cr < 1200;
+        if (rankFilter === "allstar") return cr >= 1200 && cr < 1600;
+        if (rankFilter === "superstar") return cr >= 1600 && cr < 2100;
+        if (rankFilter === "remorseless") return cr >= 2100 && cr < 2750;
+        if (rankFilter === "legend") return cr >= 2750 && cr < 3550;
+        if (rankFilter === "unreal") return cr >= 3550 && cr < 4500;
+        if (rankFilter === "hof") return cr >= 4500;
+        return true;
+      });
+    }
+    if (winRateFilter !== "all") {
+      result = result.filter((p) => {
+        const matches = Number(p.matches || 0);
+        const wr = matches ? Math.round((Number(p.wins || 0) / matches) * 100) : 0;
+        if (winRateFilter === "60plus") return wr >= 60;
+        if (winRateFilter === "50to60") return wr >= 50 && wr < 60;
+        if (winRateFilter === "below50") return wr < 50;
+        return true;
+      });
+    }
+    return result;
+  }, [players, searchQuery, rankFilter, winRateFilter]);
 
   // Sort
   const sorted = useMemo(() => {
@@ -91,6 +124,67 @@ export default function LeaderboardPage() {
             🔄 Refresh
           </SoundLink>
         </div>
+      </div>
+
+      {/* Premium filters */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <button
+            onClick={() => setShowPremiumFilters((v) => !v)}
+            className="flex items-center gap-2 rounded-xl border border-yellow-600/40 bg-yellow-950/10 px-4 py-2 text-sm font-bold text-yellow-300 hover:bg-yellow-950/20 transition"
+          >
+            💎 Premium Filters {showPremiumFilters ? "▲" : "▼"}
+          </button>
+        </div>
+        {showPremiumFilters && (
+          <div className="rounded-2xl border border-yellow-700/30 bg-yellow-950/10 p-4 mb-3">
+            <div className="flex flex-wrap gap-3">
+              <div>
+                <p className="text-xs text-zinc-500 mb-1.5 font-bold">Rank Tier</p>
+                <select
+                  value={rankFilter}
+                  onChange={(e) => { setRankFilter(e.target.value); setPage(1); }}
+                  className="rounded-xl border border-white/10 bg-[#0d0d14] px-3 py-2 text-sm text-white focus:border-yellow-600/60 focus:outline-none"
+                >
+                  <option value="all">All Ranks</option>
+                  <option value="rookie">R1 Rookie</option>
+                  <option value="amateur">R2 Amateur</option>
+                  <option value="pro">R3 Pro</option>
+                  <option value="elite">R4 Elite</option>
+                  <option value="allstar">R5 All-Star</option>
+                  <option value="superstar">R6 SuperStar</option>
+                  <option value="remorseless">R7 Remorseless</option>
+                  <option value="legend">R8 Legend</option>
+                  <option value="unreal">R9 Unreal</option>
+                  <option value="hof">R10 Hall Of Fame</option>
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-zinc-500 mb-1.5 font-bold">Win Rate</p>
+                <select
+                  value={winRateFilter}
+                  onChange={(e) => { setWinRateFilter(e.target.value); setPage(1); }}
+                  className="rounded-xl border border-white/10 bg-[#0d0d14] px-3 py-2 text-sm text-white focus:border-yellow-600/60 focus:outline-none"
+                >
+                  <option value="all">All Win Rates</option>
+                  <option value="60plus">60%+ Win Rate</option>
+                  <option value="50to60">50–60% Win Rate</option>
+                  <option value="below50">Below 50%</option>
+                </select>
+              </div>
+              {(rankFilter !== "all" || winRateFilter !== "all") && (
+                <div className="flex items-end">
+                  <button
+                    onClick={() => { setRankFilter("all"); setWinRateFilter("all"); setPage(1); }}
+                    className="rounded-xl border border-red-700/40 px-3 py-2 text-sm font-bold text-red-400 hover:bg-red-950/20 transition"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Search + sort controls */}
@@ -191,6 +285,14 @@ export default function LeaderboardPage() {
             itemsPerPage={ITEMS_PER_PAGE}
             totalItems={sorted.length}
           />
+
+          {/* Premium upsell */}
+          <div className="mt-6">
+            <PremiumUpsell
+              compact
+              message="Premium members get custom rank/win-rate filters, advanced analytics, and comparison history."
+            />
+          </div>
         </>
       )}
     </Shell>
