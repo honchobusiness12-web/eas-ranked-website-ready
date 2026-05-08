@@ -3,6 +3,7 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import DashboardStats from "@/components/DashboardStats";
+import PremiumUpsell from "@/components/PremiumUpsell";
 import { syncPlayersFromDB } from "@/lib/cache";
 
 export const revalidate = 30;
@@ -160,6 +161,11 @@ export default async function HomePage() {
       <section className="mt-6">
         <h2 className="mb-4 text-2xl font-black">📊 Arena Statistics</h2>
         <DashboardStats players={players as any} />
+      </section>
+
+      {/* Premium upsell */}
+      <section className="mt-6">
+        <PremiumUpsell />
       </section>
     </Shell>
   );

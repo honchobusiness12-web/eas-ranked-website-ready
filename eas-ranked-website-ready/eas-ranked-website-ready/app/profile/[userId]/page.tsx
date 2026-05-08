@@ -3,17 +3,24 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import AchievementBadge from "@/components/AchievementBadge";
+import PremiumBadge from "@/components/PremiumBadge";
+import PremiumUpsell from "@/components/PremiumUpsell";
 import { WinLossChart, CrSparkline } from "@/components/StatsChart";
 import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression } from "@/lib/charts";
+import { isPremiumUser, getCosmetics } from "@/lib/premium";
 
 export const revalidate = 30;
 
 export default async function ProfilePage(context: { params: Promise<{ userId: string }> }) {
   const { userId } = await context.params;
   const p = await getPlayerFromDB(userId);
+  const [premium, cosmetics] = await Promise.all([
+    isPremiumUser(userId),
+    getCosmetics(userId),
+  ]);
 
   if (!p) {
     return (
@@ -50,16 +57,33 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   const nextMin = next?.min ?? cr;
   const progressPct = next ? Math.min(100, Math.round((cr / nextMin) * 100)) : 100;
 
+  // Cosmetic accent color
+  const accentColor = cosmetics?.profile_color || "#FF6B6B";
+
   return (
     <Shell>
       {/* Hero */}
-      <section className="rounded-3xl border border-orange-700/40 bg-gradient-to-r from-black via-[#1a0e05] to-orange-950 p-8">
+      <section
+        className="rounded-3xl border p-8"
+        style={{
+          borderColor: `${accentColor}40`,
+          background: `linear-gradient(135deg, #000, #1a0e05, ${accentColor}15)`,
+        }}
+      >
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex flex-wrap items-center gap-6">
             <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-24 w-24" />
             <div>
-              <h1 className="text-4xl font-black md:text-5xl">{p.name}</h1>
-              <p className="mt-1 text-zinc-400">{p.username || "No username saved yet"}</p>
+              <div className="flex flex-wrap items-center gap-3 mb-1">
+                <h1 className="text-4xl font-black md:text-5xl">{p.name}</h1>
+                {premium && <PremiumBadge size="md" />}
+              </div>
+              {cosmetics?.player_title && (
+                <p className="text-sm font-bold mb-1" style={{ color: accentColor }}>
+                  {cosmetics.player_title}
+                </p>
+              )}
+              <p className="text-zinc-400">{p.username || "No username saved yet"}</p>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <RankBadge cr={cr} size="lg" />
                 {p.blacklisted && (
@@ -70,15 +94,34 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               </div>
             </div>
           </div>
-          <SoundLink
-            href={`/compare?a=${p.user_id}`}
-            soundType="success"
-            className="rounded-xl border border-orange-600/60 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/40 transition"
-          >
-            ⚔️ Compare
-          </SoundLink>
+          <div className="flex flex-col gap-2">
+            <SoundLink
+              href={`/compare?a=${p.user_id}`}
+              soundType="success"
+              className="rounded-xl border border-orange-600/60 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/40 transition text-center"
+            >
+              ⚔️ Compare
+            </SoundLink>
+            <SoundLink
+              href={`/premium/stats?userId=${p.user_id}`}
+              soundType="click"
+              className="rounded-xl border border-yellow-600/40 px-4 py-2 text-sm font-bold text-yellow-400 hover:bg-yellow-950/20 transition text-center"
+            >
+              📊 Advanced Stats
+            </SoundLink>
+          </div>
         </div>
       </section>
+
+      {/* Premium upsell for non-premium profiles */}
+      {!premium && (
+        <div className="mt-4">
+          <PremiumUpsell
+            compact
+            message="Upgrade to Premium to unlock advanced stats, custom cosmetics, and a premium badge on this profile."
+          />
+        </div>
+      )}
 
       {/* Stats grid */}
       <section className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">

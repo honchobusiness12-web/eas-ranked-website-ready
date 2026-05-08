@@ -14,6 +14,17 @@ const links = [
   { label: "📖 How Ranked Works", href: "/guide" },
 ];
 
+const premiumLinks = [
+  { label: "💎 Get Premium",       href: "/premium/subscribe" },
+  { label: "📊 Advanced Stats",    href: "/premium/stats" },
+  { label: "🎨 Cosmetics",         href: "/premium/cosmetics" },
+  { label: "⚔️ Comparisons",       href: "/premium/comparisons" },
+  { label: "📥 Export Stats",      href: "/premium/export" },
+  { label: "📜 Match History",     href: "/premium/matches" },
+  { label: "🎯 Progress Tracker",  href: "/premium/tracker" },
+  { label: "⚙️ Manage Sub",        href: "/premium/manage" },
+];
+
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -26,13 +37,30 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             EAS <span className="summer-text-gradient">ARENA</span>
           </SoundLink>
 
-          <nav className="flex-1 space-y-1 text-sm">
+          <nav className="flex-1 space-y-1 text-sm overflow-y-auto">
             {links.map(({ label, href }) => (
               <SoundLink
                 key={href}
                 href={href}
                 soundType="success"
                 className="block rounded-xl px-4 py-3 text-zinc-400 hover:bg-orange-950/30 hover:text-white transition"
+              >
+                {label}
+              </SoundLink>
+            ))}
+
+            {/* Premium section */}
+            <div className="pt-4 pb-1">
+              <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-yellow-600/70">
+                💎 Premium
+              </p>
+            </div>
+            {premiumLinks.map(({ label, href }) => (
+              <SoundLink
+                key={href}
+                href={href}
+                soundType="success"
+                className="block rounded-xl px-4 py-3 text-zinc-500 hover:bg-yellow-950/20 hover:text-yellow-300 transition"
               >
                 {label}
               </SoundLink>
@@ -87,13 +115,29 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <SoundLink href="/" soundType="click" className="mb-8 block text-2xl font-black" onClick={() => setMobileOpen(false)}>
                   EAS <span className="summer-text-gradient">ARENA</span>
                 </SoundLink>
-                <nav className="space-y-1 text-sm">
+                <nav className="space-y-1 text-sm overflow-y-auto max-h-[calc(100vh-100px)]">
                   {links.map(({ label, href }) => (
                     <SoundLink
                       key={href}
                       href={href}
                       soundType="success"
                       className="block rounded-xl px-4 py-3 text-zinc-400 hover:bg-orange-950/30 hover:text-white transition"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {label}
+                    </SoundLink>
+                  ))}
+                  <div className="pt-4 pb-1">
+                    <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-yellow-600/70">
+                      💎 Premium
+                    </p>
+                  </div>
+                  {premiumLinks.map(({ label, href }) => (
+                    <SoundLink
+                      key={href}
+                      href={href}
+                      soundType="success"
+                      className="block rounded-xl px-4 py-3 text-zinc-500 hover:bg-yellow-950/20 hover:text-yellow-300 transition"
                       onClick={() => setMobileOpen(false)}
                     >
                       {label}
