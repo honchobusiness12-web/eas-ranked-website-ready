@@ -36,6 +36,21 @@ interface PlayerBadgeState {
   loaded: boolean;
 }
 
+/** Per-player premium state tracked in the UI */
+interface PlayerPremiumState {
+  premium: boolean;
+  loading: boolean;
+  loaded: boolean;
+}
+
+/** A holder entry returned by the badge-holders view */
+interface HolderEntry {
+  user_id: string;
+  name: string;
+}
+
+type ActiveTab = "players" | "holders";
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -265,21 +280,78 @@ function AddBadgeMenu({
 }
 
 // ---------------------------------------------------------------------------
+// Premium toggle button
+// ---------------------------------------------------------------------------
+
+function PremiumToggle({
+  userId,
+  premiumState,
+  onToggle,
+}: {
+  userId: string;
+  premiumState: PlayerPremiumState;
+  onToggle: (userId: string, grant: boolean) => Promise<void>;
+}) {
+  const [toggling, setToggling] = useState(false);
+
+  async function handleClick() {
+    if (toggling || !premiumState.loaded) return;
+    setToggling(true);
+    try {
+      await onToggle(userId, !premiumState.premium);
+    } finally {
+      setToggling(false);
+    }
+  }
+
+  if (!premiumState.loaded) {
+    return (
+      <span className="text-xs text-zinc-600 animate-pulse font-bold">…</span>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={toggling}
+      title={premiumState.premium ? "Revoke premium" : "Grant premium"}
+      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black border-2 transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
+        premiumState.premium
+          ? "border-yellow-500/60 bg-yellow-950/30 text-yellow-300 hover:bg-red-950/30 hover:border-red-500/60 hover:text-red-300"
+          : "border-zinc-700/60 bg-zinc-900/30 text-zinc-500 hover:bg-yellow-950/30 hover:border-yellow-500/60 hover:text-yellow-300"
+      }`}
+    >
+      {toggling ? (
+        <span className="animate-spin">⟳</span>
+      ) : premiumState.premium ? (
+        <>⭐ Premium</>
+      ) : (
+        <>— No Premium</>
+      )}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Player row
 // ---------------------------------------------------------------------------
 
 function PlayerRow({
   player,
   badgeState,
+  premiumState,
   onLoadBadges,
   onAssignBadge,
   onRemoveBadge,
+  onTogglePremium,
 }: {
   player: Player;
   badgeState: PlayerBadgeState;
+  premiumState: PlayerPremiumState;
   onLoadBadges: (userId: string) => void;
   onAssignBadge: (userId: string, badgeId: string) => Promise<void>;
   onRemoveBadge: (userId: string, badgeId: string) => Promise<void>;
+  onTogglePremium: (userId: string, grant: boolean) => Promise<void>;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [removingBadge, setRemovingBadge] = useState<string | null>(null);
@@ -309,7 +381,7 @@ function PlayerRow({
   const currentBadgeIds = badgeState.badges.map((b) => b.id);
 
   return (
-    <div className="flex items-center gap-4 px-5 py-4 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors group">
+    <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors group">
       {/* Avatar */}
       <PlayerInitials name={player.name} />
 
@@ -324,7 +396,7 @@ function PlayerRow({
       </div>
 
       {/* Current badges */}
-      <div className="flex flex-wrap gap-1.5 items-center min-w-0 max-w-[280px]">
+      <div className="flex flex-wrap gap-1.5 items-center min-w-0 max-w-[260px]">
         {badgeState.loading ? (
           <span className="text-xs text-zinc-600 animate-pulse font-bold">
             Loading…
@@ -345,6 +417,15 @@ function PlayerRow({
               />
             ))
         )}
+      </div>
+
+      {/* Premium toggle */}
+      <div className="flex-shrink-0">
+        <PremiumToggle
+          userId={player.user_id}
+          premiumState={premiumState}
+          onToggle={onTogglePremium}
+        />
       </div>
 
       {/* Add Badge button */}
@@ -369,12 +450,362 @@ function PlayerRow({
 }
 
 // ---------------------------------------------------------------------------
+// Badge Holders Tab — per-badge view with holders / non-holders
+// ---------------------------------------------------------------------------
+
+function BadgeHoldersTab({
+  onAssignBadge,
+  onRemoveBadge,
+  setToast,
+}: {
+  onAssignBadge: (userId: string, badgeId: string) => Promise<void>;
+  onRemoveBadge: (userId: string, badgeId: string) => Promise<void>;
+  setToast: (t: { type: "success" | "error"; text: string } | null) => void;
+}) {
+  const [selectedBadge, setSelectedBadge] = useState<string>(
+    BADGE_OPTIONS[0].id
+  );
+  const [holders, setHolders] = useState<HolderEntry[]>([]);
+  const [nonHolders, setNonHolders] = useState<HolderEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [holderSearch, setHolderSearch] = useState("");
+  const [nonHolderSearch, setNonHolderSearch] = useState("");
+  const [actingOn, setActingOn] = useState<string | null>(null);
+
+  const badgeOption = BADGE_OPTIONS.find((b) => b.id === selectedBadge)!;
+
+  const loadHolders = useCallback(async (badgeId: string) => {
+    setLoading(true);
+    setError(null);
+    setHolders([]);
+    setNonHolders([]);
+    try {
+      // Fetch all players with any badge data, then split by whether they have this badge
+      const [holdersRes, allRes] = await Promise.all([
+        // Players who have this badge (from DB badges field)
+        fetch(`/api/admin/badges?role=${encodeURIComponent(badgeId)}`),
+        // All players with badge data (to find non-holders)
+        fetch(`/api/admin/badges`),
+      ]);
+
+      let holderIds = new Set<string>();
+      let holderList: HolderEntry[] = [];
+
+      if (holdersRes.ok) {
+        const data = await holdersRes.json();
+        // role endpoint returns { members: [{userId, name}] }
+        holderList = (data.members ?? []).map(
+          (m: { userId: string; name: string }) => ({
+            user_id: m.userId,
+            name: m.name,
+          })
+        );
+        holderIds = new Set(holderList.map((h) => h.user_id));
+      }
+
+      let nonHolderList: HolderEntry[] = [];
+      if (allRes.ok) {
+        const data = await allRes.json();
+        // GET /api/admin/badges (no params) returns { players: [{user_id, name, badges}] }
+        const allPlayers: Array<{
+          user_id: string;
+          name: string;
+          badges?: string[];
+        }> = data.players ?? [];
+        nonHolderList = allPlayers
+          .filter((p) => !holderIds.has(p.user_id))
+          .map((p) => ({ user_id: p.user_id, name: p.name }));
+      }
+
+      setHolders(holderList);
+      setNonHolders(nonHolderList);
+    } catch {
+      setError("Failed to load badge holders.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHolders(selectedBadge);
+  }, [selectedBadge, loadHolders]);
+
+  async function handleRemove(userId: string) {
+    setActingOn(userId);
+    try {
+      await onRemoveBadge(userId, selectedBadge);
+      // Move from holders → nonHolders
+      const entry = holders.find((h) => h.user_id === userId);
+      if (entry) {
+        setHolders((prev) => prev.filter((h) => h.user_id !== userId));
+        setNonHolders((prev) => [entry, ...prev]);
+      }
+    } finally {
+      setActingOn(null);
+    }
+  }
+
+  async function handleAdd(userId: string) {
+    setActingOn(userId);
+    try {
+      await onAssignBadge(userId, selectedBadge);
+      // Move from nonHolders → holders
+      const entry = nonHolders.find((h) => h.user_id === userId);
+      if (entry) {
+        setNonHolders((prev) => prev.filter((h) => h.user_id !== userId));
+        setHolders((prev) => [entry, ...prev]);
+      }
+    } finally {
+      setActingOn(null);
+    }
+  }
+
+  const filteredHolders = holders.filter(
+    (h) =>
+      !holderSearch ||
+      h.name.toLowerCase().includes(holderSearch.toLowerCase()) ||
+      h.user_id.includes(holderSearch)
+  );
+
+  const filteredNonHolders = nonHolders.filter(
+    (h) =>
+      !nonHolderSearch ||
+      h.name.toLowerCase().includes(nonHolderSearch.toLowerCase()) ||
+      h.user_id.includes(nonHolderSearch)
+  );
+
+  return (
+    <div>
+      {/* Badge selector */}
+      <div className="flex flex-wrap gap-3 mb-8">
+        {BADGE_OPTIONS.map((b) => (
+          <button
+            key={b.id}
+            onClick={() => {
+              setSelectedBadge(b.id);
+              setHolderSearch("");
+              setNonHolderSearch("");
+            }}
+            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-black border-2 transition-all active:scale-95 ${
+              selectedBadge === b.id
+                ? "scale-105"
+                : "opacity-50 hover:opacity-80"
+            }`}
+            style={
+              selectedBadge === b.id
+                ? {
+                    background: `linear-gradient(135deg, ${b.color}28, ${b.color}10)`,
+                    border: `2px solid ${b.color}80`,
+                    color: b.color,
+                    boxShadow: `0 0 20px ${b.color}30`,
+                  }
+                : {
+                    background: "rgba(255,255,255,0.03)",
+                    border: "2px solid rgba(255,255,255,0.10)",
+                    color: "#71717a",
+                  }
+            }
+          >
+            <span>{b.icon}</span>
+            <span>{b.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {loading && (
+        <div className="flex items-center justify-center py-16">
+          <p className="text-zinc-400 animate-pulse font-bold text-lg">
+            Loading badge holders…
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-2xl border-2 border-red-500/40 bg-red-950/20 px-6 py-5 text-center">
+          <p className="text-red-400 font-black">{error}</p>
+          <button
+            onClick={() => loadHolders(selectedBadge)}
+            className="mt-3 rounded-xl border border-red-500/40 px-4 py-2 text-sm font-black text-red-300 hover:bg-red-500/10 transition"
+          >
+            ↻ Retry
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* ── Has Badge ── */}
+          <div
+            className="rounded-3xl overflow-hidden"
+            style={{
+              border: `2px solid ${badgeOption.color}40`,
+              background: `linear-gradient(135deg, ${badgeOption.color}08, rgba(0,0,0,0.60))`,
+            }}
+          >
+            <div
+              className="px-5 py-4 border-b flex items-center justify-between"
+              style={{ borderColor: `${badgeOption.color}25` }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{badgeOption.icon}</span>
+                <div>
+                  <p
+                    className="font-black text-sm"
+                    style={{ color: badgeOption.color }}
+                  >
+                    Has {badgeOption.label}
+                  </p>
+                  <p className="text-[11px] text-zinc-500 font-bold">
+                    {filteredHolders.length} player
+                    {filteredHolders.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              </div>
+              <span
+                className="text-2xl font-black"
+                style={{ color: badgeOption.color }}
+              >
+                {holders.length}
+              </span>
+            </div>
+
+            {/* Search */}
+            <div className="px-4 py-3 border-b border-white/5">
+              <input
+                type="text"
+                value={holderSearch}
+                onChange={(e) => setHolderSearch(e.target.value)}
+                placeholder="Filter holders…"
+                className="w-full rounded-xl border border-white/10 bg-zinc-900/60 px-3 py-2 text-xs font-bold text-white placeholder-zinc-600 focus:border-white/25 focus:outline-none transition"
+              />
+            </div>
+
+            {/* List */}
+            <div className="max-h-80 overflow-y-auto divide-y divide-white/5">
+              {filteredHolders.length === 0 ? (
+                <p className="px-5 py-8 text-center text-sm font-bold text-zinc-600">
+                  {holderSearch ? "No matches" : "No holders yet"}
+                </p>
+              ) : (
+                filteredHolders.map((h) => (
+                  <div
+                    key={h.user_id}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors"
+                  >
+                    <PlayerInitials name={h.name} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-sm text-white truncate">
+                        {h.name}
+                      </p>
+                      <p className="text-[10px] font-mono text-zinc-600 truncate">
+                        {h.user_id}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleRemove(h.user_id)}
+                      disabled={actingOn === h.user_id}
+                      className="flex-shrink-0 rounded-xl border-2 border-red-700/50 bg-red-950/20 px-3 py-1.5 text-xs font-black text-red-400 hover:bg-red-500/20 hover:border-red-400 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {actingOn === h.user_id ? (
+                        <span className="animate-spin inline-block">⟳</span>
+                      ) : (
+                        "✕ Remove"
+                      )}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* ── Doesn't Have Badge ── */}
+          <div
+            className="rounded-3xl overflow-hidden"
+            style={{
+              border: "2px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.01)",
+            }}
+          >
+            <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between bg-white/[0.02]">
+              <div>
+                <p className="font-black text-sm text-zinc-300">
+                  Doesn&apos;t Have {badgeOption.label}
+                </p>
+                <p className="text-[11px] text-zinc-500 font-bold">
+                  {filteredNonHolders.length} player
+                  {filteredNonHolders.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <span className="text-2xl font-black text-zinc-500">
+                {nonHolders.length}
+              </span>
+            </div>
+
+            {/* Search */}
+            <div className="px-4 py-3 border-b border-white/5">
+              <input
+                type="text"
+                value={nonHolderSearch}
+                onChange={(e) => setNonHolderSearch(e.target.value)}
+                placeholder="Filter players…"
+                className="w-full rounded-xl border border-white/10 bg-zinc-900/60 px-3 py-2 text-xs font-bold text-white placeholder-zinc-600 focus:border-white/25 focus:outline-none transition"
+              />
+            </div>
+
+            {/* List */}
+            <div className="max-h-80 overflow-y-auto divide-y divide-white/5">
+              {filteredNonHolders.length === 0 ? (
+                <p className="px-5 py-8 text-center text-sm font-bold text-zinc-600">
+                  {nonHolderSearch ? "No matches" : "Everyone has this badge"}
+                </p>
+              ) : (
+                filteredNonHolders.map((h) => (
+                  <div
+                    key={h.user_id}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors"
+                  >
+                    <PlayerInitials name={h.name} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-sm text-white truncate">
+                        {h.name}
+                      </p>
+                      <p className="text-[10px] font-mono text-zinc-600 truncate">
+                        {h.user_id}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleAdd(h.user_id)}
+                      disabled={actingOn === h.user_id}
+                      className="flex-shrink-0 rounded-xl border-2 border-cyan-700/50 bg-cyan-950/20 px-3 py-1.5 text-xs font-black text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {actingOn === h.user_id ? (
+                        <span className="animate-spin inline-block">⟳</span>
+                      ) : (
+                        "➕ Add"
+                      )}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 
 export default function AdminBadgesPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+
+  // Tab
+  const [activeTab, setActiveTab] = useState<ActiveTab>("players");
 
   // Player list state
   const [players, setPlayers] = useState<Player[]>([]);
@@ -391,6 +822,11 @@ export default function AdminBadgesPage() {
   // Per-player badge state: userId → { badges, loading, loaded }
   const [badgeStates, setBadgeStates] = useState<
     Record<string, PlayerBadgeState>
+  >({});
+
+  // Per-player premium state: userId → { premium, loading, loaded }
+  const [premiumStates, setPremiumStates] = useState<
+    Record<string, PlayerPremiumState>
   >({});
 
   // Global toast
@@ -610,6 +1046,102 @@ export default function AdminBadgesPage() {
   }
 
   // ---------------------------------------------------------------------------
+  // Load premium status for a single player
+  // ---------------------------------------------------------------------------
+
+  const loadPlayerPremium = useCallback(async (userId: string) => {
+    setPremiumStates((prev) => ({
+      ...prev,
+      [userId]: { premium: prev[userId]?.premium ?? false, loading: true, loaded: false },
+    }));
+    try {
+      const res = await fetch(
+        `/api/admin/premium?userId=${encodeURIComponent(userId)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setPremiumStates((prev) => ({
+          ...prev,
+          [userId]: { premium: data.premium ?? false, loading: false, loaded: true },
+        }));
+      } else {
+        setPremiumStates((prev) => ({
+          ...prev,
+          [userId]: { premium: false, loading: false, loaded: true },
+        }));
+      }
+    } catch {
+      setPremiumStates((prev) => ({
+        ...prev,
+        [userId]: { premium: false, loading: false, loaded: true },
+      }));
+    }
+  }, []);
+
+  // Load premium for all visible players whenever the player list changes
+  useEffect(() => {
+    for (const player of players) {
+      if (!premiumStates[player.user_id]?.loaded && !premiumStates[player.user_id]?.loading) {
+        loadPlayerPremium(player.user_id);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players, loadPlayerPremium]);
+
+  // ---------------------------------------------------------------------------
+  // Toggle premium
+  // ---------------------------------------------------------------------------
+
+  async function handleTogglePremium(userId: string, grant: boolean) {
+    const playerName =
+      players.find((p) => p.user_id === userId)?.name ?? userId;
+
+    // Optimistic update
+    setPremiumStates((prev) => ({
+      ...prev,
+      [userId]: { ...prev[userId], premium: grant },
+    }));
+
+    try {
+      const res = await fetch("/api/admin/premium", {
+        method: grant ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPremiumStates((prev) => ({
+          ...prev,
+          [userId]: { premium: data.premium ?? grant, loading: false, loaded: true },
+        }));
+        setToast({
+          type: "success",
+          text: grant
+            ? `⭐ Premium granted to ${playerName}`
+            : `🗑️ Premium revoked from ${playerName}`,
+        });
+      } else {
+        // Revert
+        setPremiumStates((prev) => ({
+          ...prev,
+          [userId]: { ...prev[userId], premium: !grant },
+        }));
+        setToast({
+          type: "error",
+          text: data.error ?? "Failed to update premium.",
+        });
+      }
+    } catch {
+      // Revert
+      setPremiumStates((prev) => ({
+        ...prev,
+        [userId]: { ...prev[userId], premium: !grant },
+      }));
+      setToast({ type: "error", text: "An unexpected error occurred." });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Auth gate
   // ---------------------------------------------------------------------------
 
@@ -741,224 +1273,280 @@ export default function AdminBadgesPage() {
         </div>
       </div>
 
-      {/* ─── Search Bar ──────────────────────────────────────────────────── */}
-      <div className="mb-6">
-        <div className="relative flex items-center">
-          <span className="absolute left-4 text-lg text-cyan-400 pointer-events-none">
-            🔍
-          </span>
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => handleSearchInput(e.target.value)}
-            placeholder="Search by player name or Discord ID…"
-            className="w-full rounded-2xl border-2 border-cyan-700/40 bg-zinc-900 px-4 py-3.5 pl-11 pr-10 text-base font-bold text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none focus:shadow-[0_0_20px_rgba(0,212,255,0.20)] transition-all"
-          />
-          {loadingPlayers && (
-            <span className="absolute right-4 text-cyan-400 text-sm animate-pulse font-black">
-              ⟳
-            </span>
-          )}
-          {!loadingPlayers && searchInput && (
-            <button
-              onClick={clearSearch}
-              className="absolute right-4 text-zinc-400 hover:text-white text-base transition font-black"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-        {activeSearch && (
-          <p className="mt-2 text-xs font-bold text-zinc-500 pl-1">
-            Showing results for &quot;{activeSearch}&quot; — {total} player
-            {total !== 1 ? "s" : ""} found
-          </p>
-        )}
-      </div>
-
-      {/* ─── Player Table ─────────────────────────────────────────────────── */}
-      <div
-        className="rounded-3xl overflow-hidden"
-        style={{
-          border: "2px solid rgba(255,255,255,0.08)",
-          background: "rgba(255,255,255,0.01)",
-          boxShadow: "0 0 40px rgba(0,0,0,0.40)",
-        }}
-      >
-        {/* Table header */}
-        <div
-          className="grid px-5 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500 border-b border-white/8"
-          style={{
-            gridTemplateColumns: "40px 1fr 1fr auto",
-            gap: "1rem",
-            background: "rgba(255,255,255,0.02)",
-          }}
+      {/* ─── Tab Switcher ────────────────────────────────────────────────── */}
+      <div className="mb-6 flex gap-2">
+        <button
+          onClick={() => setActiveTab("players")}
+          className={`rounded-2xl px-5 py-2.5 text-sm font-black border-2 transition-all active:scale-95 ${
+            activeTab === "players"
+              ? "border-cyan-400/60 bg-cyan-950/30 text-cyan-300 shadow-[0_0_16px_rgba(0,212,255,0.20)]"
+              : "border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"
+          }`}
         >
-          <div />
-          <div>Player</div>
-          <div>Badges</div>
-          <div>Actions</div>
-        </div>
-
-        {/* Error state */}
-        {playersError && (
-          <div className="px-6 py-12 text-center">
-            <p className="text-4xl mb-3">⚠️</p>
-            <p className="text-base font-black text-red-400">{playersError}</p>
-            <button
-              onClick={() => loadPlayers(activeSearch, page)}
-              className="mt-4 rounded-xl border-2 border-red-500/40 bg-red-950/20 px-5 py-2.5 text-sm font-black text-red-300 hover:bg-red-500/20 transition-all"
-            >
-              ↻ Retry
-            </button>
-          </div>
-        )}
-
-        {/* Loading skeleton */}
-        {loadingPlayers && !playersError && (
-          <div className="divide-y divide-white/5">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-4 px-5 py-4 animate-pulse"
-              >
-                <div className="w-10 h-10 rounded-full bg-zinc-800 flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-zinc-800 rounded-full w-32" />
-                  <div className="h-2.5 bg-zinc-800/60 rounded-full w-48" />
-                </div>
-                <div className="flex gap-2">
-                  <div className="h-6 w-20 bg-zinc-800 rounded-xl" />
-                </div>
-                <div className="h-8 w-24 bg-zinc-800 rounded-xl" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!loadingPlayers && !playersError && players.length === 0 && (
-          <div className="px-6 py-16 text-center">
-            <p className="text-5xl mb-4">😕</p>
-            <p className="text-lg font-black text-zinc-400">
-              {activeSearch
-                ? `No players found for "${activeSearch}"`
-                : "No players found"}
-            </p>
-            {activeSearch && (
-              <button
-                onClick={clearSearch}
-                className="mt-4 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 px-5 py-2.5 text-sm font-black text-zinc-300 hover:bg-zinc-700/50 transition-all"
-              >
-                ✕ Clear Search
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Player rows */}
-        {!loadingPlayers && !playersError && players.length > 0 && (
-          <div>
-            {players.map((player) => {
-              const state: PlayerBadgeState = badgeStates[player.user_id] ?? {
-                badges: [],
-                loading: false,
-                loaded: false,
-              };
-              return (
-                <PlayerRow
-                  key={player.user_id}
-                  player={player}
-                  badgeState={state}
-                  onLoadBadges={loadPlayerBadges}
-                  onAssignBadge={handleAssignBadge}
-                  onRemoveBadge={handleRemoveBadge}
-                />
-              );
-            })}
-          </div>
-        )}
+          👥 Player List
+        </button>
+        <button
+          onClick={() => setActiveTab("holders")}
+          className={`rounded-2xl px-5 py-2.5 text-sm font-black border-2 transition-all active:scale-95 ${
+            activeTab === "holders"
+              ? "border-green-400/60 bg-green-950/30 text-green-300 shadow-[0_0_16px_rgba(0,255,136,0.20)]"
+              : "border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"
+          }`}
+        >
+          🏅 Badge Holders
+        </button>
       </div>
 
-      {/* ─── Pagination ───────────────────────────────────────────────────── */}
-      {!loadingPlayers && !playersError && total > PAGE_SIZE && (
-        <div className="mt-6 flex items-center justify-between gap-4">
-          <p className="text-sm font-bold text-zinc-500">
-            Showing{" "}
-            <span className="text-white font-black">
-              {pageStart}–{pageEnd}
-            </span>{" "}
-            of{" "}
-            <span className="text-white font-black">{total}</span> players
-          </p>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-              className="rounded-xl border-2 border-white/15 bg-white/5 px-4 py-2 text-sm font-black text-zinc-300 hover:bg-white/10 hover:border-white/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              ← Prev
-            </button>
-
-            {/* Page number pills */}
-            <div className="flex gap-1">
-              {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
-                // Show pages around current page
-                let pageNum = i;
-                if (totalPages > 7) {
-                  if (page <= 3) {
-                    pageNum = i;
-                  } else if (page >= totalPages - 4) {
-                    pageNum = totalPages - 7 + i;
-                  } else {
-                    pageNum = page - 3 + i;
-                  }
-                }
-                const isActive = pageNum === page;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setPage(pageNum)}
-                    className={`w-9 h-9 rounded-xl text-sm font-black transition-all ${
-                      isActive
-                        ? "bg-cyan-500/30 border-2 border-cyan-400/60 text-cyan-300"
-                        : "border-2 border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    {pageNum + 1}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={page >= totalPages - 1}
-              className="rounded-xl border-2 border-white/15 bg-white/5 px-4 py-2 text-sm font-black text-zinc-300 hover:bg-white/10 hover:border-white/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              Next →
-            </button>
-          </div>
-        </div>
+      {/* ─── Badge Holders Tab ───────────────────────────────────────────── */}
+      {activeTab === "holders" && (
+        <BadgeHoldersTab
+          onAssignBadge={handleAssignBadge}
+          onRemoveBadge={handleRemoveBadge}
+          setToast={setToast}
+        />
       )}
 
-      {/* ─── Stats footer ─────────────────────────────────────────────────── */}
-      {!loadingPlayers && !playersError && players.length > 0 && (
-        <div className="mt-4 flex items-center justify-center gap-2 text-xs font-bold text-zinc-600">
-          <span>
-            Page {page + 1} of {totalPages}
-          </span>
-          <span>·</span>
-          <span>{total} total players</span>
-          <span>·</span>
-          <button
-            onClick={() => loadPlayers(activeSearch, page)}
-            className="text-zinc-500 hover:text-zinc-300 transition font-black"
+      {/* ─── Player List Tab ─────────────────────────────────────────────── */}
+      {activeTab === "players" && (
+        <>
+          {/* ─── Search Bar ──────────────────────────────────────────────── */}
+          <div className="mb-6">
+            <div className="relative flex items-center">
+              <span className="absolute left-4 text-lg text-cyan-400 pointer-events-none">
+                🔍
+              </span>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => handleSearchInput(e.target.value)}
+                placeholder="Search by player name or Discord ID…"
+                className="w-full rounded-2xl border-2 border-cyan-700/40 bg-zinc-900 px-4 py-3.5 pl-11 pr-10 text-base font-bold text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none focus:shadow-[0_0_20px_rgba(0,212,255,0.20)] transition-all"
+              />
+              {loadingPlayers && (
+                <span className="absolute right-4 text-cyan-400 text-sm animate-pulse font-black">
+                  ⟳
+                </span>
+              )}
+              {!loadingPlayers && searchInput && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-4 text-zinc-400 hover:text-white text-base transition font-black"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {activeSearch && (
+              <p className="mt-2 text-xs font-bold text-zinc-500 pl-1">
+                Showing results for &quot;{activeSearch}&quot; — {total} player
+                {total !== 1 ? "s" : ""} found
+              </p>
+            )}
+          </div>
+
+          {/* ─── Player Table ────────────────────────────────────────────── */}
+          <div
+            className="rounded-3xl overflow-hidden"
+            style={{
+              border: "2px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.01)",
+              boxShadow: "0 0 40px rgba(0,0,0,0.40)",
+            }}
           >
-            ↻ Refresh
-          </button>
-        </div>
+            {/* Table header */}
+            <div
+              className="grid px-5 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500 border-b border-white/8"
+              style={{
+                gridTemplateColumns: "40px 1fr 1fr auto auto",
+                gap: "1rem",
+                background: "rgba(255,255,255,0.02)",
+              }}
+            >
+              <div />
+              <div>Player</div>
+              <div>Badges</div>
+              <div>Premium</div>
+              <div>Actions</div>
+            </div>
+
+            {/* Error state */}
+            {playersError && (
+              <div className="px-6 py-12 text-center">
+                <p className="text-4xl mb-3">⚠️</p>
+                <p className="text-base font-black text-red-400">
+                  {playersError}
+                </p>
+                <button
+                  onClick={() => loadPlayers(activeSearch, page)}
+                  className="mt-4 rounded-xl border-2 border-red-500/40 bg-red-950/20 px-5 py-2.5 text-sm font-black text-red-300 hover:bg-red-500/20 transition-all"
+                >
+                  ↻ Retry
+                </button>
+              </div>
+            )}
+
+            {/* Loading skeleton */}
+            {loadingPlayers && !playersError && (
+              <div className="divide-y divide-white/5">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 px-5 py-4 animate-pulse"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-zinc-800 rounded-full w-32" />
+                      <div className="h-2.5 bg-zinc-800/60 rounded-full w-48" />
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="h-6 w-20 bg-zinc-800 rounded-xl" />
+                    </div>
+                    <div className="h-8 w-28 bg-zinc-800 rounded-xl" />
+                    <div className="h-8 w-24 bg-zinc-800 rounded-xl" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!loadingPlayers && !playersError && players.length === 0 && (
+              <div className="px-6 py-16 text-center">
+                <p className="text-5xl mb-4">😕</p>
+                <p className="text-lg font-black text-zinc-400">
+                  {activeSearch
+                    ? `No players found for "${activeSearch}"`
+                    : "No players found"}
+                </p>
+                {activeSearch && (
+                  <button
+                    onClick={clearSearch}
+                    className="mt-4 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 px-5 py-2.5 text-sm font-black text-zinc-300 hover:bg-zinc-700/50 transition-all"
+                  >
+                    ✕ Clear Search
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Player rows */}
+            {!loadingPlayers && !playersError && players.length > 0 && (
+              <div>
+                {players.map((player) => {
+                  const badgeState: PlayerBadgeState = badgeStates[
+                    player.user_id
+                  ] ?? {
+                    badges: [],
+                    loading: false,
+                    loaded: false,
+                  };
+                  const premiumState: PlayerPremiumState = premiumStates[
+                    player.user_id
+                  ] ?? {
+                    premium: false,
+                    loading: false,
+                    loaded: false,
+                  };
+                  return (
+                    <PlayerRow
+                      key={player.user_id}
+                      player={player}
+                      badgeState={badgeState}
+                      premiumState={premiumState}
+                      onLoadBadges={loadPlayerBadges}
+                      onAssignBadge={handleAssignBadge}
+                      onRemoveBadge={handleRemoveBadge}
+                      onTogglePremium={handleTogglePremium}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ─── Pagination ──────────────────────────────────────────────── */}
+          {!loadingPlayers && !playersError && total > PAGE_SIZE && (
+            <div className="mt-6 flex items-center justify-between gap-4">
+              <p className="text-sm font-bold text-zinc-500">
+                Showing{" "}
+                <span className="text-white font-black">
+                  {pageStart}–{pageEnd}
+                </span>{" "}
+                of{" "}
+                <span className="text-white font-black">{total}</span> players
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  className="rounded-xl border-2 border-white/15 bg-white/5 px-4 py-2 text-sm font-black text-zinc-300 hover:bg-white/10 hover:border-white/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  ← Prev
+                </button>
+
+                {/* Page number pills */}
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(totalPages, 7) }).map(
+                    (_, i) => {
+                      let pageNum = i;
+                      if (totalPages > 7) {
+                        if (page <= 3) {
+                          pageNum = i;
+                        } else if (page >= totalPages - 4) {
+                          pageNum = totalPages - 7 + i;
+                        } else {
+                          pageNum = page - 3 + i;
+                        }
+                      }
+                      const isActive = pageNum === page;
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setPage(pageNum)}
+                          className={`w-9 h-9 rounded-xl text-sm font-black transition-all ${
+                            isActive
+                              ? "bg-cyan-500/30 border-2 border-cyan-400/60 text-cyan-300"
+                              : "border-2 border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"
+                          }`}
+                        >
+                          {pageNum + 1}
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+
+                <button
+                  onClick={() =>
+                    setPage((p) => Math.min(totalPages - 1, p + 1))
+                  }
+                  disabled={page >= totalPages - 1}
+                  className="rounded-xl border-2 border-white/15 bg-white/5 px-4 py-2 text-sm font-black text-zinc-300 hover:bg-white/10 hover:border-white/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ─── Stats footer ────────────────────────────────────────────── */}
+          {!loadingPlayers && !playersError && players.length > 0 && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-xs font-bold text-zinc-600">
+              <span>
+                Page {page + 1} of {totalPages}
+              </span>
+              <span>·</span>
+              <span>{total} total players</span>
+              <span>·</span>
+              <button
+                onClick={() => loadPlayers(activeSearch, page)}
+                className="text-zinc-500 hover:text-zinc-300 transition font-black"
+              >
+                ↻ Refresh
+              </button>
+            </div>
+          )}
+        </>
       )}
     </Shell>
   );
