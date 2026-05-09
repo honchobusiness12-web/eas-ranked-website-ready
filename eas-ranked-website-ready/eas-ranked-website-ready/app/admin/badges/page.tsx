@@ -29,40 +29,25 @@ interface PlayerBadgeData {
   roles: string[];
 }
 
-interface DiscordRoleMember {
-  userId: string;
-  username: string;
-  displayName: string | null;
-  avatar: string | null;
-}
-
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const BADGE_OPTIONS = [
-  { id: "staff",            label: "Staff",            icon: "👮", color: "#00FF88" },
-  { id: "contentCreator",   label: "Content Creator",  icon: "🎬", color: "#00D4FF" },
-  { id: "tournamentWinner", label: "Tournament Winner", icon: "🏆", color: "#FFD700" },
+  { id: "staff",            label: "Staff",            icon: "👮", color: "#00FF88", bg: "from-green-950/30 to-black", border: "border-green-700/30", accent: "text-green-300" },
+  { id: "contentCreator",   label: "Content Creator",  icon: "🎬", color: "#00D4FF", bg: "from-cyan-950/30 to-black",  border: "border-cyan-700/30",  accent: "text-cyan-300"  },
+  { id: "tournamentWinner", label: "Tournament Winner", icon: "🏆", color: "#FFD700", bg: "from-yellow-950/30 to-black", border: "border-yellow-700/30", accent: "text-yellow-300" },
 ] as const;
 
 type BadgeId = (typeof BADGE_OPTIONS)[number]["id"];
-
-type SidebarTab = "db" | "contentCreator" | "staff" | "premium";
-
-const SIDEBAR_TABS: { id: SidebarTab; label: string; icon: string }[] = [
-  { id: "db",             label: "DB Holders",      icon: "🏅" },
-  { id: "contentCreator", label: "Content Creators", icon: "🎬" },
-  { id: "staff",          label: "Staff",            icon: "👮" },
-  { id: "premium",        label: "Premium",          icon: "💎" },
-];
+type MainTab = "badge" | "user" | "batch";
 
 /** Client-side search cache: query → { players, expiresAt } */
 const searchCache = new Map<string, { players: PlayerRow[]; expiresAt: number }>();
-const SEARCH_CACHE_TTL_MS = 30_000; // 30 seconds
+const SEARCH_CACHE_TTL_MS = 30_000;
 
 // ---------------------------------------------------------------------------
-// Sub-components
+// Small reusable components
 // ---------------------------------------------------------------------------
 
 function BadgePill({ badge }: { badge: BadgeInfo }) {
@@ -82,6 +67,146 @@ function BadgePill({ badge }: { badge: BadgeInfo }) {
   );
 }
 
+function StatusBanner({
+  msg,
+  onDismiss,
+}: {
+  msg: { type: "success" | "error"; text: string };
+  onDismiss: () => void;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-bold ${
+        msg.type === "success"
+          ? "border-green-700/40 bg-green-950/20 text-green-300"
+          : "border-red-700/40 bg-red-950/20 text-red-300"
+      }`}
+    >
+      <span>{msg.text}</span>
+      <button onClick={onDismiss} className="ml-3 text-xs opacity-60 hover:opacity-100 transition">✕</button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Inline search-and-select input (reused in Badge View per-badge)
+// ---------------------------------------------------------------------------
+
+function PlayerSearchInput({
+  placeholder,
+  onSelect,
+}: {
+  placeholder?: string;
+  onSelect: (player: PlayerRow) => void;
+}) {
+  const [query, setQuery]       = useState("");
+  const [results, setResults]   = useState<PlayerRow[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [open, setOpen]         = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrapRef     = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  async function runSearch(q: string) {
+    const trimmed = q.trim();
+    if (!trimmed) { setResults([]); setOpen(false); return; }
+
+    const cached = searchCache.get(trimmed);
+    if (cached && Date.now() < cached.expiresAt) {
+      setResults(cached.players);
+      setOpen(true);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/admin/badges?search=${encodeURIComponent(trimmed)}`);
+      if (res.ok) {
+        const data = await res.json();
+        const players: PlayerRow[] = data.players ?? [];
+        searchCache.set(trimmed, { players, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+        setResults(players);
+        setOpen(true);
+      }
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function handleInput(value: string) {
+    setQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!value.trim()) { setResults([]); setOpen(false); return; }
+    debounceRef.current = setTimeout(() => runSearch(value), 300);
+  }
+
+  function handleSelect(player: PlayerRow) {
+    onSelect(player);
+    setQuery("");
+    setResults([]);
+    setOpen(false);
+  }
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <div className="relative flex items-center">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => handleInput(e.target.value)}
+          onFocus={() => results.length > 0 && setOpen(true)}
+          placeholder={placeholder ?? "Search by name or Discord ID…"}
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 pr-8 text-sm text-white placeholder-zinc-600 focus:border-white/20 focus:outline-none"
+        />
+        {searching && (
+          <span className="absolute right-3 text-zinc-500 text-xs animate-pulse">…</span>
+        )}
+        {!searching && query && (
+          <button
+            onClick={() => { setQuery(""); setResults([]); setOpen(false); }}
+            className="absolute right-3 text-zinc-500 hover:text-zinc-300 text-xs transition"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {open && results.length > 0 && (
+        <div className="absolute z-30 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] shadow-2xl overflow-hidden">
+          {results.map((player) => (
+            <button
+              key={player.user_id}
+              onMouseDown={() => handleSelect(player)}
+              className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-white/[0.07] transition border-b border-white/5 last:border-0"
+            >
+              <div>
+                <p className="font-bold text-sm text-white">{player.name}</p>
+                <p className="text-[10px] font-mono text-zinc-500">{player.user_id}</p>
+              </div>
+              <span className="text-xs text-zinc-500 shrink-0">Add →</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {open && results.length === 0 && query.trim() && !searching && (
+        <div className="absolute z-30 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3 text-sm text-zinc-500 shadow-2xl">
+          No players found for &quot;{query}&quot;
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
@@ -90,49 +215,48 @@ export default function AdminBadgesPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [isOwner, setIsOwner]         = useState(false);
 
-  // Search state
-  const [searchQuery,   setSearchQuery]   = useState("");
-  const [searchResults, setSearchResults] = useState<PlayerRow[]>([]);
-  const [searching,     setSearching]     = useState(false);
-  const [showDropdown,  setShowDropdown]  = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchBoxRef = useRef<HTMLDivElement>(null);
+  // Active main tab
+  const [activeTab, setActiveTab] = useState<MainTab>("badge");
 
-  // Selected player
-  const [selectedPlayer, setSelectedPlayer] = useState<PlayerBadgeData | null>(null);
-  const [loadingPlayer,  setLoadingPlayer]  = useState(false);
-
-  // Optimistic badge state — applied instantly, confirmed by server response
-  const [optimisticBadges, setOptimisticBadges] = useState<BadgeInfo[] | null>(null);
-
-  // DB badge holders list
+  // All badge holders (for Badge View)
   const [badgeHolders,   setBadgeHolders]   = useState<PlayerRow[]>([]);
   const [loadingHolders, setLoadingHolders] = useState(false);
 
-  // Discord role member lists
-  const [ccMembers,      setCcMembers]      = useState<DiscordRoleMember[]>([]);
-  const [staffMembers,   setStaffMembers]   = useState<DiscordRoleMember[]>([]);
-  const [premiumMembers, setPremiumMembers] = useState<DiscordRoleMember[]>([]);
-  const [loadingRole,    setLoadingRole]    = useState<SidebarTab | null>(null);
+  // Per-badge add-search loading state
+  const [addingTo, setAddingTo] = useState<BadgeId | null>(null);
 
-  // Sidebar tab
-  const [sidebarTab, setSidebarTab] = useState<SidebarTab>("db");
+  // User View state
+  const [userQuery,        setUserQuery]        = useState("");
+  const [userResults,      setUserResults]      = useState<PlayerRow[]>([]);
+  const [userSearching,    setUserSearching]    = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [selectedUser,     setSelectedUser]     = useState<PlayerBadgeData | null>(null);
+  const [loadingUser,      setLoadingUser]      = useState(false);
+  const [optimisticBadges, setOptimisticBadges] = useState<BadgeInfo[] | null>(null);
+  const [userMsg,          setUserMsg]          = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [actioning,        setActioning]        = useState(false);
+  const userDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const userSearchRef   = useRef<HTMLDivElement>(null);
 
-  // Sync-roles state
+  // Batch state
+  const [batchBadge,   setBatchBadge]   = useState<BadgeId>("staff");
+  const [batchAction,  setBatchAction]  = useState<"assign" | "remove">("assign");
+  const [batchInput,   setBatchInput]   = useState("");
+  const [batchList,    setBatchList]    = useState<{ userId: string; name: string }[]>([]);
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [batchMsg,     setBatchMsg]     = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [batchSearchResults, setBatchSearchResults] = useState<PlayerRow[]>([]);
+  const [batchSearchOpen,    setBatchSearchOpen]    = useState(false);
+  const [batchSearching,     setBatchSearching]     = useState(false);
+  const batchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const batchSearchRef   = useRef<HTMLDivElement>(null);
+
+  // Global action feedback (badge view)
+  const [badgeMsg, setBadgeMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Sync roles
   const [syncing,    setSyncing]    = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
-
-  // Action state
-  const [actionMsg, setActionMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [actioning, setActioning] = useState(false);
-
-  // Batch operations state
-  const [batchSelected,   setBatchSelected]   = useState<Set<string>>(new Set());
-  const [batchBadge,      setBatchBadge]      = useState<BadgeId>("staff");
-  const [batchAction,     setBatchAction]     = useState<"assign" | "remove">("assign");
-  const [batchRunning,    setBatchRunning]    = useState(false);
-  const [batchMsg,        setBatchMsg]        = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [showBatchPanel,  setShowBatchPanel]  = useState(false);
 
   // ---------------------------------------------------------------------------
   // Auth check
@@ -149,29 +273,22 @@ export default function AdminBadgesPage() {
   }, []);
 
   // ---------------------------------------------------------------------------
-  // Close search dropdown when clicking outside
+  // Auto-dismiss success messages
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // ---------------------------------------------------------------------------
-  // Auto-dismiss success messages after 4 seconds
-  // ---------------------------------------------------------------------------
-
-  useEffect(() => {
-    if (actionMsg?.type === "success") {
-      const t = setTimeout(() => setActionMsg(null), 4000);
+    if (badgeMsg?.type === "success") {
+      const t = setTimeout(() => setBadgeMsg(null), 4000);
       return () => clearTimeout(t);
     }
-  }, [actionMsg]);
+  }, [badgeMsg]);
+
+  useEffect(() => {
+    if (userMsg?.type === "success") {
+      const t = setTimeout(() => setUserMsg(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [userMsg]);
 
   useEffect(() => {
     if (batchMsg?.type === "success") {
@@ -181,7 +298,24 @@ export default function AdminBadgesPage() {
   }, [batchMsg]);
 
   // ---------------------------------------------------------------------------
-  // Load DB badge holders
+  // Close user-search dropdown on outside click
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (userSearchRef.current && !userSearchRef.current.contains(e.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+      if (batchSearchRef.current && !batchSearchRef.current.contains(e.target as Node)) {
+        setBatchSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Load all badge holders
   // ---------------------------------------------------------------------------
 
   const loadBadgeHolders = useCallback(async () => {
@@ -197,177 +331,237 @@ export default function AdminBadgesPage() {
     }
   }, []);
 
-  // ---------------------------------------------------------------------------
-  // Load Discord role members for a given tab
-  // ---------------------------------------------------------------------------
-
-  const loadRoleMembers = useCallback(async (tab: SidebarTab, force = false) => {
-    if (tab === "db") return;
-    setLoadingRole(tab);
-    try {
-      const params = new URLSearchParams({ role: tab });
-      if (force) params.set("force", "true");
-      const res = await fetch(`/api/admin/badges?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        const members: DiscordRoleMember[] = data.members ?? [];
-        if (tab === "contentCreator") setCcMembers(members);
-        else if (tab === "staff")     setStaffMembers(members);
-        else if (tab === "premium")   setPremiumMembers(members);
-      }
-    } finally {
-      setLoadingRole(null);
-    }
-  }, []);
-
   useEffect(() => {
     if (isOwner) loadBadgeHolders();
   }, [isOwner, loadBadgeHolders]);
 
-  // Load role members when switching tabs (lazy — only if not already loaded)
-  useEffect(() => {
-    if (!isOwner || sidebarTab === "db") return;
-    const alreadyLoaded =
-      (sidebarTab === "contentCreator" && ccMembers.length > 0) ||
-      (sidebarTab === "staff"          && staffMembers.length > 0) ||
-      (sidebarTab === "premium"        && premiumMembers.length > 0);
-    if (!alreadyLoaded) loadRoleMembers(sidebarTab);
-  }, [sidebarTab, isOwner, ccMembers.length, staffMembers.length, premiumMembers.length, loadRoleMembers]);
-
   // ---------------------------------------------------------------------------
-  // Debounced live search (300 ms) with 30-second client cache
+  // Badge View — add a user to a badge
   // ---------------------------------------------------------------------------
 
-  const runSearch = useCallback(async (query: string) => {
-    const q = query.trim();
-    if (!q) {
-      setSearchResults([]);
-      setShowDropdown(false);
-      return;
-    }
-
-    // Check cache first
-    const cached = searchCache.get(q);
-    if (cached && Date.now() < cached.expiresAt) {
-      setSearchResults(cached.players);
-      setShowDropdown(true);
-      return;
-    }
-
-    setSearching(true);
+  async function handleAddToBadge(player: PlayerRow, badgeId: BadgeId) {
+    setAddingTo(badgeId);
+    setBadgeMsg(null);
     try {
-      const res = await fetch(`/api/admin/badges?search=${encodeURIComponent(q)}`);
-      if (res.ok) {
-        const data = await res.json();
-        const players: PlayerRow[] = data.players ?? [];
-        searchCache.set(q, { players, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
-        setSearchResults(players);
-        setShowDropdown(true);
+      const res = await fetch("/api/admin/badges", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: player.user_id, badge: badgeId }),
+      });
+      const data = await res.json();
+      const badgeOption = BADGE_OPTIONS.find((b) => b.id === badgeId)!;
+      if (res.ok && data.success) {
+        setBadgeMsg({
+          type: "success",
+          text: `✅ ${badgeOption.icon} ${badgeOption.label} assigned to ${player.name ?? player.user_id}`,
+        });
+        loadBadgeHolders();
+      } else {
+        setBadgeMsg({ type: "error", text: data.error ?? "Failed to assign badge." });
       }
+    } catch {
+      setBadgeMsg({ type: "error", text: "An unexpected error occurred." });
     } finally {
-      setSearching(false);
+      setAddingTo(null);
     }
-  }, []);
-
-  function handleSearchInput(value: string) {
-    setSearchQuery(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!value.trim()) {
-      setSearchResults([]);
-      setShowDropdown(false);
-      return;
-    }
-    debounceRef.current = setTimeout(() => runSearch(value), 300);
   }
 
   // ---------------------------------------------------------------------------
-  // Select a player and load their badges (parallel DB + badge fetch)
+  // Badge View — remove a user from a badge
   // ---------------------------------------------------------------------------
 
-  async function selectPlayer(userId: string) {
-    setLoadingPlayer(true);
-    setSelectedPlayer(null);
+  async function handleRemoveFromBadge(userId: string, userName: string | null, badgeId: BadgeId) {
+    setBadgeMsg(null);
+    try {
+      const res = await fetch("/api/admin/badges", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, badge: badgeId }),
+      });
+      const data = await res.json();
+      const badgeOption = BADGE_OPTIONS.find((b) => b.id === badgeId)!;
+      if (res.ok && data.success) {
+        setBadgeMsg({
+          type: "success",
+          text: `✅ ${badgeOption.icon} ${badgeOption.label} removed from ${userName ?? userId}`,
+        });
+        loadBadgeHolders();
+      } else {
+        setBadgeMsg({ type: "error", text: data.error ?? "Failed to remove badge." });
+      }
+    } catch {
+      setBadgeMsg({ type: "error", text: "An unexpected error occurred." });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // User View — search
+  // ---------------------------------------------------------------------------
+
+  async function runUserSearch(q: string) {
+    const trimmed = q.trim();
+    if (!trimmed) { setUserResults([]); setUserDropdownOpen(false); return; }
+
+    const cached = searchCache.get(trimmed);
+    if (cached && Date.now() < cached.expiresAt) {
+      setUserResults(cached.players);
+      setUserDropdownOpen(true);
+      return;
+    }
+
+    setUserSearching(true);
+    try {
+      const res = await fetch(`/api/admin/badges?search=${encodeURIComponent(trimmed)}`);
+      if (res.ok) {
+        const data = await res.json();
+        const players: PlayerRow[] = data.players ?? [];
+        searchCache.set(trimmed, { players, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+        setUserResults(players);
+        setUserDropdownOpen(true);
+      }
+    } finally {
+      setUserSearching(false);
+    }
+  }
+
+  function handleUserSearchInput(value: string) {
+    setUserQuery(value);
+    if (userDebounceRef.current) clearTimeout(userDebounceRef.current);
+    if (!value.trim()) { setUserResults([]); setUserDropdownOpen(false); return; }
+    userDebounceRef.current = setTimeout(() => runUserSearch(value), 300);
+  }
+
+  async function selectUser(userId: string) {
+    setLoadingUser(true);
+    setSelectedUser(null);
     setOptimisticBadges(null);
-    setActionMsg(null);
-    setShowDropdown(false);
-    // Clear the search box so the input doesn't show stale text after sidebar selection
-    setSearchQuery("");
-    setSearchResults([]);
+    setUserMsg(null);
+    setUserDropdownOpen(false);
+    setUserQuery("");
+    setUserResults([]);
     try {
       const res = await fetch(`/api/admin/badges?userId=${encodeURIComponent(userId)}`);
       if (res.ok) {
         const data = await res.json();
-        setSelectedPlayer(data);
+        setSelectedUser(data);
       }
     } finally {
-      setLoadingPlayer(false);
+      setLoadingUser(false);
     }
   }
 
   // ---------------------------------------------------------------------------
-  // Assign / remove badge with optimistic UI update
+  // User View — assign / remove badge with optimistic update
   // ---------------------------------------------------------------------------
 
-  async function handleBadgeAction(badge: BadgeId, action: "assign" | "remove") {
-    if (!selectedPlayer) return;
+  async function handleUserBadgeAction(badgeId: BadgeId, action: "assign" | "remove") {
+    if (!selectedUser) return;
     setActioning(true);
-    setActionMsg(null);
+    setUserMsg(null);
 
-    // Optimistic update — apply immediately before the server responds
-    const currentBadges = optimisticBadges ?? selectedPlayer.badges;
-    const badgeOption = BADGE_OPTIONS.find((b) => b.id === badge)!;
+    const currentBadges = optimisticBadges ?? selectedUser.badges;
+    const badgeOption   = BADGE_OPTIONS.find((b) => b.id === badgeId)!;
     const nextBadges =
       action === "assign"
-        ? currentBadges.some((b) => b.id === badge)
+        ? currentBadges.some((b) => b.id === badgeId)
           ? currentBadges
-          : [...currentBadges, { id: badge, label: badgeOption.label, icon: badgeOption.icon, color: badgeOption.color, description: "" }]
-        : currentBadges.filter((b) => b.id !== badge);
+          : [...currentBadges, { id: badgeId, label: badgeOption.label, icon: badgeOption.icon, color: badgeOption.color, description: "" }]
+        : currentBadges.filter((b) => b.id !== badgeId);
     setOptimisticBadges(nextBadges);
 
     try {
       const res = await fetch("/api/admin/badges", {
         method: action === "assign" ? "POST" : "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedPlayer.userId, badge }),
+        body: JSON.stringify({ userId: selectedUser.userId, badge: badgeId }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setActionMsg({
+        setUserMsg({
           type: "success",
-          text: `✅ ${badgeOption.icon} ${badgeOption.label} ${action === "assign" ? "assigned to" : "removed from"} ${selectedPlayer.name ?? selectedPlayer.userId}`,
+          text: `✅ ${badgeOption.icon} ${badgeOption.label} ${action === "assign" ? "assigned to" : "removed from"} ${selectedUser.name ?? selectedUser.userId}`,
         });
-        // Confirm with server-returned badges
         setOptimisticBadges(data.badges ?? null);
-        setSelectedPlayer((prev) => prev ? { ...prev, badges: data.badges ?? prev.badges } : prev);
-        // Refresh sidebar list in background (non-blocking)
+        setSelectedUser((prev) => prev ? { ...prev, badges: data.badges ?? prev.badges } : prev);
         loadBadgeHolders();
       } else {
-        // Revert optimistic update on failure
         setOptimisticBadges(null);
-        setActionMsg({ type: "error", text: data.error ?? "Action failed." });
+        setUserMsg({ type: "error", text: data.error ?? "Action failed." });
       }
     } catch {
       setOptimisticBadges(null);
-      setActionMsg({ type: "error", text: "An unexpected error occurred." });
+      setUserMsg({ type: "error", text: "An unexpected error occurred." });
     } finally {
       setActioning(false);
     }
   }
 
   // ---------------------------------------------------------------------------
-  // Batch badge operation
+  // Batch View — search
+  // ---------------------------------------------------------------------------
+
+  async function runBatchSearch(q: string) {
+    const trimmed = q.trim();
+    if (!trimmed) { setBatchSearchResults([]); setBatchSearchOpen(false); return; }
+
+    const cached = searchCache.get(trimmed);
+    if (cached && Date.now() < cached.expiresAt) {
+      setBatchSearchResults(cached.players);
+      setBatchSearchOpen(true);
+      return;
+    }
+
+    setBatchSearching(true);
+    try {
+      const res = await fetch(`/api/admin/badges?search=${encodeURIComponent(trimmed)}`);
+      if (res.ok) {
+        const data = await res.json();
+        const players: PlayerRow[] = data.players ?? [];
+        searchCache.set(trimmed, { players, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+        setBatchSearchResults(players);
+        setBatchSearchOpen(true);
+      }
+    } finally {
+      setBatchSearching(false);
+    }
+  }
+
+  function handleBatchSearchInput(value: string) {
+    setBatchInput(value);
+    if (batchDebounceRef.current) clearTimeout(batchDebounceRef.current);
+    if (!value.trim()) { setBatchSearchResults([]); setBatchSearchOpen(false); return; }
+    batchDebounceRef.current = setTimeout(() => runBatchSearch(value), 300);
+  }
+
+  function addToBatchList(player: PlayerRow) {
+    if (batchList.some((p) => p.userId === player.user_id)) return;
+    setBatchList((prev) => [...prev, { userId: player.user_id, name: player.name }]);
+    setBatchInput("");
+    setBatchSearchResults([]);
+    setBatchSearchOpen(false);
+  }
+
+  function removeFromBatchList(userId: string) {
+    setBatchList((prev) => prev.filter((p) => p.userId !== userId));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Batch View — run batch operation
   // ---------------------------------------------------------------------------
 
   async function handleBatchAction() {
-    const ids = Array.from(batchSelected);
-    if (ids.length === 0) return;
+    if (batchList.length === 0) return;
     setBatchRunning(true);
     setBatchMsg(null);
     try {
       const res = await fetch("/api/admin/badges", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userIds: ids, badge: batchBadge, action: batchAction }),
+        body: JSON.stringify({
+          userIds: batchList.map((p) => p.userId),
+          badge: batchBadge,
+          action: batchAction,
+        }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -376,12 +570,8 @@ export default function AdminBadgesPage() {
           type: "success",
           text: `✅ ${badgeOption.icon} ${badgeOption.label} ${batchAction === "assign" ? "assigned to" : "removed from"} ${data.succeeded.length} player${data.succeeded.length !== 1 ? "s" : ""}${data.failed.length > 0 ? ` (${data.failed.length} failed)` : ""}`,
         });
-        setBatchSelected(new Set());
+        setBatchList([]);
         loadBadgeHolders();
-        // If the currently selected player was in the batch, refresh them
-        if (selectedPlayer && ids.includes(selectedPlayer.userId)) {
-          selectPlayer(selectedPlayer.userId);
-        }
       } else {
         setBatchMsg({ type: "error", text: data.error ?? "Batch action failed." });
       }
@@ -392,15 +582,6 @@ export default function AdminBadgesPage() {
     }
   }
 
-  function toggleBatchPlayer(userId: string) {
-    setBatchSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(userId)) next.delete(userId);
-      else next.add(userId);
-      return next;
-    });
-  }
-
   // ---------------------------------------------------------------------------
   // Sync roles
   // ---------------------------------------------------------------------------
@@ -409,7 +590,7 @@ export default function AdminBadgesPage() {
     setSyncing(true);
     setSyncResult(null);
     try {
-      const url = force ? "/api/admin/sync-roles?force=true" : "/api/admin/sync-roles";
+      const url  = force ? "/api/admin/sync-roles?force=true" : "/api/admin/sync-roles";
       const res  = await fetch(url, { method: "POST" });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -423,11 +604,6 @@ export default function AdminBadgesPage() {
           );
         }
         loadBadgeHolders();
-        if (force) {
-          loadRoleMembers("contentCreator", true);
-          loadRoleMembers("staff", true);
-          loadRoleMembers("premium", true);
-        }
       } else {
         setSyncResult(`❌ ${data.error ?? "Sync failed."}`);
       }
@@ -474,156 +650,460 @@ export default function AdminBadgesPage() {
   }
 
   // ---------------------------------------------------------------------------
-  // Sidebar content for the active tab
+  // Derived state
   // ---------------------------------------------------------------------------
 
-  function renderSidebarContent() {
-    if (sidebarTab === "db") {
-      return (
-        <>
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-            <h2 className="text-lg font-black">🏅 DB Badge Holders</h2>
-            <button
-              onClick={loadBadgeHolders}
-              disabled={loadingHolders}
-              className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
+  const displayBadges = optimisticBadges ?? selectedUser?.badges ?? [];
+
+  // For Badge View: group badge holders by badge id
+  function holdersForBadge(badgeId: BadgeId): PlayerRow[] {
+    return badgeHolders.filter((p) => {
+      const roles: string[] = p.roles ?? [];
+      // The API returns players whose data->'badges' contains the badge id
+      // The raw row has a `badges` field but the type only has `roles` — we cast
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const badges: string[] = (p as any).badges ?? [];
+      return badges.includes(badgeId) || roles.includes(badgeId);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tab content renderers
+  // ---------------------------------------------------------------------------
+
+  function renderBadgeView() {
+    return (
+      <div className="space-y-6">
+        {/* Global feedback */}
+        {badgeMsg && (
+          <StatusBanner msg={badgeMsg} onDismiss={() => setBadgeMsg(null)} />
+        )}
+
+        {/* One card per badge */}
+        {BADGE_OPTIONS.map((badge) => {
+          const holders = holdersForBadge(badge.id);
+          const isAdding = addingTo === badge.id;
+
+          return (
+            <div
+              key={badge.id}
+              className={`rounded-2xl border ${badge.border} bg-gradient-to-br ${badge.bg} overflow-hidden`}
             >
-              {loadingHolders ? "…" : "↻"}
-            </button>
-          </div>
-          {loadingHolders && badgeHolders.length === 0 ? (
-            <div className="p-8 text-center text-zinc-500 animate-pulse text-sm">Loading…</div>
-          ) : badgeHolders.length === 0 ? (
-            <div className="p-8 text-center text-zinc-500 text-sm">No badge holders yet.</div>
-          ) : (
-            <div className="divide-y divide-white/5 max-h-[520px] overflow-y-auto">
-              {badgeHolders.map((player) => (
-                <div key={player.user_id} className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 transition">
-                  {showBatchPanel && (
-                    <input
-                      type="checkbox"
-                      checked={batchSelected.has(player.user_id)}
-                      onChange={() => toggleBatchPlayer(player.user_id)}
-                      className="accent-red-500 shrink-0"
-                    />
-                  )}
+              {/* Badge header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{badge.icon}</span>
+                  <div>
+                    <h2 className={`text-lg font-black ${badge.accent}`}>{badge.label}</h2>
+                    <p className="text-xs text-zinc-500">
+                      {holders.length} holder{holders.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={loadBadgeHolders}
+                  disabled={loadingHolders}
+                  className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
+                >
+                  {loadingHolders ? "…" : "↻ Refresh"}
+                </button>
+              </div>
+
+              {/* Current holders list */}
+              <div className="px-6 pt-4 pb-2">
+                {loadingHolders && holders.length === 0 ? (
+                  <p className="text-sm text-zinc-500 animate-pulse py-2">Loading…</p>
+                ) : holders.length === 0 ? (
+                  <p className="text-sm text-zinc-600 py-2 italic">No users have this badge yet.</p>
+                ) : (
+                  <div className="space-y-2 mb-4">
+                    {holders.map((player) => (
+                      <div
+                        key={player.user_id}
+                        className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-4 py-2.5"
+                      >
+                        <div>
+                          <p className="font-bold text-sm text-white">{player.name ?? "Unknown"}</p>
+                          <p className="text-[10px] font-mono text-zinc-600">{player.user_id}</p>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveFromBadge(player.user_id, player.name, badge.id)}
+                          className="rounded-lg border border-red-700/40 bg-red-950/20 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-950/40 transition"
+                        >
+                          − Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add user row */}
+                <div className="border-t border-white/5 pt-4 pb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">
+                    Add a user to {badge.label}
+                  </p>
+                  <div className="flex gap-2 items-start">
+                    <div className="flex-1">
+                      <PlayerSearchInput
+                        placeholder={`Search player to add as ${badge.label}…`}
+                        onSelect={(player) => handleAddToBadge(player, badge.id)}
+                      />
+                    </div>
+                    {isAdding && (
+                      <span className="text-xs text-zinc-500 animate-pulse pt-2.5">Adding…</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function renderUserView() {
+    return (
+      <div className="space-y-6">
+        {/* Search box */}
+        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+          <h2 className="text-lg font-black mb-1">🔍 Find a Player</h2>
+          <p className="text-xs text-zinc-500 mb-4">Search by name or Discord ID to view and manage their badges.</p>
+
+          <div ref={userSearchRef} className="relative">
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={userQuery}
+                onChange={(e) => handleUserSearchInput(e.target.value)}
+                onFocus={() => userResults.length > 0 && setUserDropdownOpen(true)}
+                placeholder="Player name or Discord ID (e.g. 733871667788644445)…"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-10 text-sm text-white placeholder-zinc-600 focus:border-white/20 focus:outline-none"
+              />
+              {userSearching && (
+                <span className="absolute right-3 text-zinc-500 text-xs animate-pulse">…</span>
+              )}
+              {!userSearching && userQuery && (
+                <button
+                  onClick={() => { setUserQuery(""); setUserResults([]); setUserDropdownOpen(false); }}
+                  className="absolute right-3 text-zinc-500 hover:text-zinc-300 text-xs transition"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {userDropdownOpen && userResults.length > 0 && (
+              <div className="absolute z-30 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] shadow-2xl overflow-hidden">
+                {userResults.map((player) => (
                   <button
-                    onClick={() => selectPlayer(player.user_id)}
-                    className="flex-1 flex items-center justify-between text-left"
+                    key={player.user_id}
+                    onMouseDown={() => selectUser(player.user_id)}
+                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/[0.07] transition border-b border-white/5 last:border-0"
                   >
                     <div>
                       <p className="font-bold text-sm text-white">{player.name}</p>
-                      <p className="text-[10px] font-mono text-zinc-600">{player.user_id}</p>
+                      <p className="text-[10px] font-mono text-zinc-500">{player.user_id}</p>
                     </div>
-                    <span className="text-xs text-zinc-500 shrink-0">Edit →</span>
+                    <span className="text-xs text-zinc-500 shrink-0">Select →</span>
                   </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      );
-    }
-
-    const tabConfig: Record<
-      Exclude<SidebarTab, "db">,
-      { label: string; icon: string; color: string; members: DiscordRoleMember[] }
-    > = {
-      contentCreator: { label: "Content Creators", icon: "🎬", color: "#00D4FF", members: ccMembers },
-      staff:          { label: "Staff Members",    icon: "👮", color: "#00FF88", members: staffMembers },
-      premium:        { label: "Premium Members",  icon: "💎", color: "#FF9F43", members: premiumMembers },
-    };
-
-    const cfg       = tabConfig[sidebarTab as Exclude<SidebarTab, "db">];
-    const isLoading = loadingRole === sidebarTab;
-
-    return (
-      <>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-          <h2 className="text-lg font-black" style={{ color: cfg.color }}>
-            {cfg.icon} {cfg.label}
-          </h2>
-          <button
-            onClick={() => loadRoleMembers(sidebarTab, true)}
-            disabled={isLoading}
-            className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
-          >
-            {isLoading ? "…" : "↻"}
-          </button>
-        </div>
-        {isLoading && cfg.members.length === 0 ? (
-          <div className="p-8 text-center text-zinc-500 animate-pulse text-sm">
-            Fetching from Discord…
-          </div>
-        ) : cfg.members.length === 0 ? (
-          <div className="p-8 text-center text-zinc-500 text-sm">
-            No members found with this role.
-          </div>
-        ) : (
-          <div className="divide-y divide-white/5 max-h-[520px] overflow-y-auto">
-            {cfg.members.map((member) => (
-              <div key={member.userId} className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 transition">
-                {showBatchPanel && (
-                  <input
-                    type="checkbox"
-                    checked={batchSelected.has(member.userId)}
-                    onChange={() => toggleBatchPlayer(member.userId)}
-                    className="accent-red-500 shrink-0"
-                  />
-                )}
-                <button
-                  onClick={() => selectPlayer(member.userId)}
-                  className="flex-1 flex items-center gap-3 text-left"
-                >
-                  {member.avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={member.avatar}
-                      alt={member.username}
-                      className="w-7 h-7 rounded-full shrink-0"
-                    />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-white/10 shrink-0 flex items-center justify-center text-xs text-zinc-400">
-                      {member.username[0]?.toUpperCase() ?? "?"}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-sm text-white truncate">
-                      {member.displayName ?? member.username}
-                    </p>
-                    <p className="text-[10px] font-mono text-zinc-600 truncate">{member.userId}</p>
-                  </div>
-                  <span className="text-xs text-zinc-500 shrink-0">Edit →</span>
-                </button>
+                ))}
               </div>
-            ))}
+            )}
+
+            {userDropdownOpen && userResults.length === 0 && userQuery.trim() && !userSearching && (
+              <div className="absolute z-30 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3 text-sm text-zinc-500 shadow-2xl">
+                No players found for &quot;{userQuery}&quot;
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Loading state */}
+        {loadingUser && (
+          <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-8 text-center">
+            <p className="text-zinc-400 animate-pulse">Loading player…</p>
           </div>
         )}
-        <div className="px-5 py-3 border-t border-white/5 text-[10px] text-zinc-600">
-          {cfg.members.length} member{cfg.members.length !== 1 ? "s" : ""} · cached 5 min
+
+        {/* Selected player card */}
+        {selectedUser && !loadingUser && (
+          <div className="rounded-2xl border border-white/10 bg-[#0d0d14] overflow-hidden">
+            {/* Player header */}
+            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-white/5">
+              <div>
+                <h2 className="text-xl font-black">{selectedUser.name ?? "Unknown Player"}</h2>
+                <p className="text-[11px] font-mono text-zinc-500 mt-0.5">{selectedUser.userId}</p>
+              </div>
+              <div className="flex flex-wrap gap-1.5 justify-end pt-1">
+                {displayBadges.length > 0
+                  ? displayBadges.map((b) => <BadgePill key={b.id} badge={b} />)
+                  : <span className="text-xs text-zinc-500 pt-1">No badges</span>
+                }
+              </div>
+            </div>
+
+            {/* Feedback */}
+            {userMsg && (
+              <div className="px-6 pt-4">
+                <StatusBanner msg={userMsg} onDismiss={() => setUserMsg(null)} />
+              </div>
+            )}
+
+            {/* Badge rows */}
+            <div className="px-6 py-5 space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-3">Badge Management</p>
+              {BADGE_OPTIONS.map((badge) => {
+                const hasBadge = displayBadges.some((b) => b.id === badge.id);
+                return (
+                  <div
+                    key={badge.id}
+                    className={`flex items-center justify-between rounded-xl border px-4 py-3 transition-colors ${
+                      hasBadge
+                        ? "border-white/10 bg-white/[0.04]"
+                        : "border-white/5 bg-white/[0.02]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{badge.icon}</span>
+                      <div>
+                        <p className="font-bold text-sm" style={{ color: badge.color }}>
+                          {badge.label}
+                        </p>
+                        <p className="text-[10px] text-zinc-500">
+                          {hasBadge ? "✓ Currently assigned" : "Not assigned"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {!hasBadge ? (
+                        <button
+                          onClick={() => handleUserBadgeAction(badge.id, "assign")}
+                          disabled={actioning}
+                          className="rounded-lg border border-green-700/40 bg-green-950/20 px-3 py-1.5 text-xs font-bold text-green-300 hover:bg-green-950/40 transition disabled:opacity-50"
+                        >
+                          + Assign
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUserBadgeAction(badge.id, "remove")}
+                          disabled={actioning}
+                          className="rounded-lg border border-red-700/40 bg-red-950/20 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-950/40 transition disabled:opacity-50"
+                        >
+                          − Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Quick actions footer */}
+            <div className="px-6 pb-5 flex gap-2 flex-wrap">
+              <button
+                onClick={() => selectUser(selectedUser.userId)}
+                className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-white/5 transition"
+              >
+                ↻ Refresh
+              </button>
+              <button
+                onClick={() => { setSelectedUser(null); setOptimisticBadges(null); setUserMsg(null); }}
+                className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-white/5 transition"
+              >
+                ✕ Clear
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!selectedUser && !loadingUser && (
+          <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-10 text-center">
+            <p className="text-4xl mb-3">👤</p>
+            <p className="text-zinc-500 text-sm">Search for a player above to view and manage their badges.</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderBatchView() {
+    const badgeOption = BADGE_OPTIONS.find((b) => b.id === batchBadge)!;
+
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-purple-700/30 bg-gradient-to-br from-purple-950/20 to-black p-6">
+          <h2 className="text-lg font-black text-purple-300 mb-1">⚡ Batch Operations</h2>
+          <p className="text-xs text-zinc-500 mb-6">
+            Build a list of players, choose a badge and action, then run it all at once. Max 50 players per batch.
+          </p>
+
+          {/* Badge + action selectors */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Badge</label>
+              <select
+                value={batchBadge}
+                onChange={(e) => setBatchBadge(e.target.value as BadgeId)}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-600/60"
+              >
+                {BADGE_OPTIONS.map((b) => (
+                  <option key={b.id} value={b.id} className="bg-[#0d0d14]">
+                    {b.icon} {b.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Action</label>
+              <select
+                value={batchAction}
+                onChange={(e) => setBatchAction(e.target.value as "assign" | "remove")}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-600/60"
+              >
+                <option value="assign" className="bg-[#0d0d14]">+ Assign badge</option>
+                <option value="remove" className="bg-[#0d0d14]">− Remove badge</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Player search to add to batch */}
+          <div className="mb-4">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">
+              Add Players to Batch
+            </label>
+            <div ref={batchSearchRef} className="relative">
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={batchInput}
+                  onChange={(e) => handleBatchSearchInput(e.target.value)}
+                  onFocus={() => batchSearchResults.length > 0 && setBatchSearchOpen(true)}
+                  placeholder="Search by name or Discord ID…"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-8 text-sm text-white placeholder-zinc-600 focus:border-purple-600/60 focus:outline-none"
+                />
+                {batchSearching && (
+                  <span className="absolute right-3 text-zinc-500 text-xs animate-pulse">…</span>
+                )}
+                {!batchSearching && batchInput && (
+                  <button
+                    onClick={() => { setBatchInput(""); setBatchSearchResults([]); setBatchSearchOpen(false); }}
+                    className="absolute right-3 text-zinc-500 hover:text-zinc-300 text-xs transition"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {batchSearchOpen && batchSearchResults.length > 0 && (
+                <div className="absolute z-30 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] shadow-2xl overflow-hidden">
+                  {batchSearchResults.map((player) => (
+                    <button
+                      key={player.user_id}
+                      onMouseDown={() => addToBatchList(player)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-white/[0.07] transition border-b border-white/5 last:border-0"
+                    >
+                      <div>
+                        <p className="font-bold text-sm text-white">{player.name}</p>
+                        <p className="text-[10px] font-mono text-zinc-500">{player.user_id}</p>
+                      </div>
+                      <span className="text-xs text-zinc-500 shrink-0">
+                        {batchList.some((p) => p.userId === player.user_id) ? "✓ Added" : "+ Add"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {batchSearchOpen && batchSearchResults.length === 0 && batchInput.trim() && !batchSearching && (
+                <div className="absolute z-30 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3 text-sm text-zinc-500 shadow-2xl">
+                  No players found for &quot;{batchInput}&quot;
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Batch player list */}
+          {batchList.length > 0 ? (
+            <div className="mb-5">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                  Players in Batch ({batchList.length})
+                </p>
+                <button
+                  onClick={() => setBatchList([])}
+                  className="text-xs text-zinc-500 hover:text-zinc-300 transition"
+                >
+                  Clear all
+                </button>
+              </div>
+              <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                {batchList.map((player) => (
+                  <div
+                    key={player.userId}
+                    className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-4 py-2"
+                  >
+                    <div>
+                      <p className="font-bold text-sm text-white">{player.name}</p>
+                      <p className="text-[10px] font-mono text-zinc-600">{player.userId}</p>
+                    </div>
+                    <button
+                      onClick={() => removeFromBatchList(player.userId)}
+                      className="text-xs text-zinc-500 hover:text-red-400 transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mb-5 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-6 text-center">
+              <p className="text-sm text-zinc-600">No players added yet. Search above to add players.</p>
+            </div>
+          )}
+
+          {/* Run button */}
+          <button
+            onClick={handleBatchAction}
+            disabled={batchRunning || batchList.length === 0}
+            className="w-full rounded-xl border border-purple-700/40 bg-purple-950/20 py-3 text-sm font-black text-purple-300 hover:bg-purple-950/40 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {batchRunning
+              ? "Running…"
+              : `${batchAction === "assign" ? "+ Assign" : "− Remove"} ${badgeOption.icon} ${badgeOption.label} → ${batchList.length} player${batchList.length !== 1 ? "s" : ""}`}
+          </button>
+
+          {/* Batch feedback */}
+          {batchMsg && (
+            <div className="mt-4">
+              <StatusBanner msg={batchMsg} onDismiss={() => setBatchMsg(null)} />
+            </div>
+          )}
         </div>
-      </>
+      </div>
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Derived display badges (optimistic or confirmed)
+  // Main render
   // ---------------------------------------------------------------------------
 
-  const displayBadges = optimisticBadges ?? selectedPlayer?.badges ?? [];
-
-  // ---------------------------------------------------------------------------
-  // Main UI
-  // ---------------------------------------------------------------------------
+  const TAB_CONFIG: { id: MainTab; label: string; icon: string; desc: string }[] = [
+    { id: "badge", label: "By Badge",  icon: "🏅", desc: "See all holders per badge, add or remove users" },
+    { id: "user",  label: "By User",   icon: "👤", desc: "Search a player and manage all their badges" },
+    { id: "batch", label: "Batch",     icon: "⚡", desc: "Assign or remove a badge from multiple users at once" },
+  ];
 
   return (
     <Shell>
-      {/* Header */}
+      {/* Page header */}
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black">🏅 Badge Manager</h1>
-          <p className="mt-2 text-zinc-400">
-            Assign and remove Staff, Content Creator, and Tournament Winner badges to any player. Developer access only.
+          <p className="mt-2 text-zinc-400 text-sm">
+            Assign and remove Staff, Content Creator, and Tournament Winner badges. Developer access only.
           </p>
         </div>
 
@@ -651,277 +1131,33 @@ export default function AdminBadgesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
-        {/* ------------------------------------------------------------------ */}
-        {/* Left column — search + selected player + batch panel               */}
-        {/* ------------------------------------------------------------------ */}
-        <div className="space-y-6">
-
-          {/* Search */}
-          <div className="rounded-2xl border border-red-700/30 bg-gradient-to-br from-red-950/20 to-black p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-black text-red-300">🔍 Find Player</h2>
-              <span className="text-[10px] text-zinc-600">Search by name or Discord ID · live · cached 30s</span>
-            </div>
-
-            {/* Live search input with dropdown */}
-            <div ref={searchBoxRef} className="relative">
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => handleSearchInput(e.target.value)}
-                  onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
-                  placeholder="Player name or Discord ID (e.g. 733871667788644445)…"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-sm text-white placeholder-zinc-600 focus:border-red-600/60 focus:outline-none"
-                />
-                {searching && (
-                  <span className="absolute right-3 text-zinc-500 text-xs animate-pulse">…</span>
-                )}
-                {!searching && searchQuery && (
-                  <button
-                    onClick={() => { setSearchQuery(""); setSearchResults([]); setShowDropdown(false); }}
-                    className="absolute right-3 text-zinc-500 hover:text-zinc-300 text-xs transition"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-
-              {/* Results dropdown */}
-              {showDropdown && searchResults.length > 0 && (
-                <div className="absolute z-20 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] shadow-2xl overflow-hidden">
-                  {searchResults.map((player) => (
-                    <button
-                      key={player.user_id}
-                      onMouseDown={() => selectPlayer(player.user_id)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-white/[0.07] transition border-b border-white/5 last:border-0"
-                    >
-                      <div>
-                        <p className="font-bold text-sm text-white">{player.name}</p>
-                        <p className="text-[10px] font-mono text-zinc-500">{player.user_id}</p>
-                      </div>
-                      <span className="text-xs text-zinc-500 shrink-0">Select →</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {showDropdown && searchResults.length === 0 && searchQuery.trim() && !searching && (
-                <div className="absolute z-20 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3 text-sm text-zinc-500 shadow-2xl">
-                  No players found for &quot;{searchQuery}&quot;
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Selected player badge editor */}
-          {loadingPlayer && (
-            <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-8 text-center">
-              <p className="text-zinc-400 animate-pulse">Loading player…</p>
-            </div>
-          )}
-
-          {selectedPlayer && !loadingPlayer && (
-            <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
-              {/* Player header */}
-              <div className="flex items-start justify-between gap-4 mb-5">
-                <div>
-                  <h2 className="text-xl font-black">{selectedPlayer.name ?? "Unknown Player"}</h2>
-                  <p className="text-[11px] font-mono text-zinc-500 mt-0.5">{selectedPlayer.userId}</p>
-                </div>
-                <div className="flex flex-wrap gap-1.5 justify-end">
-                  {displayBadges.length > 0
-                    ? displayBadges.map((b) => <BadgePill key={b.id} badge={b} />)
-                    : <span className="text-xs text-zinc-500">No badges</span>
-                  }
-                </div>
-              </div>
-
-              {/* Action feedback */}
-              {actionMsg && (
-                <div
-                  className={`mb-4 rounded-xl border px-4 py-3 text-sm font-bold transition-all ${
-                    actionMsg.type === "success"
-                      ? "border-green-700/40 bg-green-950/20 text-green-300"
-                      : "border-red-700/40 bg-red-950/20 text-red-300"
-                  }`}
-                >
-                  {actionMsg.text}
-                </div>
-              )}
-
-              {/* Badge assignment grid */}
-              <div className="space-y-3">
-                {BADGE_OPTIONS.map((badge) => {
-                  const hasBadge = displayBadges.some((b) => b.id === badge.id);
-                  return (
-                    <div
-                      key={badge.id}
-                      className={`flex items-center justify-between rounded-xl border px-4 py-3 transition-colors ${
-                        hasBadge
-                          ? "border-white/10 bg-white/[0.04]"
-                          : "border-white/5 bg-white/[0.02]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{badge.icon}</span>
-                        <div>
-                          <p className="font-bold text-sm" style={{ color: badge.color }}>
-                            {badge.label}
-                          </p>
-                          <p className="text-[10px] text-zinc-500">
-                            {hasBadge ? "✓ Currently assigned" : "Not assigned"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        {!hasBadge ? (
-                          <button
-                            onClick={() => handleBadgeAction(badge.id, "assign")}
-                            disabled={actioning}
-                            className="rounded-lg border border-green-700/40 bg-green-950/20 px-3 py-1.5 text-xs font-bold text-green-300 hover:bg-green-950/40 transition disabled:opacity-50"
-                          >
-                            + Assign
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleBadgeAction(badge.id, "remove")}
-                            disabled={actioning}
-                            className="rounded-lg border border-red-700/40 bg-red-950/20 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-950/40 transition disabled:opacity-50"
-                          >
-                            − Remove
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Batch operations panel */}
-          <div className="rounded-2xl border border-purple-700/30 bg-gradient-to-br from-purple-950/20 to-black overflow-hidden">
-            <button
-              onClick={() => setShowBatchPanel((v) => !v)}
-              className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-white/[0.02] transition"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">⚡</span>
-                <div>
-                  <p className="font-black text-purple-300">Batch Operations</p>
-                  <p className="text-[11px] text-zinc-500">Assign or remove a badge from multiple players at once</p>
-                </div>
-              </div>
-              <span className="text-zinc-500 text-sm">{showBatchPanel ? "▲" : "▼"}</span>
-            </button>
-
-            {showBatchPanel && (
-              <div className="px-6 pb-6 space-y-4 border-t border-white/5">
-                <p className="text-xs text-zinc-500 pt-4">
-                  Select players from the sidebar list (checkboxes appear when this panel is open), then choose a badge and action below.
-                </p>
-
-                {/* Badge + action selectors */}
-                <div className="flex flex-wrap gap-3">
-                  <div className="flex-1 min-w-[160px]">
-                    <label className="block text-[10px] text-zinc-500 mb-1 font-bold uppercase tracking-wider">Badge</label>
-                    <select
-                      value={batchBadge}
-                      onChange={(e) => setBatchBadge(e.target.value as BadgeId)}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-600/60"
-                    >
-                      {BADGE_OPTIONS.map((b) => (
-                        <option key={b.id} value={b.id} className="bg-[#0d0d14]">
-                          {b.icon} {b.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex-1 min-w-[140px]">
-                    <label className="block text-[10px] text-zinc-500 mb-1 font-bold uppercase tracking-wider">Action</label>
-                    <select
-                      value={batchAction}
-                      onChange={(e) => setBatchAction(e.target.value as "assign" | "remove")}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-600/60"
-                    >
-                      <option value="assign" className="bg-[#0d0d14]">+ Assign</option>
-                      <option value="remove" className="bg-[#0d0d14]">− Remove</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Selected count + quick-clear */}
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-zinc-400">
-                    {batchSelected.size === 0
-                      ? "No players selected"
-                      : `${batchSelected.size} player${batchSelected.size !== 1 ? "s" : ""} selected`}
-                  </p>
-                  {batchSelected.size > 0 && (
-                    <button
-                      onClick={() => setBatchSelected(new Set())}
-                      className="text-xs text-zinc-500 hover:text-zinc-300 transition"
-                    >
-                      Clear selection
-                    </button>
-                  )}
-                </div>
-
-                {/* Run button */}
-                <button
-                  onClick={handleBatchAction}
-                  disabled={batchRunning || batchSelected.size === 0}
-                  className="w-full rounded-xl border border-purple-700/40 bg-purple-950/20 py-2.5 text-sm font-black text-purple-300 hover:bg-purple-950/40 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {batchRunning
-                    ? "Running…"
-                    : `${batchAction === "assign" ? "+ Assign" : "− Remove"} ${BADGE_OPTIONS.find((b) => b.id === batchBadge)?.icon} ${BADGE_OPTIONS.find((b) => b.id === batchBadge)?.label} → ${batchSelected.size} player${batchSelected.size !== 1 ? "s" : ""}`}
-                </button>
-
-                {/* Batch feedback */}
-                {batchMsg && (
-                  <div
-                    className={`rounded-xl border px-4 py-3 text-sm font-bold ${
-                      batchMsg.type === "success"
-                        ? "border-green-700/40 bg-green-950/20 text-green-300"
-                        : "border-red-700/40 bg-red-950/20 text-red-300"
-                    }`}
-                  >
-                    {batchMsg.text}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ------------------------------------------------------------------ */}
-        {/* Right column — tabbed sidebar                                       */}
-        {/* ------------------------------------------------------------------ */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] overflow-hidden h-fit">
-          {/* Tab bar */}
-          <div className="flex border-b border-white/10 overflow-x-auto">
-            {SIDEBAR_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setSidebarTab(tab.id)}
-                className={`flex-1 min-w-0 px-3 py-3 text-xs font-bold transition whitespace-nowrap ${
-                  sidebarTab === tab.id
-                    ? "text-white border-b-2 border-red-500 bg-white/[0.04]"
-                    : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]"
-                }`}
-              >
-                <span className="mr-1">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {renderSidebarContent()}
-        </div>
+      {/* Tab bar */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {TAB_CONFIG.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-bold transition ${
+              activeTab === tab.id
+                ? "border-red-600/50 bg-red-950/20 text-white"
+                : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200"
+            }`}
+          >
+            <span>{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
       </div>
+
+      {/* Tab description */}
+      <p className="text-xs text-zinc-500 mb-6 -mt-2">
+        {TAB_CONFIG.find((t) => t.id === activeTab)?.desc}
+      </p>
+
+      {/* Tab content */}
+      {activeTab === "badge" && renderBadgeView()}
+      {activeTab === "user"  && renderUserView()}
+      {activeTab === "batch" && renderBatchView()}
     </Shell>
   );
 }
