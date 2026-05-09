@@ -13,6 +13,108 @@ import { fetchAllUsersWithRole } from "@/lib/discord-roles";
 import { pool } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
+// Discord API helpers
+// ---------------------------------------------------------------------------
+
+interface RawDiscordMember {
+  user: { id: string; username: string; global_name?: string | null; avatar?: string | null };
+  nick?: string | null;
+  roles: string[];
+}
+
+/**
+ * Search Discord guild members by username prefix using the Discord bot token.
+ * Uses GET /guilds/{guild}/members/search?query=xxx&limit=10
+ * Returns up to `limit` members whose username or nickname matches the query.
+ */
+async function searchDiscordMembers(
+  query: string,
+  limit = 10
+): Promise<Array<{ userId: string; name: string }>> {
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+  const guildId  = process.env.DISCORD_GUILD_ID;
+  if (!botToken || !guildId) return [];
+
+  try {
+    const url = new URL(`https://discord.com/api/v10/guilds/${guildId}/members/search`);
+    url.searchParams.set("query", query);
+    url.searchParams.set("limit", String(limit));
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bot ${botToken}`, "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      console.warn(`[api/admin/badges] Discord member search failed: HTTP ${res.status}`);
+      return [];
+    }
+
+    const members: RawDiscordMember[] = await res.json();
+    return members.map((m) => ({
+      userId: m.user.id,
+      name: m.nick ?? m.user.global_name ?? m.user.username,
+    }));
+  } catch (err) {
+    console.error("[api/admin/badges] searchDiscordMembers error:", err);
+    return [];
+  }
+}
+
+/**
+ * Fetch a single Discord guild member by their user ID.
+ * Returns null if the member is not in the guild or the request fails.
+ */
+async function fetchDiscordMember(
+  userId: string
+): Promise<{ userId: string; name: string } | null> {
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+  const guildId  = process.env.DISCORD_GUILD_ID;
+  if (!botToken || !guildId) return null;
+
+  try {
+    const res = await fetch(
+      `https://discord.com/api/v10/guilds/${guildId}/members/${userId}`,
+      {
+        headers: { Authorization: `Bot ${botToken}`, "Content-Type": "application/json" },
+        cache: "no-store",
+      }
+    );
+
+    if (res.status === 404) return null;
+    if (!res.ok) {
+      console.warn(`[api/admin/badges] Discord fetch member ${userId} failed: HTTP ${res.status}`);
+      return null;
+    }
+
+    const member: RawDiscordMember = await res.json();
+    return {
+      userId: member.user.id,
+      name: member.nick ?? member.user.global_name ?? member.user.username,
+    };
+  } catch (err) {
+    console.error(`[api/admin/badges] fetchDiscordMember(${userId}) error:`, err);
+    return null;
+  }
+}
+
+/**
+ * Ensure a minimal player record exists for the given Discord user ID.
+ * If the player is already in the database, this is a no-op.
+ * If not, a stub record is inserted so that badge data can be persisted.
+ */
+async function ensurePlayerExists(userId: string, name: string): Promise<void> {
+  await pool.query(
+    `
+    INSERT INTO players (user_id, name, data)
+    VALUES ($1, $2, '{}'::jsonb)
+    ON CONFLICT (user_id) DO NOTHING
+    `,
+    [userId, name]
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Developer-only check
 // ---------------------------------------------------------------------------
 
@@ -97,18 +199,24 @@ export async function GET(req: NextRequest) {
 
   // ------------------------------------------------------------------
   // Search players by name or Discord ID
+  // Searches the DB first; if fewer than 10 results are found, also
+  // queries Discord guild members and merges in any that aren't already
+  // in the database.
   // ------------------------------------------------------------------
   if (search) {
     try {
+      const trimmed = search.trim();
       // Detect if the query looks like a Discord snowflake ID (17-19 digit number)
-      const isIdSearch = /^\d{17,19}$/.test(search.trim());
-      const result = isIdSearch
+      const isIdSearch = /^\d{17,19}$/.test(trimmed);
+
+      // --- Step 1: query the database ---
+      const dbResult = isIdSearch
         ? await pool.query(
             `SELECT user_id, name, data->'roles' AS roles
              FROM players
              WHERE user_id = $1
              LIMIT 10`,
-            [search.trim()]
+            [trimmed]
           )
         : await pool.query(
             `SELECT user_id, name, data->'roles' AS roles
@@ -118,9 +226,45 @@ export async function GET(req: NextRequest) {
                 OR COALESCE(data->>'username', '') ILIKE $1
              ORDER BY name ASC
              LIMIT 10`,
-            [`%${search}%`]
+            [`%${trimmed}%`]
           );
-      return NextResponse.json({ players: result.rows });
+
+      const dbPlayers: Array<{ user_id: string; name: string; roles: string[] }> =
+        dbResult.rows;
+      const dbIds = new Set(dbPlayers.map((p) => p.user_id));
+
+      // --- Step 2: supplement with Discord members if we have room ---
+      const combined = [...dbPlayers];
+
+      if (combined.length < 10) {
+        const remaining = 10 - combined.length;
+
+        if (isIdSearch) {
+          // For an ID search, try to fetch the specific member from Discord
+          // if they weren't found in the database.
+          if (!dbIds.has(trimmed)) {
+            const discordMember = await fetchDiscordMember(trimmed);
+            if (discordMember) {
+              combined.push({
+                user_id: discordMember.userId,
+                name: discordMember.name,
+                roles: [],
+              });
+            }
+          }
+        } else {
+          // For a text search, use Discord's member search endpoint.
+          const discordMembers = await searchDiscordMembers(trimmed, remaining + dbPlayers.length);
+          for (const dm of discordMembers) {
+            if (combined.length >= 10) break;
+            if (!dbIds.has(dm.userId)) {
+              combined.push({ user_id: dm.userId, name: dm.name, roles: [] });
+            }
+          }
+        }
+      }
+
+      return NextResponse.json({ players: combined });
     } catch (err) {
       console.error("[api/admin/badges] GET search failed:", err);
       return NextResponse.json({ error: "Failed to search players" }, { status: 500 });
@@ -220,9 +364,26 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await assignBadgeRole(userId.trim(), badge);
-    const badges = await getUserBadges(userId.trim());
-    return NextResponse.json({ success: true, userId, badge, badges });
+    const uid = userId.trim();
+
+    // If the player doesn't exist in the database yet (e.g. a Discord member
+    // who hasn't registered on the website), create a minimal stub record so
+    // that the badge can be persisted.  We try to resolve their display name
+    // from Discord; if that fails we fall back to the raw user ID as the name.
+    const existsResult = await pool.query(
+      `SELECT 1 FROM players WHERE user_id = $1 LIMIT 1`,
+      [uid]
+    );
+    if (existsResult.rowCount === 0) {
+      const discordMember = await fetchDiscordMember(uid);
+      const displayName = discordMember?.name ?? uid;
+      await ensurePlayerExists(uid, displayName);
+      console.log(`[api/admin/badges] Created stub player record for ${uid} (${displayName})`);
+    }
+
+    await assignBadgeRole(uid, badge);
+    const badges = await getUserBadges(uid);
+    return NextResponse.json({ success: true, userId: uid, badge, badges });
   } catch (err) {
     console.error("[api/admin/badges] POST failed:", err);
     return NextResponse.json({ error: "Failed to assign badge" }, { status: 500 });
@@ -312,6 +473,27 @@ export async function PATCH(req: NextRequest) {
   }
 
   const fn = action === "assign" ? assignBadgeRole : removeBadgeRole;
+
+  // For assign operations, ensure every user has a player record in the DB.
+  // Users who haven't registered on the website yet will get a stub record
+  // so the badge can be persisted.
+  if (action === "assign") {
+    await Promise.allSettled(
+      userIds.map(async (id) => {
+        const uid = id.trim();
+        const existsResult = await pool.query(
+          `SELECT 1 FROM players WHERE user_id = $1 LIMIT 1`,
+          [uid]
+        );
+        if (existsResult.rowCount === 0) {
+          const discordMember = await fetchDiscordMember(uid);
+          const displayName = discordMember?.name ?? uid;
+          await ensurePlayerExists(uid, displayName);
+          console.log(`[api/admin/badges] PATCH: Created stub player record for ${uid} (${displayName})`);
+        }
+      })
+    );
+  }
 
   const results = await Promise.allSettled(
     userIds.map((id) => fn(id.trim(), badge))
