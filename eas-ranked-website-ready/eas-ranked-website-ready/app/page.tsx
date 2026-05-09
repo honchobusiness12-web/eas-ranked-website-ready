@@ -4,6 +4,7 @@ import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import DashboardStats from "@/components/DashboardStats";
 import PremiumUpsell from "@/components/PremiumUpsell";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { syncPlayersFromDB } from "@/lib/cache";
 
 export const revalidate = 30;
@@ -26,6 +27,9 @@ export default async function HomePage() {
 
   return (
     <Shell>
+      {/* Live announcements */}
+      <AnnouncementBanner />
+
       {/* Hero */}
       <section className="summer-hero-gradient rounded-3xl border border-orange-700/30 p-8 shadow-2xl overflow-hidden relative">
         {/* Decorative sun glow */}

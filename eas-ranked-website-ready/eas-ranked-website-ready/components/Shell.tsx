@@ -14,6 +14,7 @@ const links = [
   { label: "📋 Placements",   href: "/placements" },
   { label: "🏷️ Ranks",        href: "/ranks" },
   { label: "📖 How Ranked Works", href: "/guide" },
+  { label: "🎁 Redeem Codes", href: "/giveaway/redeem" },
 ];
 
 const premiumLinks = [
@@ -21,6 +22,8 @@ const premiumLinks = [
   { label: "🎁 Redeem Code",       href: "/redeem" },
   { label: "📊 Advanced Stats",    href: "/premium/stats" },
   { label: "🎨 Cosmetics",         href: "/premium/cosmetics" },
+  { label: "🌈 Customize Colors",  href: "/cosmetics/colors" },
+  { label: "🤖 Bot Commands",      href: "/premium/commands" },
   { label: "⚔️ Comparisons",       href: "/premium/comparisons" },
   { label: "📥 Export Stats",      href: "/premium/export" },
   { label: "📜 Match History",     href: "/premium/matches" },
@@ -31,6 +34,7 @@ const premiumLinks = [
 const adminLinks = [
   { label: "🎁 Giveaway Manager", href: "/admin/giveaways" },
   { label: "⚙️ CR Admin",         href: "/admin/cr" },
+  { label: "📢 Announcements",    href: "/admin/announcements" },
 ];
 
 export default function Shell({
