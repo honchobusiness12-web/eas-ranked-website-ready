@@ -29,8 +29,11 @@ const BADGE_ROLE_MAP: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// GET /api/admin/badges?userId=xxx — get badges for a user (owner only)
-// GET /api/admin/badges?search=xxx — search users and their badges (owner only)
+// GET /api/admin/badges
+//   ?userId=xxx        — get badges for a single user
+//   ?search=xxx        — search by name or Discord ID (17-19 digit snowflake)
+//   ?batchIds=id1,id2  — get badges for multiple users in one request
+//   ?role=xxx          — list Discord guild members with a given role
 // ---------------------------------------------------------------------------
 
 export async function GET(req: NextRequest) {
@@ -42,21 +45,48 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
   }
 
-  const userId = req.nextUrl.searchParams.get("userId");
-  const search = req.nextUrl.searchParams.get("search");
-  const role   = req.nextUrl.searchParams.get("role");
-  const force  = req.nextUrl.searchParams.get("force") === "true";
+  const userId   = req.nextUrl.searchParams.get("userId");
+  const search   = req.nextUrl.searchParams.get("search");
+  const role     = req.nextUrl.searchParams.get("role");
+  const force    = req.nextUrl.searchParams.get("force") === "true";
+  const batchIds = req.nextUrl.searchParams.get("batchIds");
 
+  // ------------------------------------------------------------------
+  // Batch badge lookup — returns badges for multiple users in one shot
+  // ------------------------------------------------------------------
+  if (batchIds) {
+    try {
+      const ids = batchIds
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean)
+        .slice(0, 50);
+      const badgeResults = await Promise.all(
+        ids.map(async (id) => {
+          const badges = await getUserBadges(id);
+          return { userId: id, badges };
+        })
+      );
+      return NextResponse.json({ results: badgeResults });
+    } catch (err) {
+      console.error("[api/admin/badges] GET batchIds failed:", err);
+      return NextResponse.json({ error: "Failed to fetch batch badges" }, { status: 500 });
+    }
+  }
+
+  // ------------------------------------------------------------------
   // Single user badge lookup
+  // ------------------------------------------------------------------
   if (userId) {
     try {
-      const badges = await getUserBadges(userId);
-      // Also fetch raw roles from DB
-      const result = await pool.query(
-        `SELECT user_id, name, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
-        [userId]
-      );
-      const player = result.rows[0] ?? null;
+      const [badges, dbResult] = await Promise.all([
+        getUserBadges(userId),
+        pool.query(
+          `SELECT user_id, name, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
+          [userId]
+        ),
+      ]);
+      const player = dbResult.rows[0] ?? null;
       return NextResponse.json({
         userId,
         name: player?.name ?? null,
@@ -69,17 +99,31 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Search players by name
+  // ------------------------------------------------------------------
+  // Search players by name or Discord ID
+  // ------------------------------------------------------------------
   if (search) {
     try {
-      const result = await pool.query(
-        `SELECT user_id, name, data->'roles' AS roles
-         FROM players
-         WHERE name ILIKE $1
-         ORDER BY name ASC
-         LIMIT 20`,
-        [`%${search}%`]
-      );
+      // Detect if the query looks like a Discord snowflake ID (17-19 digit number)
+      const isIdSearch = /^\d{17,19}$/.test(search.trim());
+      const result = isIdSearch
+        ? await pool.query(
+            `SELECT user_id, name, data->'roles' AS roles
+             FROM players
+             WHERE user_id = $1
+             LIMIT 10`,
+            [search.trim()]
+          )
+        : await pool.query(
+            `SELECT user_id, name, data->'roles' AS roles
+             FROM players
+             WHERE name ILIKE $1
+                OR COALESCE(data->>'display_name', '') ILIKE $1
+                OR COALESCE(data->>'username', '') ILIKE $1
+             ORDER BY name ASC
+             LIMIT 10`,
+            [`%${search}%`]
+          );
       return NextResponse.json({ players: result.rows });
     } catch (err) {
       console.error("[api/admin/badges] GET search failed:", err);
@@ -87,7 +131,9 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // ------------------------------------------------------------------
   // Discord role member lookup — returns all guild members with the given role
+  // ------------------------------------------------------------------
   if (role) {
     const ROLE_MAP: Record<string, string> = {
       contentCreator: CONTENT_CREATOR_ROLE_IDS[0],
@@ -110,7 +156,9 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // ------------------------------------------------------------------
   // List all players with badge roles
+  // ------------------------------------------------------------------
   try {
     const allRoleIds = [
       ...STAFF_ROLE_IDS,
@@ -225,4 +273,60 @@ export async function DELETE(req: NextRequest) {
     console.error("[api/admin/badges] DELETE failed:", err);
     return NextResponse.json({ error: "Failed to remove badge" }, { status: 500 });
   }
+}
+
+// ---------------------------------------------------------------------------
+// PATCH /api/admin/badges — batch assign or remove a badge from multiple users
+// Body: { userIds: string[]; badge: string; action: "assign" | "remove" }
+// ---------------------------------------------------------------------------
+
+export async function PATCH(req: NextRequest) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isDeveloper(session.userId)) {
+    return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
+  }
+
+  let body: { userIds?: string[]; badge?: string; action?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const { userIds, badge, action } = body;
+
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    return NextResponse.json({ error: "userIds must be a non-empty array" }, { status: 400 });
+  }
+  if (userIds.length > 50) {
+    return NextResponse.json({ error: "Maximum 50 users per batch operation" }, { status: 400 });
+  }
+  if (!badge || !BADGE_ROLE_MAP[badge]) {
+    return NextResponse.json(
+      { error: `badge must be one of: ${Object.keys(BADGE_ROLE_MAP).join(", ")}` },
+      { status: 400 }
+    );
+  }
+  if (action !== "assign" && action !== "remove") {
+    return NextResponse.json({ error: "action must be 'assign' or 'remove'" }, { status: 400 });
+  }
+
+  const roleId = BADGE_ROLE_MAP[badge];
+  const fn = action === "assign" ? assignBadgeRole : removeBadgeRole;
+
+  const results = await Promise.allSettled(
+    userIds.map((id) => fn(id.trim(), roleId))
+  );
+
+  const succeeded: string[] = [];
+  const failed: string[] = [];
+  results.forEach((r, i) => {
+    if (r.status === "fulfilled") succeeded.push(userIds[i]);
+    else failed.push(userIds[i]);
+  });
+
+  return NextResponse.json({ success: true, badge, action, succeeded, failed });
 }
