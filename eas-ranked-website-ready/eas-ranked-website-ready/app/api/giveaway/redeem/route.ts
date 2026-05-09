@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     const result = await redeemCode(code, session.userId);
 
     if (!result.success) {
+      const failureResult = result as { success: false; error: string };
       const messages: Record<string, string> = {
         invalid_code:     "Invalid code. Please check and try again.",
         code_expired:     "This code has expired.",
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
         code_inactive:    "This code is no longer active.",
       };
       return NextResponse.json(
-        { error: messages[result.error] ?? "Failed to redeem code." },
+        { error: messages[failureResult.error] ?? "Failed to redeem code." },
         { status: 400 }
       );
     }
