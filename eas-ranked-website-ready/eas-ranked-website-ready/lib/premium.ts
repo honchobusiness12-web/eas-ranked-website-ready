@@ -146,6 +146,7 @@ export async function ensurePremiumTables(): Promise<void> {
  *  1. Developer user ID (permanent)
  *  2. Active subscription (Discord role synced on login, or Lemonsqueezy)
  *  3. Active giveaway code premium (premium_expires_at > now)
+ *  4. Bot-synced Discord Premium User role (players.data->>'premium' = true)
  *
  * Results are cached in-process for 5 minutes.
  */
@@ -181,12 +182,26 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
       ),
     ]);
 
-    const result =
+    if (
       (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") ||
-      giveawayResult.rows.length > 0;
+      giveawayResult.rows.length > 0
+    ) {
+      setCachedBool(premiumCache, userId, true);
+      return true;
+    }
 
-    setCachedBool(premiumCache, userId, result);
-    return result;
+    // Check if the Discord bot has marked this user as premium (role sync)
+    const botPremiumResult = await pool.query(
+      `SELECT (data->>'premium')::boolean AS premium FROM players WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    if (botPremiumResult.rows.length > 0 && botPremiumResult.rows[0].premium === true) {
+      setCachedBool(premiumCache, userId, true);
+      return true;
+    }
+
+    setCachedBool(premiumCache, userId, false);
+    return false;
   } catch (err) {
     console.error(`[premium] isPremiumUser(${userId}) failed:`, err);
     return false;
