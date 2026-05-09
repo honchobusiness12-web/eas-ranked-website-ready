@@ -9,6 +9,8 @@ const PROTECTED_ROUTES = [
   "/premium/manage",
   "/premium/comparisons",
   "/premium/stats",
+  "/redeem",
+  "/admin/giveaways",
 ];
 
 // Routes that are always public
