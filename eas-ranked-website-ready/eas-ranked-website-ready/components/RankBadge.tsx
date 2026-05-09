@@ -21,13 +21,60 @@ function getTierIcon(rankName: string): string {
   return "🎮";
 }
 
+export type RankBadgeStyle =
+  | "default"
+  | "glowing"
+  | "pulsing"
+  | "gradient"
+  | "holographic";
+
 interface RankBadgeProps {
   cr: number;
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
+  badgeStyle?: RankBadgeStyle | string | null;
 }
 
-export default function RankBadge({ cr, size = "md", showLabel = true }: RankBadgeProps) {
+function buildStyleProps(
+  color: string,
+  badgeStyle: RankBadgeStyle | string | null | undefined
+): React.CSSProperties {
+  const base: React.CSSProperties = {
+    borderColor: `${color}60`,
+    backgroundColor: `${color}18`,
+    color,
+  };
+
+  switch (badgeStyle) {
+    case "glowing":
+      return {
+        ...base,
+        boxShadow: `0 0 12px ${color}80, 0 0 24px ${color}40`,
+      };
+    case "gradient":
+      return {
+        ...base,
+        background: `linear-gradient(135deg, ${color}30, ${color}10)`,
+        borderColor: `${color}80`,
+      };
+    case "holographic":
+      return {
+        ...base,
+        background: `linear-gradient(135deg, ${color}40, #ffffff18, ${color}30)`,
+        borderColor: `${color}90`,
+        boxShadow: `0 0 16px ${color}60, inset 0 0 8px rgba(255,255,255,0.08)`,
+      };
+    default:
+      return base;
+  }
+}
+
+export default function RankBadge({
+  cr,
+  size = "md",
+  showLabel = true,
+  badgeStyle = "default",
+}: RankBadgeProps) {
   const rankName = getRank(cr);
   const color = getTierColor(rankName);
   const icon = getTierIcon(rankName);
@@ -38,10 +85,13 @@ export default function RankBadge({ cr, size = "md", showLabel = true }: RankBad
     lg: "px-4 py-2 text-sm gap-2",
   }[size];
 
+  // "pulsing" needs a Tailwind animation class; others are pure inline styles
+  const isPulsing = badgeStyle === "pulsing";
+
   return (
     <span
-      className={`inline-flex items-center rounded-lg border font-bold ${sizeClasses}`}
-      style={{ borderColor: `${color}60`, backgroundColor: `${color}18`, color }}
+      className={`inline-flex items-center rounded-lg border font-bold ${sizeClasses}${isPulsing ? " animate-pulse" : ""}`}
+      style={buildStyleProps(color, badgeStyle)}
       title={`${rankName} — ${cr} CR`}
     >
       <span>{icon}</span>
