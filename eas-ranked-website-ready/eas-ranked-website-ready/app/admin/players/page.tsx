@@ -29,6 +29,30 @@ interface PlayerDetail extends PlayerRow {
   premium_expires_at: string | null;
 }
 
+interface BadgeInfo {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+  description: string;
+}
+
+interface EditStats {
+  cr: string;
+  wins: string;
+  losses: string;
+  kills: string;
+  matches: string;
+  mvp_count: string;
+  placement_matches: string;
+}
+
+const BADGE_OPTIONS = [
+  { id: "staff",            label: "Staff",            icon: "👮" },
+  { id: "contentCreator",   label: "Content Creator",  icon: "🎬" },
+  { id: "tournamentWinner", label: "Tournament Winner", icon: "🏆" },
+] as const;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -61,6 +85,20 @@ export default function AdminPlayersPage() {
 
   const [actionMsg, setActionMsg]   = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [actioning, setActioning]   = useState(false);
+
+  // Edit stats panel
+  const [showEditPanel, setShowEditPanel] = useState(false);
+  const [editStats, setEditStats]         = useState<EditStats>({ cr: "", wins: "", losses: "", kills: "", matches: "", mvp_count: "", placement_matches: "" });
+  const [editSaving, setEditSaving]       = useState(false);
+
+  // Reset confirmation
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting]               = useState(false);
+
+  // Badge management
+  const [playerBadges, setPlayerBadges]   = useState<BadgeInfo[]>([]);
+  const [badgesLoading, setBadgesLoading] = useState(false);
+  const [badgeActioning, setBadgeActioning] = useState<string | null>(null);
 
   // Auth check
   useEffect(() => {
@@ -100,14 +138,128 @@ export default function AdminPlayersPage() {
     setLoadingDetail(true);
     setSelectedPlayer(null);
     setActionMsg(null);
+    setShowEditPanel(false);
+    setShowResetConfirm(false);
     try {
-      const res = await fetch(`/api/admin/players?userId=${encodeURIComponent(userId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSelectedPlayer(data.player ?? null);
+      const [playerRes, badgesRes] = await Promise.all([
+        fetch(`/api/admin/players?userId=${encodeURIComponent(userId)}`),
+        fetch(`/api/admin/badges?userId=${encodeURIComponent(userId)}`),
+      ]);
+      if (playerRes.ok) {
+        const data = await playerRes.json();
+        const player = data.player ?? null;
+        setSelectedPlayer(player);
+        if (player) {
+          setEditStats({
+            cr:                String(player.cr),
+            wins:              String(player.wins),
+            losses:            String(player.losses),
+            kills:             String(player.kills),
+            matches:           String(player.matches),
+            mvp_count:         String(player.mvp_count),
+            placement_matches: String(player.placement_matches),
+          });
+        }
+      }
+      if (badgesRes.ok) {
+        const badgeData = await badgesRes.json();
+        setPlayerBadges(badgeData.badges ?? []);
       }
     } finally {
       setLoadingDetail(false);
+    }
+  }
+
+  async function handleEditStats(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedPlayer) return;
+    setEditSaving(true);
+    setActionMsg(null);
+    try {
+      const stats = {
+        cr:                parseInt(editStats.cr, 10),
+        wins:              parseInt(editStats.wins, 10),
+        losses:            parseInt(editStats.losses, 10),
+        kills:             parseInt(editStats.kills, 10),
+        matches:           parseInt(editStats.matches, 10),
+        mvp_count:         parseInt(editStats.mvp_count, 10),
+        placement_matches: parseInt(editStats.placement_matches, 10),
+      };
+      const res = await fetch("/api/admin/players", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: selectedPlayer.user_id, action: "edit", stats }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSelectedPlayer(data.player);
+        setShowEditPanel(false);
+        setActionMsg({ type: "success", text: "✅ Player stats updated successfully." });
+        fetchPlayers(searchQuery, offset);
+      } else {
+        setActionMsg({ type: "error", text: data.error ?? "Failed to update stats." });
+      }
+    } catch {
+      setActionMsg({ type: "error", text: "An unexpected error occurred." });
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function handleReset(userId: string) {
+    setResetting(true);
+    setActionMsg(null);
+    try {
+      const res = await fetch("/api/admin/players", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, action: "reset" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSelectedPlayer(data.player);
+        setShowResetConfirm(false);
+        setEditStats({
+          cr: "0", wins: "0", losses: "0", kills: "0",
+          matches: "0", mvp_count: "0", placement_matches: "0",
+        });
+        setActionMsg({ type: "success", text: "✅ Player stats reset to zero." });
+        fetchPlayers(searchQuery, offset);
+      } else {
+        setActionMsg({ type: "error", text: data.error ?? "Failed to reset player." });
+      }
+    } catch {
+      setActionMsg({ type: "error", text: "An unexpected error occurred." });
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  async function handleBadgeAction(badge: string, action: "assign" | "remove") {
+    if (!selectedPlayer) return;
+    setBadgeActioning(badge);
+    setActionMsg(null);
+    try {
+      const res = await fetch("/api/admin/badges", {
+        method: action === "assign" ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: selectedPlayer.user_id, badge }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPlayerBadges(data.badges ?? []);
+        const opt = BADGE_OPTIONS.find((b) => b.id === badge);
+        setActionMsg({
+          type: "success",
+          text: `✅ ${opt?.icon ?? ""} ${opt?.label ?? badge} ${action === "assign" ? "assigned" : "removed"} successfully.`,
+        });
+      } else {
+        setActionMsg({ type: "error", text: data.error ?? "Badge action failed." });
+      }
+    } catch {
+      setActionMsg({ type: "error", text: "An unexpected error occurred." });
+    } finally {
+      setBadgeActioning(null);
     }
   }
 
@@ -364,12 +516,13 @@ export default function AdminPlayersPage() {
               {/* Stats grid */}
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: "CR",       value: selectedPlayer.cr.toLocaleString(),      color: "text-orange-400" },
-                  { label: "Matches",  value: selectedPlayer.matches.toLocaleString(), color: "text-white" },
-                  { label: "Wins",     value: selectedPlayer.wins.toLocaleString(),    color: "text-green-400" },
-                  { label: "Losses",   value: selectedPlayer.losses.toLocaleString(),  color: "text-red-400" },
-                  { label: "Kills",    value: selectedPlayer.kills.toLocaleString(),   color: "text-yellow-400" },
-                  { label: "MVPs",     value: selectedPlayer.mvp_count.toLocaleString(), color: "text-purple-400" },
+                  { label: "CR",           value: selectedPlayer.cr.toLocaleString(),                color: "text-orange-400" },
+                  { label: "Matches",      value: selectedPlayer.matches.toLocaleString(),           color: "text-white" },
+                  { label: "Wins",         value: selectedPlayer.wins.toLocaleString(),              color: "text-green-400" },
+                  { label: "Losses",       value: selectedPlayer.losses.toLocaleString(),            color: "text-red-400" },
+                  { label: "Kills",        value: selectedPlayer.kills.toLocaleString(),             color: "text-yellow-400" },
+                  { label: "MVPs",         value: selectedPlayer.mvp_count.toLocaleString(),         color: "text-purple-400" },
+                  { label: "Placements",   value: selectedPlayer.placement_matches.toLocaleString(), color: "text-blue-400" },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
                     <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{label}</p>
@@ -428,6 +581,127 @@ export default function AdminPlayersPage() {
                 </div>
               )}
 
+              {/* ── Edit Stats Panel ── */}
+              {showEditPanel && (
+                <form
+                  onSubmit={handleEditStats}
+                  className="rounded-xl border border-blue-700/30 bg-blue-950/10 p-4 space-y-3"
+                >
+                  <p className="text-xs font-black uppercase tracking-wider text-blue-400">✏️ Edit Stats</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(
+                      [
+                        { key: "cr",                label: "CR" },
+                        { key: "wins",              label: "Wins" },
+                        { key: "losses",            label: "Losses" },
+                        { key: "kills",             label: "Kills" },
+                        { key: "matches",           label: "Matches" },
+                        { key: "mvp_count",         label: "MVPs" },
+                        { key: "placement_matches", label: "Placements" },
+                      ] as { key: keyof EditStats; label: string }[]
+                    ).map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="block text-[10px] text-zinc-500 mb-1">{label}</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editStats[key]}
+                          onChange={(e) => setEditStats((prev) => ({ ...prev, [key]: e.target.value }))}
+                          className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm text-white focus:border-blue-600/60 focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="submit"
+                      disabled={editSaving}
+                      className="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 text-xs font-black text-white hover:from-blue-500 hover:to-blue-400 transition disabled:opacity-50"
+                    >
+                      {editSaving ? "Saving…" : "💾 Save Changes"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowEditPanel(false)}
+                      className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-white/5 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* ── Reset Confirmation ── */}
+              {showResetConfirm && (
+                <div className="rounded-xl border border-orange-700/40 bg-orange-950/20 p-4 space-y-3">
+                  <p className="text-xs font-black uppercase tracking-wider text-orange-400">⚠️ Confirm Reset</p>
+                  <p className="text-xs text-zinc-400">
+                    This will set all stats (CR, wins, losses, kills, matches, MVPs, placements) to zero and mark the player as unranked. This cannot be undone.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleReset(selectedPlayer.user_id)}
+                      disabled={resetting}
+                      className="flex-1 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 px-4 py-2 text-xs font-black text-white hover:from-orange-500 hover:to-red-500 transition disabled:opacity-50"
+                    >
+                      {resetting ? "Resetting…" : "🔄 Confirm Reset"}
+                    </button>
+                    <button
+                      onClick={() => setShowResetConfirm(false)}
+                      className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-white/5 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Badge Management ── */}
+              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600">🏅 Badges</p>
+                  {badgesLoading && <span className="text-[10px] text-zinc-500 animate-pulse">Loading…</span>}
+                </div>
+                {playerBadges.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {playerBadges.map((b) => (
+                      <span
+                        key={b.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-bold text-zinc-300"
+                      >
+                        {b.icon} {b.label}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-600">No badges assigned.</p>
+                )}
+                <div className="grid grid-cols-1 gap-1.5">
+                  {BADGE_OPTIONS.map((opt) => {
+                    const hasBadge = playerBadges.some((b) => b.id === opt.id);
+                    const isActioning = badgeActioning === opt.id;
+                    return (
+                      <div key={opt.id} className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-zinc-400">
+                          {opt.icon} {opt.label}
+                        </span>
+                        <button
+                          onClick={() => handleBadgeAction(opt.id, hasBadge ? "remove" : "assign")}
+                          disabled={isActioning}
+                          className={`rounded-lg px-3 py-1 text-[11px] font-black transition disabled:opacity-50 ${
+                            hasBadge
+                              ? "border border-red-700/40 bg-red-950/20 text-red-300 hover:bg-red-950/40"
+                              : "border border-green-700/40 bg-green-950/20 text-green-300 hover:bg-green-950/40"
+                          }`}
+                        >
+                          {isActioning ? "…" : hasBadge ? "Remove" : "Assign"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Actions */}
               <div className="space-y-2 pt-1">
                 <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600">Quick Actions</p>
@@ -439,19 +713,24 @@ export default function AdminPlayersPage() {
                   >
                     👤 View Profile
                   </SoundLink>
+                  <button
+                    onClick={() => { setShowEditPanel((v) => !v); setShowResetConfirm(false); }}
+                    className="rounded-xl border border-blue-700/30 bg-blue-950/10 px-4 py-2 text-xs font-bold text-blue-300 hover:bg-blue-950/20 transition"
+                  >
+                    ✏️ Edit Stats
+                  </button>
+                  <button
+                    onClick={() => { setShowResetConfirm((v) => !v); setShowEditPanel(false); }}
+                    className="rounded-xl border border-orange-700/30 bg-orange-950/10 px-4 py-2 text-xs font-bold text-orange-300 hover:bg-orange-950/20 transition"
+                  >
+                    🔄 Reset Player
+                  </button>
                   <SoundLink
                     href={`/admin/cr?player=${selectedPlayer.user_id}`}
                     soundType="click"
                     className="rounded-xl border border-orange-700/30 bg-orange-950/10 px-4 py-2 text-xs font-bold text-orange-300 hover:bg-orange-950/20 transition"
                   >
                     ⚙️ Edit CR
-                  </SoundLink>
-                  <SoundLink
-                    href={`/admin/badges?player=${selectedPlayer.user_id}`}
-                    soundType="click"
-                    className="rounded-xl border border-yellow-700/30 bg-yellow-950/10 px-4 py-2 text-xs font-bold text-yellow-300 hover:bg-yellow-950/20 transition"
-                  >
-                    🏅 Edit Badges
                   </SoundLink>
                 </div>
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { pool } from "@/lib/db";
 import { getPlayerFromDB, type CachedPlayer } from "@/lib/cache";
+import { invalidatePremiumStatusCache } from "@/lib/premium";
 
 export async function POST(req: NextRequest) {
   // ------------------------------------------------------------------
@@ -43,26 +45,54 @@ export async function POST(req: NextRequest) {
   }
 
   // ------------------------------------------------------------------
-  // 3. Validate the updated player against PostgreSQL.
-  //    The bot has already written to the DB before calling this webhook,
-  //    so we fetch the authoritative record directly from PostgreSQL.
+  // 3. If the bot sent player data in the body, upsert it into the DB.
+  //    This allows the webhook to act as both a write and a cache-bust.
+  // ------------------------------------------------------------------
+  if (body.data && typeof body.data === "object") {
+    try {
+      await pool.query(
+        `INSERT INTO players (user_id, data)
+         VALUES ($1, $2::jsonb)
+         ON CONFLICT (user_id) DO UPDATE
+           SET data = players.data || EXCLUDED.data`,
+        [userId, JSON.stringify(body.data)]
+      );
+      console.log(`[webhook] Upserted player data for ${userId}`);
+    } catch (err) {
+      console.error(`[webhook] Failed to upsert player ${userId}:`, err);
+      return NextResponse.json(
+        { error: "Failed to update player record" },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // 4. Fetch the authoritative record from PostgreSQL so we can log it
+  //    and return it to the caller.
   // ------------------------------------------------------------------
   const dbPlayer = await getPlayerFromDB(userId);
   if (!dbPlayer) {
     return NextResponse.json(
       { error: `Player ${userId} not found in database` },
-      { status: 400 }
+      { status: 404 }
     );
   }
 
   // ------------------------------------------------------------------
-  // 4. Invalidate all cached pages so Next.js regenerates them on the
-  //    next request with fresh data from PostgreSQL.
+  // 5. Invalidate the in-process premium/badge status cache so the next
+  //    request reflects any role or subscription changes the bot sent.
+  // ------------------------------------------------------------------
+  invalidatePremiumStatusCache(userId);
+
+  // ------------------------------------------------------------------
+  // 6. Invalidate all cached Next.js pages so they regenerate with fresh
+  //    data from PostgreSQL on the next request.
   // ------------------------------------------------------------------
   revalidatePath("/");
 
   console.log(
-    `[webhook] Revalidated pages for player ${userId} (${dbPlayer.name}) — CR: ${dbPlayer.cr}`
+    `[webhook] Processed update for player ${userId} (${dbPlayer.name}) — CR: ${dbPlayer.cr}`
   );
 
   return NextResponse.json({ ok: true, player: dbPlayer }, { status: 200 });
