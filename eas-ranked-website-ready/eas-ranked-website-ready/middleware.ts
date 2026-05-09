@@ -13,6 +13,7 @@ const PROTECTED_ROUTES = [
   "/admin/giveaways",
   "/admin/cr",
   "/admin/announcements",
+  "/admin/seasons",
   "/cosmetics/colors",
 ];
 
