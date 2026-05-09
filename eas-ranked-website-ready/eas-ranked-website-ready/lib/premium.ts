@@ -76,22 +76,56 @@ export async function ensurePremiumTables(): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * Returns true if the user has an active subscription in the DB.
+ * Returns true if the user has premium access from ANY source:
+ *  1. Developer user ID (permanent)
+ *  2. Owner user IDs from OWNER_USER_IDS env var (permanent)
+ *  3. Active Lemonsqueezy subscription
+ *  4. Active giveaway code premium (premium_expires_at > now)
  */
 export async function isPremiumUser(userId: string): Promise<boolean> {
-  // Developer/owner gets permanent premium access
-  if (userId === "733871667788644445") {
+  // Developer gets permanent premium access
+  if (userId === DEVELOPER_USER_ID) {
+    return true;
+  }
+
+  // Owner IDs get permanent premium access
+  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+  if (ownerIds.includes(userId)) {
     return true;
   }
 
   try {
     await ensurePremiumTables();
-    const result = await pool.query(
+
+    // Check Lemonsqueezy subscription
+    const subResult = await pool.query(
       `SELECT subscription_status FROM subscriptions WHERE user_id = $1 LIMIT 1`,
       [userId]
     );
-    if (result.rows.length === 0) return false;
-    return result.rows[0].subscription_status === "active";
+    if (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") {
+      return true;
+    }
+
+    // Check active giveaway code premium
+    const giveawayResult = await pool.query(
+      `
+      SELECT 1
+      FROM players
+      WHERE user_id           = $1
+        AND premium_expires_at IS NOT NULL
+        AND premium_expires_at  > NOW()
+      LIMIT 1
+      `,
+      [userId]
+    );
+    if (giveawayResult.rows.length > 0) {
+      return true;
+    }
+
+    return false;
   } catch (err) {
     console.error(`[premium] isPremiumUser(${userId}) failed:`, err);
     return false;
