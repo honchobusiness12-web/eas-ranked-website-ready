@@ -332,19 +332,27 @@ export const DEVELOPER_USER_ID = "733871667788644445";
  * Add any additional staff / moderator role IDs here.
  */
 export const STAFF_ROLE_IDS = [
-  "1502426990995836929", // example staff role — replace with real ID(s)
+  "1234567890000000001", // Staff role
+  "1234567890000000002", // Moderator role
 ];
 
 /**
  * Discord role IDs that grant the Content Creator badge.
- * Covers "Active Developer" and "Verified Bot Developer" equivalents.
  */
 export const CONTENT_CREATOR_ROLE_IDS = [
-  "1502426990995836930", // example content-creator role — replace with real ID(s)
+  "1234567890000000003", // Content Creator role
+  "1234567890000000004", // Verified Creator role
+];
+
+/**
+ * Discord role IDs that grant the Tournament Winner badge.
+ */
+export const TOURNAMENT_WINNER_ROLE_IDS = [
+  "1234567890000000005", // Tournament Winner role
 ];
 
 export interface UserBadge {
-  id: "developer" | "contentCreator" | "staff" | "premium";
+  id: "developer" | "contentCreator" | "staff" | "premium" | "tournamentWinner";
   label: string;
   icon: string;
   color: string;
@@ -394,14 +402,34 @@ export async function isContentCreator(userId: string): Promise<boolean> {
 }
 
 /**
+ * Returns true if the user holds a tournament-winner role in the DB player record.
+ */
+export async function isTournamentWinner(userId: string): Promise<boolean> {
+  try {
+    const { pool } = await import("@/lib/db");
+    const result = await pool.query(
+      `SELECT data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    if (result.rows.length === 0) return false;
+    const roles: string[] = result.rows[0].roles ?? [];
+    return TOURNAMENT_WINNER_ROLE_IDS.some((id) => roles.includes(id));
+  } catch (err) {
+    console.error(`[premium] isTournamentWinner(${userId}) failed:`, err);
+    return false;
+  }
+}
+
+/**
  * Returns the full list of badges a user has earned.
- * Order: developer → contentCreator → staff → premium.
+ * Order: developer → contentCreator → staff → tournamentWinner → premium.
  */
 export async function getUserBadges(userId: string): Promise<UserBadge[]> {
-  const [developer, contentCreator, staff, premium] = await Promise.all([
+  const [developer, contentCreator, staff, tournamentWinner, premium] = await Promise.all([
     Promise.resolve(userId === DEVELOPER_USER_ID),
     isContentCreator(userId),
     isStaffUser(userId),
+    isTournamentWinner(userId),
     isPremiumUser(userId),
   ]);
 
@@ -421,7 +449,7 @@ export async function getUserBadges(userId: string): Promise<UserBadge[]> {
     badges.push({
       id: "contentCreator",
       label: "Content Creator",
-      icon: "🎙️",
+      icon: "🎬",
       color: "#00D4FF",
       description: "Verified Content Creator",
     });
@@ -438,6 +466,16 @@ export async function getUserBadges(userId: string): Promise<UserBadge[]> {
     });
   }
 
+  if (tournamentWinner) {
+    badges.push({
+      id: "tournamentWinner",
+      label: "Tournament Winner",
+      icon: "🏆",
+      color: "#FFD700",
+      description: "Tournament Champion",
+    });
+  }
+
   if (premium) {
     badges.push({
       id: "premium",
@@ -449,6 +487,68 @@ export async function getUserBadges(userId: string): Promise<UserBadge[]> {
   }
 
   return badges;
+}
+
+// ---------------------------------------------------------------------------
+// Badge assignment helpers (admin use)
+// ---------------------------------------------------------------------------
+
+/**
+ * Assigns a badge role to a user by updating their roles array in the DB.
+ * This is a DB-level operation; the Discord role must be synced separately.
+ */
+export async function assignBadgeRole(userId: string, roleId: string): Promise<void> {
+  try {
+    const { pool } = await import("@/lib/db");
+    await pool.query(
+      `
+      UPDATE players
+      SET data = jsonb_set(
+        COALESCE(data, '{}'),
+        '{roles}',
+        (
+          SELECT jsonb_agg(DISTINCT r)
+          FROM jsonb_array_elements_text(
+            COALESCE(data->'roles', '[]'::jsonb) || $2::jsonb
+          ) AS r
+        )
+      )
+      WHERE user_id = $1
+      `,
+      [userId, JSON.stringify([roleId])]
+    );
+  } catch (err) {
+    console.error(`[premium] assignBadgeRole(${userId}, ${roleId}) failed:`, err);
+    throw err;
+  }
+}
+
+/**
+ * Removes a badge role from a user's roles array in the DB.
+ */
+export async function removeBadgeRole(userId: string, roleId: string): Promise<void> {
+  try {
+    const { pool } = await import("@/lib/db");
+    await pool.query(
+      `
+      UPDATE players
+      SET data = jsonb_set(
+        COALESCE(data, '{}'),
+        '{roles}',
+        (
+          SELECT COALESCE(jsonb_agg(r), '[]'::jsonb)
+          FROM jsonb_array_elements_text(COALESCE(data->'roles', '[]'::jsonb)) AS r
+          WHERE r != $2
+        )
+      )
+      WHERE user_id = $1
+      `,
+      [userId, roleId]
+    );
+  } catch (err) {
+    console.error(`[premium] removeBadgeRole(${userId}, ${roleId}) failed:`, err);
+    throw err;
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import SoundLink from "@/components/SoundLink";
 import SoundToggle from "@/components/SoundToggle";
 import AuthButton from "@/components/AuthButton";
 import ProfileMenu from "@/components/ProfileMenu";
+import CopyButton from "@/components/CopyButton";
 import { useState, useEffect } from "react";
 import type { DiscordUser } from "@/lib/auth";
 
@@ -36,6 +37,7 @@ const adminLinks = [
   { label: "⚙️ CR Admin",         href: "/admin/cr" },
   { label: "📢 Announcements",    href: "/admin/announcements" },
   { label: "🏆 Seasons",          href: "/admin/seasons" },
+  { label: "🏅 Badge Manager",    href: "/admin/badges" },
 ];
 
 interface ShellSeason {
@@ -185,6 +187,13 @@ export default function Shell({
                 <span>👤</span>
                 <span className="truncate">{user.global_name || user.username}</span>
               </SoundLink>
+              {/* User ID row */}
+              <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-4 py-2">
+                <span className="text-[10px] font-mono text-zinc-500 truncate">
+                  ID: {user.id}
+                </span>
+                <CopyButton text={user.id} size="xs" className="ml-2 shrink-0" />
+              </div>
               <SoundLink
                 href="/players"
                 soundType="click"
@@ -267,6 +276,13 @@ export default function Shell({
                       >
                         👤 My Profile
                       </SoundLink>
+                      {/* User ID row — mobile */}
+                      <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-4 py-2 mx-0">
+                        <span className="text-[10px] font-mono text-zinc-500 truncate">
+                          ID: {user.id}
+                        </span>
+                        <CopyButton text={user.id} size="xs" className="ml-2 shrink-0" />
+                      </div>
                       <SoundLink
                         href="/players"
                         soundType="click"
