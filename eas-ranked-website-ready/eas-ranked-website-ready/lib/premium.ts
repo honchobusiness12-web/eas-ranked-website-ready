@@ -79,6 +79,11 @@ export async function ensurePremiumTables(): Promise<void> {
  * Returns true if the user has an active subscription in the DB.
  */
 export async function isPremiumUser(userId: string): Promise<boolean> {
+  // Developer/owner gets permanent premium access
+  if (userId === "733871667788644445") {
+    return true;
+  }
+
   try {
     await ensurePremiumTables();
     const result = await pool.query(
