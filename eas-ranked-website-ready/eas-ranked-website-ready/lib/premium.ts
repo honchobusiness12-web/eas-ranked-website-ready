@@ -194,6 +194,40 @@ export async function upsertCosmetics(
 }
 
 // ---------------------------------------------------------------------------
+// Scrim hosting — waitlist bypass logic
+// ---------------------------------------------------------------------------
+
+/**
+ * Determines whether a user is allowed to host a scrim.
+ *
+ * Rules:
+ *  - Premium subscribers: always allowed (no limits).
+ *  - Waitlist members:    allowed (bypass normal scrim limits as a perk).
+ *  - Everyone else:       subject to normal limits (caller enforces these).
+ *
+ * Returns `{ allowed: boolean; reason: string }` so callers can surface a
+ * meaningful message when access is denied.
+ */
+export async function canHostScrim(
+  userId: string,
+  isOnWaitlist: boolean
+): Promise<{ allowed: boolean; reason: string }> {
+  // Premium users have no restrictions
+  const premium = await isPremiumUser(userId);
+  if (premium) {
+    return { allowed: true, reason: "premium" };
+  }
+
+  // Waitlist members bypass the normal scrim limit as an early-access perk
+  if (isOnWaitlist) {
+    return { allowed: true, reason: "waitlist" };
+  }
+
+  // Regular users are subject to normal limits — the caller decides the cap
+  return { allowed: false, reason: "limit_reached" };
+}
+
+// ---------------------------------------------------------------------------
 // Available cosmetic options — re-exported from premium-constants so that
 // server-side callers can continue importing from this module unchanged.
 // ---------------------------------------------------------------------------
