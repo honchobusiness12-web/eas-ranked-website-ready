@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getCurrentSeason, getSeasonStats } from "@/lib/seasons";
-
-// ---------------------------------------------------------------------------
-// Owner check
-// ---------------------------------------------------------------------------
-
-function isOwner(userId: string): boolean {
-  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-  if (userId === "733871667788644445") return true;
-  return ownerIds.includes(userId);
-}
+import { isDeveloper } from "@/lib/premium";
 
 // ---------------------------------------------------------------------------
 // GET /api/admin/seasons/current — get active season with stats (owner only)
