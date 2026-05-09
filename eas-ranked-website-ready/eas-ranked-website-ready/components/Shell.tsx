@@ -16,6 +16,7 @@ const links = [
 
 const premiumLinks = [
   { label: "💎 Get Premium",       href: "/premium/subscribe" },
+  { label: "📋 Commands List",     href: "/premium/commands" },
   { label: "📊 Advanced Stats",    href: "/premium/stats" },
   { label: "🎨 Cosmetics",         href: "/premium/cosmetics" },
   { label: "⚔️ Comparisons",       href: "/premium/comparisons" },

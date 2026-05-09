@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCosmetics, upsertCosmetics, isPremiumUser } from "@/lib/premium";
+import {
+  THEMES,
+  RANK_BADGE_STYLES,
+  ACHIEVEMENT_FRAMES,
+  PROFILE_COLORS,
+} from "@/lib/premium-constants";
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("userId");
@@ -8,7 +14,22 @@ export async function GET(req: NextRequest) {
   }
 
   const cosmetics = await getCosmetics(userId);
-  return NextResponse.json({ cosmetics });
+
+  // Resolve icon for each active cosmetic so clients can display them without
+  // importing the full constants bundle server-side.
+  const themeIcon =
+    THEMES.find((t) => t.id === cosmetics?.theme)?.icon ?? "🌑";
+  const badgeIcon =
+    RANK_BADGE_STYLES.find((b) => b.id === cosmetics?.rank_badge_style)?.icon ?? "🏅";
+  const frameIcon =
+    ACHIEVEMENT_FRAMES.find((f) => f.id === cosmetics?.achievement_frame)?.icon ?? "⬜";
+  const colorIcon =
+    PROFILE_COLORS.find((c) => c.id === cosmetics?.profile_color)?.icon ?? "🔴";
+
+  return NextResponse.json({
+    cosmetics,
+    icons: { theme: themeIcon, badge: badgeIcon, frame: frameIcon, color: colorIcon },
+  });
 }
 
 export async function POST(req: NextRequest) {

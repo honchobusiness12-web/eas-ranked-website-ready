@@ -6,6 +6,17 @@ import { pool } from "@/lib/db";
 export const PREMIUM_ROLE_ID = "1502426990995836928";
 
 // ---------------------------------------------------------------------------
+// Discord public flags — used for content creator / badge detection
+// https://discord.com/developers/docs/resources/user#user-object-user-flags
+// ---------------------------------------------------------------------------
+const DISCORD_FLAGS = {
+  /** Active Developer badge */
+  ACTIVE_DEVELOPER: 1 << 22,
+  /** Verified Bot Developer badge */
+  VERIFIED_BOT_DEVELOPER: 1 << 17,
+} as const;
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -72,21 +83,71 @@ export async function ensurePremiumTables(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Content creator detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches the Discord user object for `userId` and returns true if the user
+ * holds the Active Developer badge or the Verified Bot Developer badge.
+ * These are treated as content-creator signals that grant automatic premium.
+ *
+ * Requires DISCORD_BOT_TOKEN to be set in the environment.
+ * Returns false gracefully on any network / auth error.
+ */
+export async function isContentCreator(userId: string): Promise<boolean> {
+  try {
+    const token = process.env.DISCORD_BOT_TOKEN;
+    if (!token) return false;
+
+    const res = await fetch(`https://discord.com/api/v10/users/${userId}`, {
+      headers: { Authorization: `Bot ${token}` },
+      // Short timeout so a slow Discord API doesn't block page renders
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (!res.ok) return false;
+
+    const user = await res.json();
+    const flags: number = (user.public_flags ?? 0) | (user.flags ?? 0);
+
+    const hasActiveDev       = (flags & DISCORD_FLAGS.ACTIVE_DEVELOPER)     !== 0;
+    const hasVerifiedBotDev  = (flags & DISCORD_FLAGS.VERIFIED_BOT_DEVELOPER) !== 0;
+
+    if (hasActiveDev || hasVerifiedBotDev) {
+      console.log(`[premium] isContentCreator: user ${userId} granted via Discord badge (flags=${flags})`);
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.warn(`[premium] isContentCreator(${userId}) check failed:`, err);
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Check premium status
 // ---------------------------------------------------------------------------
 
 /**
- * Returns true if the user has an active subscription in the DB.
+ * Returns true if the user has an active subscription in the DB **or** holds
+ * a Discord content-creator badge (Active Developer / Verified Bot Developer).
  */
 export async function isPremiumUser(userId: string): Promise<boolean> {
   try {
     await ensurePremiumTables();
+
+    // 1. Check DB subscription first (fast path)
     const result = await pool.query(
       `SELECT subscription_status FROM subscriptions WHERE user_id = $1 LIMIT 1`,
       [userId]
     );
-    if (result.rows.length === 0) return false;
-    return result.rows[0].subscription_status === "active";
+    if (result.rows.length > 0 && result.rows[0].subscription_status === "active") {
+      return true;
+    }
+
+    // 2. Fall back to content-creator badge check
+    return await isContentCreator(userId);
   } catch (err) {
     console.error(`[premium] isPremiumUser(${userId}) failed:`, err);
     return false;
