@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Shell from "@/components/Shell";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
-import { GRADIENT_PRESETS, USERNAME_COLORS } from "@/lib/cosmetics";
+import { GRADIENT_PRESETS, USERNAME_COLORS } from "@/lib/cosmetic-constants";
 
 interface SavedCosmetics {
   badge_gradient: string | null;

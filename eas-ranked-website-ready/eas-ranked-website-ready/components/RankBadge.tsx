@@ -1,6 +1,6 @@
 import { getRank } from "@/lib/ranks";
 import { getTierColor } from "@/lib/charts";
-import { GRADIENT_PRESETS } from "@/lib/cosmetics";
+import { GRADIENT_PRESETS } from "@/lib/cosmetic-constants";
 
 const TIER_ICONS: Record<string, string> = {
   "R1 Rookie":        "🔰",
