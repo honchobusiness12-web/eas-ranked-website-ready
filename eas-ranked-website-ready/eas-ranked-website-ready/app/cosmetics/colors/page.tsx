@@ -73,7 +73,8 @@ export default function ColorsPage() {
       const res = await fetch("/api/cosmetics/gradient", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gradientId: selectedGradient }),
+        // Include userId so the API can verify ownership against the session
+        body: JSON.stringify({ userId, gradientId: selectedGradient }),
       });
       const data = await res.json();
       setGradientMsg(data.success ? "✅ Gradient saved!" : `❌ ${data.error ?? "Failed to save."}`);
@@ -92,7 +93,8 @@ export default function ColorsPage() {
       const res = await fetch("/api/cosmetics/username-color", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ colorId: selectedColor }),
+        // Include userId so the API can verify ownership against the session
+        body: JSON.stringify({ userId, colorId: selectedColor }),
       });
       const data = await res.json();
       setColorMsg(data.success ? "✅ Color saved!" : `❌ ${data.error ?? "Failed to save."}`);

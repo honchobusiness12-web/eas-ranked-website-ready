@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Shell from "@/components/Shell";
 import SoundLink from "@/components/SoundLink";
 import PremiumBadge from "@/components/PremiumBadge";
@@ -26,12 +26,30 @@ interface AdvancedStats {
 }
 
 export default function AdvancedStatsPage() {
+  const [sessionUserId, setSessionUserId] = useState("");
+  const [sessionIsPremium, setSessionIsPremium] = useState(false);
   const [userId, setUserId] = useState("");
   const [inputId, setInputId] = useState("");
   const [stats, setStats] = useState<AdvancedStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isPremium, setIsPremium] = useState(true);
+
+  // Auto-load the authenticated user's ID and premium status on mount
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          const uid: string = data.user.id;
+          setSessionUserId(uid);
+          return fetch(`/api/premium/status?userId=${uid}`)
+            .then((r) => r.json())
+            .then((s) => setSessionIsPremium(s.premium ?? false));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
@@ -62,6 +80,9 @@ export default function AdvancedStatsPage() {
       setLoading(false);
     }
   }
+
+  // Whether the currently viewed stats belong to the authenticated user
+  const isOwnStats = sessionUserId !== "" && userId === sessionUserId;
 
   // Mini sparkline from cr_deltas
   function renderSparkline(deltas: number[]) {
@@ -109,9 +130,26 @@ export default function AdvancedStatsPage() {
         <PremiumBadge size="lg" />
       </div>
 
+      {/* Session info */}
+      {sessionUserId && (
+        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-4 mb-6 flex items-center gap-3">
+          <span className="text-lg">🔒</span>
+          <p className="text-sm text-zinc-400">
+            Signed in as{" "}
+            <span className="text-zinc-300 font-mono text-xs">{sessionUserId}</span>
+            {sessionIsPremium ? (
+              <span className="ml-2 text-yellow-400 font-bold text-xs">💎 Premium</span>
+            ) : (
+              <span className="ml-2 text-zinc-500 text-xs">(no premium)</span>
+            )}
+          </p>
+          <p className="ml-auto text-xs text-zinc-600">You can view any player's stats. Only your own stats can be exported.</p>
+        </div>
+      )}
+
       {/* Lookup */}
       <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6 mb-6">
-        <h2 className="mb-3 text-lg font-black">🔍 Enter Your Discord User ID</h2>
+        <h2 className="mb-3 text-lg font-black">🔍 Enter a Discord User ID</h2>
         <form onSubmit={handleLookup} className="flex gap-3">
           <input
             type="text"
@@ -127,6 +165,11 @@ export default function AdvancedStatsPage() {
             {loading ? "Loading…" : "Load Stats"}
           </button>
         </form>
+        {userId && (
+          <p className={`mt-2 text-xs font-bold ${isOwnStats ? "text-green-400" : "text-zinc-500"}`}>
+            {isOwnStats ? "✅ Viewing your own stats" : "👁️ Viewing another player's stats (read-only)"}
+          </p>
+        )}
       </div>
 
       {error && (
