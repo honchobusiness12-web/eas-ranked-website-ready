@@ -25,6 +25,13 @@ interface PlayerBadgeData {
   roles: string[];
 }
 
+interface DiscordRoleMember {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  avatar: string | null;
+}
+
 const BADGE_OPTIONS = [
   { id: "staff",           label: "Staff",            icon: "👮", color: "#00FF88" },
   { id: "contentCreator",  label: "Content Creator",  icon: "🎬", color: "#00D4FF" },
@@ -32,6 +39,15 @@ const BADGE_OPTIONS = [
 ] as const;
 
 type BadgeId = (typeof BADGE_OPTIONS)[number]["id"];
+
+type SidebarTab = "db" | "contentCreator" | "staff" | "premium";
+
+const SIDEBAR_TABS: { id: SidebarTab; label: string; icon: string }[] = [
+  { id: "db",            label: "DB Holders",      icon: "🏅" },
+  { id: "contentCreator",label: "Content Creators", icon: "🎬" },
+  { id: "staff",         label: "Staff",            icon: "👮" },
+  { id: "premium",       label: "Premium",          icon: "💎" },
+];
 
 function BadgePill({ badge }: { badge: BadgeInfo }) {
   return (
@@ -63,9 +79,22 @@ export default function AdminBadgesPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerBadgeData | null>(null);
   const [loadingPlayer, setLoadingPlayer] = useState(false);
 
-  // Badge holders list
+  // DB badge holders list
   const [badgeHolders, setBadgeHolders] = useState<PlayerRow[]>([]);
   const [loadingHolders, setLoadingHolders] = useState(false);
+
+  // Discord role member lists
+  const [ccMembers, setCcMembers]           = useState<DiscordRoleMember[]>([]);
+  const [staffMembers, setStaffMembers]     = useState<DiscordRoleMember[]>([]);
+  const [premiumMembers, setPremiumMembers] = useState<DiscordRoleMember[]>([]);
+  const [loadingRole, setLoadingRole]       = useState<SidebarTab | null>(null);
+
+  // Sidebar tab
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>("db");
+
+  // Sync-roles state
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
 
   // Action state
   const [actionMsg, setActionMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -84,6 +113,7 @@ export default function AdminBadgesPage() {
       .catch(() => setAuthChecked(true));
   }, []);
 
+  // Load DB badge holders
   const loadBadgeHolders = useCallback(async () => {
     setLoadingHolders(true);
     try {
@@ -97,9 +127,43 @@ export default function AdminBadgesPage() {
     }
   }, []);
 
+  // Load Discord role members for a given tab
+  const loadRoleMembers = useCallback(async (tab: SidebarTab, force = false) => {
+    if (tab === "db") return;
+    setLoadingRole(tab);
+    try {
+      const params = new URLSearchParams({ role: tab });
+      if (force) params.set("force", "true");
+      const res = await fetch(`/api/admin/badges?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        const members: DiscordRoleMember[] = data.members ?? [];
+        if (tab === "contentCreator") setCcMembers(members);
+        else if (tab === "staff")     setStaffMembers(members);
+        else if (tab === "premium")   setPremiumMembers(members);
+      }
+    } finally {
+      setLoadingRole(null);
+    }
+  }, []);
+
   useEffect(() => {
-    if (isOwner) loadBadgeHolders();
+    if (isOwner) {
+      loadBadgeHolders();
+    }
   }, [isOwner, loadBadgeHolders]);
+
+  // Load role members when switching tabs
+  useEffect(() => {
+    if (!isOwner || sidebarTab === "db") return;
+    const alreadyLoaded =
+      (sidebarTab === "contentCreator" && ccMembers.length > 0) ||
+      (sidebarTab === "staff"          && staffMembers.length > 0) ||
+      (sidebarTab === "premium"        && premiumMembers.length > 0);
+    if (!alreadyLoaded) {
+      loadRoleMembers(sidebarTab);
+    }
+  }, [sidebarTab, isOwner, ccMembers.length, staffMembers.length, premiumMembers.length, loadRoleMembers]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -148,7 +212,6 @@ export default function AdminBadgesPage() {
           type: "success",
           text: `✅ Badge "${badge}" ${action === "assign" ? "assigned to" : "removed from"} ${selectedPlayer.name ?? selectedPlayer.userId}`,
         });
-        // Refresh selected player badges
         await selectPlayer(selectedPlayer.userId);
         loadBadgeHolders();
       } else {
@@ -158,6 +221,42 @@ export default function AdminBadgesPage() {
       setActionMsg({ type: "error", text: "An unexpected error occurred." });
     } finally {
       setActioning(false);
+    }
+  }
+
+  async function handleSyncRoles(force = false) {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const url = force
+        ? "/api/admin/sync-roles?force=true"
+        : "/api/admin/sync-roles";
+      const res = await fetch(url, { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const r = data.result;
+        if (r.cachedRun) {
+          setSyncResult("⏱ Sync skipped — ran recently. Use Force Sync to override.");
+        } else {
+          setSyncResult(
+            `✅ Synced in ${r.durationMs}ms — ` +
+            `premium: ${r.premiumUpdated}, staff: ${r.staffUpdated}, cc: ${r.contentCreatorUpdated}`
+          );
+        }
+        // Refresh all lists
+        loadBadgeHolders();
+        if (force) {
+          loadRoleMembers("contentCreator", true);
+          loadRoleMembers("staff", true);
+          loadRoleMembers("premium", true);
+        }
+      } else {
+        setSyncResult(`❌ ${data.error ?? "Sync failed."}`);
+      }
+    } catch {
+      setSyncResult("❌ Unexpected error during sync.");
+    } finally {
+      setSyncing(false);
     }
   }
 
@@ -197,19 +296,156 @@ export default function AdminBadgesPage() {
   }
 
   // -------------------------------------------------------------------------
+  // Sidebar content for the active tab
+  // -------------------------------------------------------------------------
+
+  function renderSidebarContent() {
+    if (sidebarTab === "db") {
+      return (
+        <>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+            <h2 className="text-lg font-black">🏅 DB Badge Holders</h2>
+            <button
+              onClick={loadBadgeHolders}
+              disabled={loadingHolders}
+              className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
+            >
+              {loadingHolders ? "…" : "↻"}
+            </button>
+          </div>
+          {loadingHolders && badgeHolders.length === 0 ? (
+            <div className="p-8 text-center text-zinc-500 animate-pulse text-sm">Loading…</div>
+          ) : badgeHolders.length === 0 ? (
+            <div className="p-8 text-center text-zinc-500 text-sm">No badge holders yet.</div>
+          ) : (
+            <div className="divide-y divide-white/5 max-h-[520px] overflow-y-auto">
+              {badgeHolders.map((player) => (
+                <button
+                  key={player.user_id}
+                  onClick={() => selectPlayer(player.user_id)}
+                  className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/5 transition"
+                >
+                  <div>
+                    <p className="font-bold text-sm text-white">{player.name}</p>
+                    <p className="text-[10px] font-mono text-zinc-600">{player.user_id}</p>
+                  </div>
+                  <span className="text-xs text-zinc-500 shrink-0">Edit →</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      );
+    }
+
+    const tabConfig: Record<Exclude<SidebarTab, "db">, { label: string; icon: string; color: string; members: DiscordRoleMember[] }> = {
+      contentCreator: { label: "Content Creators", icon: "🎬", color: "#00D4FF", members: ccMembers },
+      staff:          { label: "Staff Members",    icon: "👮", color: "#00FF88", members: staffMembers },
+      premium:        { label: "Premium Members",  icon: "💎", color: "#FF9F43", members: premiumMembers },
+    };
+
+    const cfg = tabConfig[sidebarTab as Exclude<SidebarTab, "db">];
+    const isLoading = loadingRole === sidebarTab;
+
+    return (
+      <>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <h2 className="text-lg font-black" style={{ color: cfg.color }}>
+            {cfg.icon} {cfg.label}
+          </h2>
+          <button
+            onClick={() => loadRoleMembers(sidebarTab, true)}
+            disabled={isLoading}
+            className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
+          >
+            {isLoading ? "…" : "↻"}
+          </button>
+        </div>
+        {isLoading && cfg.members.length === 0 ? (
+          <div className="p-8 text-center text-zinc-500 animate-pulse text-sm">
+            Fetching from Discord…
+          </div>
+        ) : cfg.members.length === 0 ? (
+          <div className="p-8 text-center text-zinc-500 text-sm">
+            No members found with this role.
+          </div>
+        ) : (
+          <div className="divide-y divide-white/5 max-h-[520px] overflow-y-auto">
+            {cfg.members.map((member) => (
+              <button
+                key={member.userId}
+                onClick={() => selectPlayer(member.userId)}
+                className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-white/5 transition"
+              >
+                {member.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={member.avatar}
+                    alt={member.username}
+                    className="w-7 h-7 rounded-full shrink-0"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-white/10 shrink-0 flex items-center justify-center text-xs text-zinc-400">
+                    {member.username[0]?.toUpperCase() ?? "?"}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-sm text-white truncate">
+                    {member.displayName ?? member.username}
+                  </p>
+                  <p className="text-[10px] font-mono text-zinc-600 truncate">{member.userId}</p>
+                </div>
+                <span className="text-xs text-zinc-500 shrink-0">Edit →</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="px-5 py-3 border-t border-white/5 text-[10px] text-zinc-600">
+          {cfg.members.length} member{cfg.members.length !== 1 ? "s" : ""} · cached 5 min
+        </div>
+      </>
+    );
+  }
+
+  // -------------------------------------------------------------------------
   // Main UI
   // -------------------------------------------------------------------------
 
   return (
     <Shell>
-      <div className="mb-6">
-        <h1 className="text-4xl font-black">🏅 Badge Manager</h1>
-        <p className="mt-2 text-zinc-400">
-          Assign and remove Staff, Content Creator, and Tournament Winner badges. Developer access only.
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-black">🏅 Badge Manager</h1>
+          <p className="mt-2 text-zinc-400">
+            Assign and remove Staff, Content Creator, and Tournament Winner badges. Developer access only.
+          </p>
+        </div>
+
+        {/* Sync controls */}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleSyncRoles(false)}
+              disabled={syncing}
+              className="rounded-xl border border-blue-700/40 bg-blue-950/20 px-4 py-2 text-xs font-bold text-blue-300 hover:bg-blue-950/40 transition disabled:opacity-50"
+            >
+              {syncing ? "Syncing…" : "⚡ Sync Roles"}
+            </button>
+            <button
+              onClick={() => handleSyncRoles(true)}
+              disabled={syncing}
+              className="rounded-xl border border-orange-700/40 bg-orange-950/20 px-4 py-2 text-xs font-bold text-orange-300 hover:bg-orange-950/40 transition disabled:opacity-50"
+            >
+              {syncing ? "…" : "🔄 Force Sync"}
+            </button>
+          </div>
+          {syncResult && (
+            <p className="text-[11px] text-zinc-400 max-w-xs text-right">{syncResult}</p>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
         {/* Left column — search + selected player */}
         <div className="space-y-6">
           {/* Search */}
@@ -337,40 +573,27 @@ export default function AdminBadgesPage() {
           )}
         </div>
 
-        {/* Right column — current badge holders */}
+        {/* Right column — tabbed sidebar */}
         <div className="rounded-2xl border border-white/10 bg-[#0d0d14] overflow-hidden h-fit">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-            <h2 className="text-lg font-black">🏅 Badge Holders</h2>
-            <button
-              onClick={loadBadgeHolders}
-              disabled={loadingHolders}
-              className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
-            >
-              {loadingHolders ? "…" : "↻"}
-            </button>
+          {/* Tab bar */}
+          <div className="flex border-b border-white/10 overflow-x-auto">
+            {SIDEBAR_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setSidebarTab(tab.id)}
+                className={`flex-1 min-w-0 px-3 py-3 text-xs font-bold transition whitespace-nowrap ${
+                  sidebarTab === tab.id
+                    ? "text-white border-b-2 border-red-500 bg-white/[0.04]"
+                    : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]"
+                }`}
+              >
+                <span className="mr-1">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          {loadingHolders && badgeHolders.length === 0 ? (
-            <div className="p-8 text-center text-zinc-500 animate-pulse text-sm">Loading…</div>
-          ) : badgeHolders.length === 0 ? (
-            <div className="p-8 text-center text-zinc-500 text-sm">No badge holders yet.</div>
-          ) : (
-            <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">
-              {badgeHolders.map((player) => (
-                <button
-                  key={player.user_id}
-                  onClick={() => selectPlayer(player.user_id)}
-                  className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/5 transition"
-                >
-                  <div>
-                    <p className="font-bold text-sm text-white">{player.name}</p>
-                    <p className="text-[10px] font-mono text-zinc-600">{player.user_id}</p>
-                  </div>
-                  <span className="text-xs text-zinc-500 shrink-0">Edit →</span>
-                </button>
-              ))}
-            </div>
-          )}
+          {renderSidebarContent()}
         </div>
       </div>
     </Shell>

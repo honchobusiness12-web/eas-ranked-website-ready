@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { triggerBatchSync } from "@/lib/batch-sync";
+
+// Use the Node.js runtime so we can import pg-backed modules (batch-sync → db)
+export const runtime = "nodejs";
 
 // Routes that require authentication
 const PROTECTED_ROUTES = [
@@ -48,8 +52,22 @@ function isAuthenticated(req: NextRequest): boolean {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Startup batch sync — fire-and-forget, runs at most once every 5 minutes
+// ---------------------------------------------------------------------------
+
+let startupSyncTriggered = false;
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Trigger a background batch sync on the first request after a cold start.
+  // triggerBatchSync has its own 5-minute cooldown so subsequent requests are
+  // no-ops.  We skip API routes to avoid triggering during health checks.
+  if (!startupSyncTriggered && !pathname.startsWith("/api/")) {
+    startupSyncTriggered = true;
+    triggerBatchSync();
+  }
 
   // Check if this is a protected route
   const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));

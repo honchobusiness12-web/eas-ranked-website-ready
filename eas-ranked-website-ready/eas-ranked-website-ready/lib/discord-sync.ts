@@ -4,10 +4,35 @@
  * Checks whether a user has the premium Discord role and updates the
  * subscriptions table accordingly.  Called on every login so that premium
  * access is granted / revoked in real-time without any manual DB work.
+ *
+ * An in-memory cache (5-minute TTL) prevents redundant Discord API calls when
+ * the same user logs in multiple times within a short window.
  */
 
 import { pool } from "@/lib/db";
 import { PREMIUM_ROLE_ID, ensurePremiumTables } from "@/lib/premium";
+
+// ---------------------------------------------------------------------------
+// Role-check cache (per user, server-side in-process)
+// ---------------------------------------------------------------------------
+
+const ROLE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+interface RoleCacheEntry {
+  roles: string[] | null;
+  expiresAt: number;
+}
+
+const roleCheckCache = new Map<string, RoleCacheEntry>();
+
+/** Invalidate the cached roles for a specific user (or all users). */
+export function invalidateDiscordSyncCache(userId?: string): void {
+  if (userId) {
+    roleCheckCache.delete(userId);
+  } else {
+    roleCheckCache.clear();
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,13 +50,28 @@ export interface SyncResult {
 // Fetch the member's roles from Discord using the bot token
 // ---------------------------------------------------------------------------
 
-async function getMemberRoles(userId: string): Promise<string[] | null> {
+/**
+ * Returns the Discord role IDs for a guild member.
+ *
+ * Results are cached in-process for 5 minutes so that repeated logins within
+ * the same server instance don't trigger redundant API calls.
+ * Pass `force = true` to bypass the cache.
+ */
+async function getMemberRoles(userId: string, force = false): Promise<string[] | null> {
   const botToken = process.env.DISCORD_BOT_TOKEN;
   const guildId = process.env.DISCORD_GUILD_ID;
 
   if (!botToken || !guildId) {
     // Bot token / guild ID not configured — skip role check
     return null;
+  }
+
+  // Check cache first
+  if (!force) {
+    const cached = roleCheckCache.get(userId);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.roles;
+    }
   }
 
   try {
@@ -42,13 +82,13 @@ async function getMemberRoles(userId: string): Promise<string[] | null> {
           Authorization: `Bot ${botToken}`,
           "Content-Type": "application/json",
         },
-        // Don't cache — we need fresh data on every login
         cache: "no-store",
       }
     );
 
     if (res.status === 404) {
-      // User is not in the guild
+      // User is not in the guild — cache the empty result
+      roleCheckCache.set(userId, { roles: [], expiresAt: Date.now() + ROLE_CACHE_TTL_MS });
       return [];
     }
 
@@ -58,7 +98,12 @@ async function getMemberRoles(userId: string): Promise<string[] | null> {
     }
 
     const data = await res.json();
-    return Array.isArray(data.roles) ? (data.roles as string[]) : [];
+    const roles = Array.isArray(data.roles) ? (data.roles as string[]) : [];
+
+    // Store in cache
+    roleCheckCache.set(userId, { roles, expiresAt: Date.now() + ROLE_CACHE_TTL_MS });
+
+    return roles;
   } catch (err) {
     console.error(`[discord-sync] getMemberRoles(${userId}) error:`, err);
     return null;
