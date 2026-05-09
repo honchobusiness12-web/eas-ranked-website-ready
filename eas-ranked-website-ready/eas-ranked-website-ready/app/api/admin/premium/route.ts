@@ -8,6 +8,11 @@ import {
 } from "@/lib/premium";
 import { pool } from "@/lib/db";
 
+// Premium is sourced from:
+//  1. Developer ID (permanent)
+//  2. Discord Premium User role — set by Buy Me a Coffee bot (data->>'premium' = true)
+//  3. Manual grant / giveaway code (premium_expires_at > NOW())
+
 // ---------------------------------------------------------------------------
 // Developer-only guard
 // ---------------------------------------------------------------------------
@@ -55,17 +60,7 @@ export async function GET(req: NextRequest) {
         ),
       ]);
 
-      // Also check subscription table
-      const subResult = await pool.query(
-        `SELECT subscription_status, current_period_end, lemonsqueezy_subscription_id
-         FROM subscriptions
-         WHERE user_id = $1
-         LIMIT 1`,
-        [userId]
-      );
-
       const player = playerResult.rows[0] ?? null;
-      const subscription = subResult.rows[0] ?? null;
 
       return NextResponse.json({
         userId,
@@ -77,13 +72,8 @@ export async function GET(req: NextRequest) {
         // Raw fields for full transparency
         premiumExpiresAt: player?.premium_expires_at ?? null,
         discordPremium: player?.discord_premium ?? false,
-        subscription: subscription
-          ? {
-              status: subscription.subscription_status,
-              periodEnd: subscription.current_period_end,
-              subscriptionId: subscription.lemonsqueezy_subscription_id,
-            }
-          : null,
+        // No subscription table — premium comes from Discord role or manual grant
+        subscription: null,
         isDeveloper: userId === DEVELOPER_USER_ID,
       });
     } catch (err) {

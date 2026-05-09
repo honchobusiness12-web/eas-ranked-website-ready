@@ -12,14 +12,9 @@ import {
 } from "@/lib/premium-constants";
 
 interface Subscription {
-  id: string;
-  user_id: string;
-  lemonsqueezy_customer_id: string | null;
-  lemonsqueezy_subscription_id: string | null;
   subscription_status: string | null;
   current_period_end: string | null;
-  created_at: string;
-  updated_at: string;
+  source: string | null;
 }
 
 interface Cosmetics {
@@ -37,8 +32,6 @@ export default function ManagePage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [cosmetics, setCosmetics] = useState<Cosmetics | null>(null);
   const [loading, setLoading] = useState(false);
-  const [canceling, setCanceling] = useState(false);
-  const [cancelMsg, setCancelMsg] = useState("");
   const [error, setError] = useState("");
 
   async function loadData(uid: string) {
@@ -67,39 +60,13 @@ export default function ManagePage() {
     loadData(inputId.trim());
   }
 
-  async function handleCancel() {
-    if (!userId) return;
-    if (!confirm("Are you sure you want to cancel your Premium subscription?")) return;
-    setCanceling(true);
-    setCancelMsg("");
-    try {
-      const res = await fetch("/api/premium/cancel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCancelMsg("Subscription canceled. You retain access until the end of your billing period.");
-        loadData(userId);
-      } else {
-        setCancelMsg(data.error || "Failed to cancel subscription.");
-      }
-    } catch {
-      setCancelMsg("An error occurred. Please try again.");
-    } finally {
-      setCanceling(false);
-    }
-  }
-
-  const statusColor: Record<string, string> = {
-    active: "text-green-400 border-green-700/40 bg-green-950/20",
-    canceled: "text-red-400 border-red-700/40 bg-red-950/20",
-    past_due: "text-yellow-400 border-yellow-700/40 bg-yellow-950/20",
-    expired: "text-zinc-400 border-zinc-700/40 bg-zinc-950/20",
+  const sourceLabel: Record<string, string> = {
+    developer:     "👑 Developer",
+    discord_role:  "☕ Buy Me a Coffee / Stripe",
+    giveaway_code: "🎁 Giveaway / Manual Grant",
   };
 
-  const isActive = subscription?.subscription_status === "active";
+  const isActive = !!subscription;
 
   return (
     <Shell>
@@ -163,25 +130,25 @@ export default function ManagePage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <h2 className="text-2xl font-black">Subscription Status</h2>
+                  <h2 className="text-2xl font-black">Premium Status</h2>
                   {isActive && <PremiumBadge size="md" />}
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-zinc-400 w-36">Status</span>
-                    <span
-                      className={`rounded-lg border px-3 py-1 text-xs font-black uppercase ${
-                        statusColor[subscription.subscription_status ?? ""] || "text-zinc-400 border-zinc-700/40 bg-zinc-950/20"
-                      }`}
-                    >
-                      {subscription.subscription_status || "Unknown"}
+                    <span className="rounded-lg border border-green-700/40 bg-green-950/20 px-3 py-1 text-xs font-black uppercase text-green-400">
+                      Active
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-zinc-400 w-36">Source</span>
+                    <span className="text-sm font-bold text-white">
+                      {sourceLabel[subscription.source ?? ""] ?? subscription.source ?? "—"}
                     </span>
                   </div>
                   {subscription.current_period_end && (
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-zinc-400 w-36">
-                        {isActive ? "Renews on" : "Access until"}
-                      </span>
+                      <span className="text-sm text-zinc-400 w-36">Expires</span>
                       <span className="text-sm font-bold text-white">
                         {new Date(subscription.current_period_end).toLocaleDateString("en-US", {
                           year: "numeric",
@@ -192,18 +159,8 @@ export default function ManagePage() {
                     </div>
                   )}
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-zinc-400 w-36">Member since</span>
-                    <span className="text-sm font-bold text-white">
-                      {new Date(subscription.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
                     <span className="text-sm text-zinc-400 w-36">Price</span>
-                    <span className="text-sm font-bold text-yellow-300">$4.99 / month</span>
+                    <span className="text-sm font-bold text-yellow-300">$4.99 / month via Buy Me a Coffee</span>
                   </div>
                 </div>
               </div>
@@ -318,27 +275,22 @@ export default function ManagePage() {
             </div>
           </div>
 
-          {/* Cancel */}
-          {isActive && (
-            <div className="rounded-2xl border border-red-900/30 bg-red-950/10 p-6">
-              <h2 className="mb-2 text-lg font-black text-red-400">⚠️ Cancel Subscription</h2>
-              <p className="text-sm text-zinc-400 mb-4">
-                Canceling will end your premium access at the end of the current billing period. You won&apos;t be charged again.
-              </p>
-              {cancelMsg && (
-                <div className="mb-4 rounded-xl border border-yellow-700/40 bg-yellow-950/20 p-3 text-sm text-yellow-300">
-                  {cancelMsg}
-                </div>
-              )}
-              <button
-                onClick={handleCancel}
-                disabled={canceling}
-                className="rounded-xl border border-red-700/50 bg-red-950/30 px-5 py-2.5 text-sm font-bold text-red-400 hover:bg-red-950/50 transition disabled:opacity-50"
-              >
-                {canceling ? "Canceling…" : "Cancel Subscription"}
-              </button>
-            </div>
-          )}
+          {/* How to cancel Buy Me a Coffee */}
+          <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+            <h2 className="mb-2 text-lg font-black text-zinc-300">☕ Managing Your Subscription</h2>
+            <p className="text-sm text-zinc-400 mb-3">
+              Your premium is powered by Buy Me a Coffee (Stripe). To cancel or manage your
+              membership, visit your Buy Me a Coffee account directly.
+            </p>
+            <a
+              href="https://www.buymeacoffee.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-xl border border-yellow-600/40 bg-yellow-950/20 px-5 py-2.5 text-sm font-bold text-yellow-300 hover:bg-yellow-950/40 transition"
+            >
+              Manage on Buy Me a Coffee →
+            </a>
+          </div>
         </div>
       )}
     </Shell>

@@ -20,15 +20,11 @@ interface PremiumStatusResult {
   name: string | null;
   avatarUrl: string | null;
   premium: boolean;
-  source: "developer" | "subscription" | "giveaway_code" | "discord_role" | null;
+  source: "developer" | "discord_role" | "giveaway_code" | null;
   expiresAt: string | null;
   premiumExpiresAt: string | null;
   discordPremium: boolean;
-  subscription: {
-    status: string | null;
-    periodEnd: string | null;
-    subscriptionId: string | null;
-  } | null;
+  subscription: null;
   isDeveloper: boolean;
 }
 
@@ -56,10 +52,9 @@ function SourceBadge({ source }: { source: PremiumStatusResult["source"] }) {
   if (!source) return <span className="text-zinc-500">—</span>;
 
   const map: Record<string, { label: string; cls: string }> = {
-    developer:     { label: "👑 Developer",        cls: "from-yellow-600 to-amber-600" },
-    subscription:  { label: "💳 Subscription",     cls: "from-blue-600 to-indigo-600" },
-    giveaway_code: { label: "🎁 Giveaway Code",    cls: "from-purple-600 to-violet-600" },
-    discord_role:  { label: "🎮 Discord Role",     cls: "from-indigo-600 to-blue-600" },
+    developer:     { label: "👑 Developer",              cls: "from-yellow-600 to-amber-600" },
+    discord_role:  { label: "☕ Buy Me a Coffee / Stripe", cls: "from-indigo-600 to-blue-600" },
+    giveaway_code: { label: "🎁 Giveaway / Manual Grant", cls: "from-purple-600 to-violet-600" },
   };
 
   const config = map[source] ?? { label: source, cls: "from-zinc-600 to-zinc-500" };
@@ -364,21 +359,15 @@ export default function AdminPremiumPage() {
             },
             {
               num: "2",
-              label: "Lemonsqueezy Subscription",
-              desc: "Active subscription row in the subscriptions table",
-              color: "text-blue-300",
+              label: "Buy Me a Coffee / Stripe",
+              desc: "User buys premium → BMC bot assigns Discord Premium User role → bot syncs data->>'premium' = true",
+              color: "text-indigo-300",
             },
             {
               num: "3",
               label: "Giveaway / Manual Grant",
-              desc: "premium_expires_at > NOW() in the players table",
+              desc: "premium_expires_at > NOW() in the players table (admin override)",
               color: "text-purple-300",
-            },
-            {
-              num: "4",
-              label: "Discord Premium Role",
-              desc: "data->>'premium' = true in the players table (set by bot)",
-              color: "text-indigo-300",
             },
           ].map(({ num, label, desc, color }) => (
             <li key={num} className="flex items-start gap-3">
@@ -568,21 +557,15 @@ export default function AdminPremiumPage() {
                     </span>
                   </div>
 
-                  {/* Subscription */}
+                  {/* Buy Me a Coffee / Stripe — Discord role */}
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">💳 Lemonsqueezy Subscription</span>
+                    <span className="text-zinc-500">☕ Buy Me a Coffee / Stripe</span>
                     <span
                       className={
-                        selected.subscription?.status === "active"
-                          ? "text-blue-400 font-bold"
-                          : "text-zinc-600"
+                        selected.discordPremium ? "text-indigo-400 font-bold" : "text-zinc-600"
                       }
                     >
-                      {selected.subscription?.status === "active"
-                        ? `✓ Active (ends ${fmt(selected.subscription.periodEnd)})`
-                        : selected.subscription?.status
-                        ? `✗ ${selected.subscription.status}`
-                        : "—"}
+                      {selected.discordPremium ? "✓ Active (Discord role synced)" : "—"}
                     </span>
                   </div>
 
@@ -606,17 +589,7 @@ export default function AdminPremiumPage() {
                     </span>
                   </div>
 
-                  {/* Discord role */}
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">🎮 Discord Premium Role</span>
-                    <span
-                      className={
-                        selected.discordPremium ? "text-indigo-400 font-bold" : "text-zinc-600"
-                      }
-                    >
-                      {selected.discordPremium ? "✓ Active" : "—"}
-                    </span>
-                  </div>
+
                 </div>
               </div>
 
@@ -722,8 +695,8 @@ export default function AdminPremiumPage() {
               <code className="rounded bg-white/5 px-1 py-0.5 font-mono text-zinc-400">
                 premium_expires_at
               </code>
-              . Does not cancel Lemonsqueezy subscriptions or Discord role
-              premium.
+              . Does not affect Buy Me a Coffee / Stripe (Discord role) premium
+              — remove the role in Discord to revoke that.
             </p>
 
             {!selected && (
@@ -792,23 +765,13 @@ export default function AdminPremiumPage() {
               </li>
               <li>
                 <span className="font-bold text-zinc-400">Revoke</span> only
-                clears the manual grant — subscriptions and Discord roles are
-                unaffected.
+                clears the manual grant — Discord role premium is unaffected.
               </li>
               <li>
-                To cancel a Lemonsqueezy subscription, use the{" "}
-                <SoundLink
-                  href="/premium/manage"
-                  soundType="click"
-                  className="text-blue-400 hover:text-blue-300 underline"
-                >
-                  Manage Subscription
-                </SoundLink>{" "}
-                page or the Lemonsqueezy dashboard.
-              </li>
-              <li>
-                Discord role premium is synced by the bot — remove the role in
-                Discord to revoke it.
+                Buy Me a Coffee / Stripe premium is managed by the Discord bot.
+                To revoke it, remove the{" "}
+                <span className="font-bold text-zinc-400">Premium User</span>{" "}
+                role in Discord — the bot will sync the change automatically.
               </li>
             </ul>
           </div>

@@ -47,15 +47,19 @@ const PERKS = [
 const FAQ = [
   {
     q: "How does billing work?",
-    a: "You are billed $4.99 every month via Lemonsqueezy. You can cancel at any time and retain access until the end of your billing period.",
+    a: "You are billed $4.99 every month via Buy Me a Coffee (powered by Stripe). You can cancel at any time from your Buy Me a Coffee account.",
   },
   {
     q: "Can I cancel anytime?",
-    a: "Yes — cancel from your subscription management page at any time. No questions asked.",
+    a: "Yes — cancel directly from your Buy Me a Coffee membership page at any time. No questions asked.",
+  },
+  {
+    q: "How do I get premium access after purchasing?",
+    a: "After purchasing, the Buy Me a Coffee bot automatically assigns the Premium User role in our Discord server. The website syncs this role and grants you access within minutes.",
   },
   {
     q: "How do I link my Discord account?",
-    a: "Premium is tied to your Discord user ID. Use the same Discord account you play with in EAS Arena.",
+    a: "Premium is tied to your Discord user ID. Make sure you're in the EAS Arena Discord server with the same account you play with.",
   },
   {
     q: "Is there a free trial?",
@@ -63,12 +67,12 @@ const FAQ = [
   },
   {
     q: "What payment methods are accepted?",
-    a: "All major credit/debit cards and PayPal via Lemonsqueezy's secure checkout.",
+    a: "All major credit/debit cards via Stripe's secure checkout through Buy Me a Coffee.",
   },
 ];
 
 export default function SubscribePage() {
-  const checkoutUrl = process.env.NEXT_PUBLIC_LEMONSQUEEZY_CHECKOUT_URL || "#";
+  const checkoutUrl = process.env.NEXT_PUBLIC_BMC_CHECKOUT_URL || "#";
 
   return (
     <Shell>
@@ -104,7 +108,7 @@ export default function SubscribePage() {
             >
               Subscribe Now →
             </a>
-            <p className="text-xs text-zinc-500">Cancel anytime · Secure checkout via Lemonsqueezy</p>
+            <p className="text-xs text-zinc-500">Cancel anytime · Secure checkout via Buy Me a Coffee (Stripe)</p>
           </div>
         </div>
       </section>
@@ -168,7 +172,7 @@ export default function SubscribePage() {
         >
           Get Premium — $4.99/mo
         </a>
-        <p className="mt-3 text-xs text-zinc-500">30-day money-back guarantee · Cancel anytime</p>
+        <p className="mt-3 text-xs text-zinc-500">30-day money-back guarantee · Cancel anytime · Powered by Stripe via Buy Me a Coffee</p>
       </section>
 
       {/* FAQ */}

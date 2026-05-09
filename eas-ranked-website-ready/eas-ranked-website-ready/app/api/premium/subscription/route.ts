@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSubscription, upsertSubscription } from "@/lib/premium";
+import { getPremiumStatus } from "@/lib/premium";
+
+// ---------------------------------------------------------------------------
+// GET /api/premium/subscription?userId=xxx
+// ---------------------------------------------------------------------------
+// Returns the premium status for a user. Premium is now sourced from:
+//  1. Developer ID (permanent)
+//  2. Discord Premium User role (data->>'premium' = true, set by Buy Me a Coffee bot)
+//  3. Manual grant / giveaway code (premium_expires_at > NOW())
+//
+// There is no longer a separate subscriptions table.
+// ---------------------------------------------------------------------------
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("userId");
@@ -7,20 +18,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "userId is required" }, { status: 400 });
   }
 
-  const subscription = await getSubscription(userId);
-  return NextResponse.json({ subscription });
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { userId, ...data } = body;
-    if (!userId) {
-      return NextResponse.json({ error: "userId is required" }, { status: 400 });
-    }
-    await upsertSubscription(userId, data);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
-  }
+  const status = await getPremiumStatus(userId);
+  return NextResponse.json({
+    subscription: status.premium
+      ? {
+          subscription_status: status.source,
+          current_period_end: status.expiresAt?.toISOString() ?? null,
+          source: status.source,
+        }
+      : null,
+  });
 }

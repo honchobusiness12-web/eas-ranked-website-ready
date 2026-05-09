@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { upsertSubscription, ensurePremiumTables } from "@/lib/premium";
+import { invalidatePremiumStatusCache } from "@/lib/premium";
+import { pool } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
 // POST /api/premium/webhook
 // ---------------------------------------------------------------------------
-// Receives premium status updates from the Discord bot or any trusted source.
-// Authenticates via the shared WEBHOOK_SECRET, then upserts the subscription
-// row and invalidates the relevant Next.js cache paths so the profile page
-// reflects the new status on the next request.
+// Receives premium role sync events from the Discord bot (triggered by
+// Buy Me a Coffee / Stripe purchases). Authenticates via the shared
+// WEBHOOK_SECRET, then updates the player's data->>'premium' flag so the
+// website reflects the new status on the next request.
 //
 // Expected body:
 // {
 //   "user_id": "733871667788644445",
-//   "subscription_status": "active" | "canceled" | "past_due" | "expired",
-//   "current_period_end": "2099-12-31T23:59:59Z"   // optional ISO string
+//   "premium": true | false          // true = role granted, false = role removed
 // }
 // ---------------------------------------------------------------------------
 
@@ -45,8 +45,7 @@ export async function POST(req: NextRequest) {
   // ------------------------------------------------------------------
   let body: {
     user_id?: string;
-    subscription_status?: string;
-    current_period_end?: string;
+    premium?: boolean;
   };
 
   try {
@@ -63,30 +62,33 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const validStatuses = ["active", "canceled", "past_due", "expired"];
-  const status = body?.subscription_status;
-  if (!status || !validStatuses.includes(status)) {
+  if (typeof body?.premium !== "boolean") {
     return NextResponse.json(
-      {
-        error: `Invalid subscription_status. Must be one of: ${validStatuses.join(", ")}`,
-      },
+      { error: "Missing or invalid 'premium' field — must be true or false" },
       { status: 400 }
     );
   }
 
-  // ------------------------------------------------------------------
-  // 3. Ensure tables exist and upsert the subscription record
-  // ------------------------------------------------------------------
-  await ensurePremiumTables();
+  const isPremium = body.premium;
 
-  await upsertSubscription(userId, {
-    subscription_status: status as
-      | "active"
-      | "canceled"
-      | "past_due"
-      | "expired",
-    current_period_end: body?.current_period_end ?? null,
-  });
+  // ------------------------------------------------------------------
+  // 3. Update the player's premium flag in the players table
+  // ------------------------------------------------------------------
+  await pool.query(
+    `
+    UPDATE players
+    SET data = jsonb_set(
+      COALESCE(data, '{}'),
+      '{premium}',
+      $2::jsonb
+    )
+    WHERE user_id = $1
+    `,
+    [userId, JSON.stringify(isPremium)]
+  );
+
+  // Bust the in-process cache so the next isPremiumUser() call is fresh
+  invalidatePremiumStatusCache(userId);
 
   // ------------------------------------------------------------------
   // 4. Invalidate Next.js cache so the profile page reflects the change
@@ -96,14 +98,14 @@ export async function POST(req: NextRequest) {
   revalidatePath("/");
 
   console.log(
-    `[premium/webhook] Updated subscription for user ${userId}: status=${status}`
+    `[premium/webhook] Updated Discord premium flag for user ${userId}: premium=${isPremium}`
   );
 
   return NextResponse.json(
     {
       ok: true,
       userId,
-      subscription_status: status,
+      premium: isPremium,
     },
     { status: 200 }
   );

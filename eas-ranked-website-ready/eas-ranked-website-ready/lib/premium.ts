@@ -58,16 +58,8 @@ export const HARDCODED_STAFF: string[] = [
 // Types
 // ---------------------------------------------------------------------------
 
-export interface Subscription {
-  id: string;
-  user_id: string;
-  lemonsqueezy_customer_id: string | null;
-  lemonsqueezy_subscription_id: string | null;
-  subscription_status: "active" | "canceled" | "past_due" | "expired" | null;
-  current_period_end: string | null;
-  created_at: string;
-  updated_at: string;
-}
+// Subscription type removed — premium is now granted via Discord role (Buy Me a Coffee/Stripe)
+// or manual grant (premium_expires_at). No subscription table is used.
 
 export interface Cosmetics {
   id: string;
@@ -92,19 +84,6 @@ export interface Cosmetics {
 
 export async function ensurePremiumTables(): Promise<void> {
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS subscriptions (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id BIGINT NOT NULL UNIQUE,
-        lemonsqueezy_customer_id VARCHAR(255),
-        lemonsqueezy_subscription_id VARCHAR(255),
-        subscription_status VARCHAR(50),
-        current_period_end TIMESTAMP,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
     await pool.query(`
       CREATE TABLE IF NOT EXISTS cosmetics (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -144,9 +123,8 @@ export async function ensurePremiumTables(): Promise<void> {
 /**
  * Returns true if the user has premium access from ANY source:
  *  1. Developer user ID (permanent)
- *  2. Active subscription (Discord role synced on login, or Lemonsqueezy)
- *  3. Active giveaway code premium (premium_expires_at > now)
- *  4. Bot-synced Discord Premium User role (players.data->>'premium' = true)
+ *  2. Discord Premium User role synced by Buy Me a Coffee bot (data->>'premium' = true)
+ *  3. Manual grant / giveaway code (premium_expires_at > NOW())
  *
  * Results are cached in-process for 5 minutes.
  */
@@ -163,41 +141,27 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
   try {
     await ensurePremiumTables();
 
-    // Batch both queries in a single round-trip using Promise.all
-    const [subResult, giveawayResult] = await Promise.all([
-      pool.query(
-        `SELECT subscription_status FROM subscriptions WHERE user_id = $1 LIMIT 1`,
-        [userId]
-      ),
-      pool.query(
-        `
-        SELECT 1
-        FROM players
-        WHERE user_id           = $1
-          AND premium_expires_at IS NOT NULL
-          AND premium_expires_at  > NOW()
-        LIMIT 1
-        `,
-        [userId]
-      ),
-    ]);
-
-    if (
-      (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") ||
-      giveawayResult.rows.length > 0
-    ) {
-      setCachedBool(premiumCache, userId, true);
-      return true;
-    }
-
-    // Check if the Discord bot has marked this user as premium (role sync)
-    const botPremiumResult = await pool.query(
-      `SELECT (data->>'premium')::boolean AS premium FROM players WHERE user_id = $1 LIMIT 1`,
+    // Check both sources in a single round-trip:
+    //  1. Discord Premium User role (set by Buy Me a Coffee bot via data->>'premium')
+    //  2. Manual grant / giveaway code (premium_expires_at > NOW())
+    const result = await pool.query(
+      `
+      SELECT
+        (data->>'premium')::boolean AS discord_premium,
+        (premium_expires_at IS NOT NULL AND premium_expires_at > NOW()) AS manual_premium
+      FROM players
+      WHERE user_id = $1
+      LIMIT 1
+      `,
       [userId]
     );
-    if (botPremiumResult.rows.length > 0 && botPremiumResult.rows[0].premium === true) {
-      setCachedBool(premiumCache, userId, true);
-      return true;
+
+    if (result.rows.length > 0) {
+      const { discord_premium, manual_premium } = result.rows[0];
+      if (discord_premium === true || manual_premium === true) {
+        setCachedBool(premiumCache, userId, true);
+        return true;
+      }
     }
 
     setCachedBool(premiumCache, userId, false);
@@ -213,12 +177,16 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
 // ---------------------------------------------------------------------------
 
 /**
- * Returns the premium expiry date for a user, or null if they have no
- * time-limited premium (e.g. they have a subscription or permanent access).
+ * Returns the premium status for a user, including the source and expiry.
  *
  * Returns:
  *  - `{ premium: true,  expiresAt: Date | null, source: string }` when active
  *  - `{ premium: false, expiresAt: null,        source: null   }` when not active
+ *
+ * Sources (priority order):
+ *  1. developer       — hardcoded developer ID
+ *  2. discord_role    — Buy Me a Coffee bot set data->>'premium' = true
+ *  3. giveaway_code   — premium_expires_at > NOW() (manual grant or giveaway)
  */
 export async function getPremiumStatus(userId: string): Promise<{
   premium: boolean;
@@ -233,39 +201,35 @@ export async function getPremiumStatus(userId: string): Promise<{
   try {
     await ensurePremiumTables();
 
-    // Check Lemonsqueezy subscription
-    const subResult = await pool.query(
-      `SELECT subscription_status, current_period_end FROM subscriptions WHERE user_id = $1 LIMIT 1`,
-      [userId]
-    );
-    if (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") {
-      return {
-        premium: true,
-        expiresAt: subResult.rows[0].current_period_end
-          ? new Date(subResult.rows[0].current_period_end)
-          : null,
-        source: "subscription",
-      };
-    }
-
-    // Check giveaway code premium
-    const giveawayResult = await pool.query(
+    // Single query: check Discord role flag and manual grant together
+    const result = await pool.query(
       `
-      SELECT premium_expires_at
+      SELECT
+        (data->>'premium')::boolean AS discord_premium,
+        premium_expires_at
       FROM players
-      WHERE user_id           = $1
-        AND premium_expires_at IS NOT NULL
-        AND premium_expires_at  > NOW()
+      WHERE user_id = $1
       LIMIT 1
       `,
       [userId]
     );
-    if (giveawayResult.rows.length > 0) {
-      return {
-        premium: true,
-        expiresAt: new Date(giveawayResult.rows[0].premium_expires_at),
-        source: "giveaway_code",
-      };
+
+    if (result.rows.length > 0) {
+      const { discord_premium, premium_expires_at } = result.rows[0];
+
+      // Discord Premium User role (set by Buy Me a Coffee bot) — no expiry
+      if (discord_premium === true) {
+        return { premium: true, expiresAt: null, source: "discord_role" };
+      }
+
+      // Manual grant / giveaway code
+      if (premium_expires_at && new Date(premium_expires_at) > new Date()) {
+        return {
+          premium: true,
+          expiresAt: new Date(premium_expires_at),
+          source: "giveaway_code",
+        };
+      }
     }
 
     return { premium: false, expiresAt: null, source: null };
@@ -286,54 +250,6 @@ export async function requirePremium(userId: string): Promise<void> {
   const premium = await isPremiumUser(userId);
   if (!premium) {
     throw new Error("Premium subscription required");
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Subscription helpers
-// ---------------------------------------------------------------------------
-
-export async function getSubscription(userId: string): Promise<Subscription | null> {
-  try {
-    await ensurePremiumTables();
-    const result = await pool.query(
-      `SELECT * FROM subscriptions WHERE user_id = $1 LIMIT 1`,
-      [userId]
-    );
-    return result.rows[0] ?? null;
-  } catch (err) {
-    console.error(`[premium] getSubscription(${userId}) failed:`, err);
-    return null;
-  }
-}
-
-export async function upsertSubscription(
-  userId: string,
-  data: Partial<Omit<Subscription, "id" | "user_id" | "created_at" | "updated_at">>
-): Promise<void> {
-  try {
-    await ensurePremiumTables();
-    await pool.query(
-      `
-      INSERT INTO subscriptions (user_id, lemonsqueezy_customer_id, lemonsqueezy_subscription_id, subscription_status, current_period_end)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (user_id) DO UPDATE SET
-        lemonsqueezy_customer_id     = EXCLUDED.lemonsqueezy_customer_id,
-        lemonsqueezy_subscription_id = EXCLUDED.lemonsqueezy_subscription_id,
-        subscription_status          = EXCLUDED.subscription_status,
-        current_period_end           = EXCLUDED.current_period_end,
-        updated_at                   = NOW()
-      `,
-      [
-        userId,
-        data.lemonsqueezy_customer_id ?? null,
-        data.lemonsqueezy_subscription_id ?? null,
-        data.subscription_status ?? null,
-        data.current_period_end ?? null,
-      ]
-    );
-  } catch (err) {
-    console.error(`[premium] upsertSubscription(${userId}) failed:`, err);
   }
 }
 
@@ -730,7 +646,7 @@ export async function grantPremium(
 
 /**
  * Revokes manually-granted premium from a user by clearing premium_expires_at.
- * Does not affect Lemonsqueezy subscriptions or Discord role premium.
+ * Does not affect Discord role premium (managed by the Buy Me a Coffee bot).
  * Invalidates the in-process premium cache for the user.
  */
 export async function revokePremium(userId: string): Promise<void> {
