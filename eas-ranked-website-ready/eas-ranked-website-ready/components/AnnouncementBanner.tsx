@@ -47,12 +47,13 @@ export default function AnnouncementBanner() {
         const list: Announcement[] = data.announcements ?? [];
         setAnnouncements(list);
 
-        // Play sound for new announcements that have sound enabled
+        // Play sound for new announcements that have sound enabled.
+        // Delayed by 800ms so it only fires after a real user interaction
+        // has had a chance to unlock the AudioContext (avoids autoplay glitch).
         for (const ann of list) {
           if (ann.sound_enabled && !playedRef.current.has(ann.id)) {
             playedRef.current.add(ann.id);
-            // Small delay so it doesn't fire before the page is interactive
-            setTimeout(() => playSuccess(0.2), 500);
+            setTimeout(() => playSuccess(0.18), 800);
             break; // Only play once even if multiple sound-enabled announcements
           }
         }
