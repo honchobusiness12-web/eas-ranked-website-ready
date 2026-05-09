@@ -3,27 +3,27 @@
 import SoundLink from "@/components/SoundLink";
 import SoundToggle from "@/components/SoundToggle";
 import AuthButton from "@/components/AuthButton";
+import ProfileMenu from "@/components/ProfileMenu";
 import { useState, useEffect } from "react";
 import type { DiscordUser } from "@/lib/auth";
 
 const links = [
-  { label: "🏠 Dashboard",    href: "/" },
-  { label: "🏆 Leaderboard",  href: "/leaderboard" },
-  { label: "👥 Players",      href: "/players" },
-  { label: "⚔️ Compare",      href: "/compare" },
-  { label: "📋 Placements",   href: "/placements" },
-  { label: "🏷️ Ranks",        href: "/ranks" },
-  { label: "📖 How Ranked Works", href: "/guide" },
-  { label: "🎁 Redeem Codes", href: "/giveaway/redeem" },
+  { label: "🏠 Dashboard",         href: "/" },
+  { label: "🏆 Leaderboard",       href: "/leaderboard" },
+  { label: "👥 Players",           href: "/players" },
+  { label: "⚔️ Compare",           href: "/compare" },
+  { label: "📋 Placements",        href: "/placements" },
+  { label: "🏷️ Ranks",             href: "/ranks" },
+  { label: "📖 How Ranked Works",  href: "/guide" },
+  { label: "🤖 Bot Commands",      href: "/premium/commands" },
+  { label: "🎁 Redeem Code",       href: "/redeem" },
+  { label: "💎 Get Premium",       href: "/premium/subscribe" },
 ];
 
 const premiumLinks = [
-  { label: "💎 Get Premium",       href: "/premium/subscribe" },
-  { label: "🎁 Redeem Code",       href: "/redeem" },
   { label: "📊 Advanced Stats",    href: "/premium/stats" },
   { label: "🎨 Cosmetics",         href: "/premium/cosmetics" },
   { label: "🌈 Customize Colors",  href: "/cosmetics/colors" },
-  { label: "🤖 Bot Commands",      href: "/premium/commands" },
   { label: "⚔️ Comparisons",       href: "/premium/comparisons" },
   { label: "📥 Export Stats",      href: "/premium/export" },
   { label: "📜 Match History",     href: "/premium/matches" },
@@ -176,14 +176,24 @@ export default function Shell({
 
           {/* Logged-in profile shortcut */}
           {user && (
-            <SoundLink
-              href={`/profile/${user.id}`}
-              soundType="click"
-              className="mb-3 flex items-center gap-3 rounded-xl border border-[#5865F2]/30 bg-[#5865F2]/10 px-4 py-3 text-sm font-bold text-[#7289da] hover:bg-[#5865F2]/20 hover:text-white transition"
-            >
-              <span>👤</span>
-              <span className="truncate">{user.global_name || user.username}</span>
-            </SoundLink>
+            <div className="mb-3 space-y-1">
+              <SoundLink
+                href={`/profile/${user.id}`}
+                soundType="click"
+                className="flex items-center gap-3 rounded-xl border border-[#5865F2]/30 bg-[#5865F2]/10 px-4 py-3 text-sm font-bold text-[#7289da] hover:bg-[#5865F2]/20 hover:text-white transition"
+              >
+                <span>👤</span>
+                <span className="truncate">{user.global_name || user.username}</span>
+              </SoundLink>
+              <SoundLink
+                href="/players"
+                soundType="click"
+                className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-zinc-500 hover:bg-white/5 hover:text-zinc-300 transition"
+              >
+                <span>🔍</span>
+                <span>Browse Player Profiles</span>
+              </SoundLink>
+            </div>
           )}
 
           {/* Season status card */}
@@ -212,6 +222,7 @@ export default function Shell({
               <p className="text-lg font-black">Ranked Dashboard</p>
             </div>
             <div className="flex items-center gap-2">
+              <ProfileMenu />
               <SoundToggle />
               <AuthButton initialUser={user} />
             </div>
@@ -239,6 +250,34 @@ export default function Shell({
                       {label}
                     </SoundLink>
                   ))}
+
+                  {/* Profile links */}
+                  {user && (
+                    <>
+                      <div className="pt-4 pb-1">
+                        <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600/70">
+                          👤 Profile
+                        </p>
+                      </div>
+                      <SoundLink
+                        href={`/profile/${user.id}`}
+                        soundType="click"
+                        className="block rounded-xl px-4 py-3 text-zinc-400 hover:bg-blue-950/20 hover:text-blue-300 transition"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        👤 My Profile
+                      </SoundLink>
+                      <SoundLink
+                        href="/players"
+                        soundType="click"
+                        className="block rounded-xl px-4 py-3 text-zinc-400 hover:bg-blue-950/20 hover:text-blue-300 transition"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        🔍 Browse Profiles
+                      </SoundLink>
+                    </>
+                  )}
+
                   <div className="pt-4 pb-1">
                     <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-yellow-600/70">
                       💎 Premium

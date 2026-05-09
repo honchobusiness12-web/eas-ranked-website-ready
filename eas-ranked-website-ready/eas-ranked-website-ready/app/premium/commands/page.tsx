@@ -44,6 +44,14 @@ const BOT_COMMANDS: BotCommand[] = [
     tierLabel: "Free",
   },
   {
+    name: "/help",
+    description: "Show a list of all available bot commands with descriptions and usage examples.",
+    usage: "/help [command]",
+    example: "/help rank",
+    tier: "free",
+    tierLabel: "Free",
+  },
+  {
     name: "/customize",
     description: "Customize your profile colors, badge gradient, and username color. Opens the customization panel.",
     usage: "/customize",
@@ -151,13 +159,23 @@ export default function PremiumCommandsPage() {
           <span className="rounded-lg border border-green-700/40 bg-green-950/20 px-2.5 py-0.5 text-xs font-black text-green-400">
             {freeCommands.length} commands
           </span>
+          <span className="text-xs text-zinc-500">Available to everyone</span>
         </div>
-        <div className="space-y-3">
+        <div className="rounded-2xl border border-green-700/20 bg-green-950/5 p-4 space-y-3">
           {freeCommands.map((cmd) => (
             <CommandCard key={cmd.name} command={cmd} />
           ))}
         </div>
       </section>
+
+      {/* Visual divider */}
+      <div className="relative my-8 flex items-center gap-4">
+        <div className="flex-1 border-t border-white/10" />
+        <span className="rounded-xl border border-yellow-700/40 bg-yellow-950/20 px-4 py-1.5 text-xs font-black text-yellow-400 tracking-wider">
+          💎 PREMIUM UNLOCKS
+        </span>
+        <div className="flex-1 border-t border-white/10" />
+      </div>
 
       {/* Premium commands */}
       <section>
@@ -166,8 +184,9 @@ export default function PremiumCommandsPage() {
           <span className="rounded-lg border border-yellow-700/40 bg-yellow-950/20 px-2.5 py-0.5 text-xs font-black text-yellow-400">
             {premiumCommands.length} commands
           </span>
+          <span className="text-xs text-zinc-500">Requires Premium subscription</span>
         </div>
-        <div className="space-y-3">
+        <div className="rounded-2xl border border-yellow-700/20 bg-yellow-950/5 p-4 space-y-3">
           {premiumCommands.map((cmd) => (
             <CommandCard key={cmd.name} command={cmd} />
           ))}
