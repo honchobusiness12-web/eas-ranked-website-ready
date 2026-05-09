@@ -6,19 +6,36 @@ import AchievementBadge from "@/components/AchievementBadge";
 import PremiumUpsell from "@/components/PremiumUpsell";
 import BadgeDisplay from "@/components/BadgeDisplay";
 import CosmeticsPreview from "@/components/CosmeticsPreview";
+import CopyButton from "@/components/CopyButton";
 import { WinLossChart, CrSparkline } from "@/components/StatsChart";
 import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression } from "@/lib/charts";
-import { isPremiumUser, getCosmetics, getUserBadges } from "@/lib/premium";
+import { isPremiumUser, getCosmetics, getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
 import { THEMES, ACHIEVEMENT_FRAMES } from "@/lib/premium-constants";
+import { getSession } from "@/lib/auth";
 
 export const revalidate = 30;
 
 export default async function ProfilePage(context: { params: Promise<{ userId: string }> }) {
   const { userId } = await context.params;
   const p = await getPlayerFromDB(userId);
+  const session = await getSession();
+  const viewerUserId = session?.userId ?? null;
+
+  // Determine if the viewer is the owner (developer ID or OWNER_USER_IDS env)
+  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+  const viewerIsOwner =
+    viewerUserId !== null &&
+    (viewerUserId === DEVELOPER_USER_ID || ownerIds.includes(viewerUserId));
+
+  // Is the viewer looking at their own profile?
+  const isOwnProfile = viewerUserId !== null && viewerUserId === userId;
+
   const [premium, cosmetics, badges] = await Promise.all([
     isPremiumUser(userId),
     getCosmetics(userId),
@@ -115,7 +132,14 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                   {cosmetics.player_title}
                 </p>
               )}
-              <p className="text-zinc-400 mb-2">{p.username || "No username saved yet"}</p>
+              <p className="text-zinc-400 mb-1">{p.username || "No username saved yet"}</p>
+              {/* User ID display */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[11px] font-mono text-zinc-500">
+                  ID: {userId}
+                </span>
+                <CopyButton text={userId} size="xs" />
+              </div>
               {/* All badges in a row */}
               {badges.length > 0 && (
                 <BadgeDisplay badges={badges} size="md" className="mb-3" />
@@ -157,6 +181,61 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             message="Upgrade to Premium to unlock advanced stats, custom cosmetics, and a premium badge on this profile."
           />
         </div>
+      )}
+
+      {/* Admin Panel quick access — owner only, shown on their own profile */}
+      {viewerIsOwner && isOwnProfile && (
+        <section className="mt-4 rounded-2xl border border-red-700/40 bg-gradient-to-br from-red-950/20 to-black p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg">🔧</span>
+            <h2 className="text-lg font-black text-red-300">Admin Panel</h2>
+            <span className="ml-auto rounded-lg border border-red-700/40 bg-red-950/30 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-red-400">
+              Owner Only
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <SoundLink
+              href="/admin/announcements"
+              soundType="click"
+              className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/20 px-3 py-2.5 text-sm font-bold text-red-300 hover:bg-red-950/40 hover:border-red-700/50 transition"
+            >
+              <span>📢</span>
+              <span>Announcements</span>
+            </SoundLink>
+            <SoundLink
+              href="/admin/seasons"
+              soundType="click"
+              className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/20 px-3 py-2.5 text-sm font-bold text-red-300 hover:bg-red-950/40 hover:border-red-700/50 transition"
+            >
+              <span>🏆</span>
+              <span>Seasons</span>
+            </SoundLink>
+            <SoundLink
+              href="/admin/cr"
+              soundType="click"
+              className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/20 px-3 py-2.5 text-sm font-bold text-red-300 hover:bg-red-950/40 hover:border-red-700/50 transition"
+            >
+              <span>⚙️</span>
+              <span>CR Manager</span>
+            </SoundLink>
+            <SoundLink
+              href="/admin/giveaways"
+              soundType="click"
+              className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/20 px-3 py-2.5 text-sm font-bold text-red-300 hover:bg-red-950/40 hover:border-red-700/50 transition"
+            >
+              <span>🎁</span>
+              <span>Giveaways</span>
+            </SoundLink>
+            <SoundLink
+              href="/admin/badges"
+              soundType="click"
+              className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/20 px-3 py-2.5 text-sm font-bold text-red-300 hover:bg-red-950/40 hover:border-red-700/50 transition"
+            >
+              <span>🏅</span>
+              <span>Badge Manager</span>
+            </SoundLink>
+          </div>
+        </section>
       )}
 
       {/* Stats grid */}
