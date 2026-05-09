@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { pool } from "@/lib/db";
 import { getPlayerFromDB, type CachedPlayer } from "@/lib/cache";
 import { invalidatePremiumStatusCache } from "@/lib/premium";
 
@@ -45,27 +44,11 @@ export async function POST(req: NextRequest) {
   }
 
   // ------------------------------------------------------------------
-  // 3. If the bot sent player data in the body, upsert it into the DB.
-  //    This allows the webhook to act as both a write and a cache-bust.
+  // 3. The bot is responsible for writing player data to the DB
+  //    (players table has a composite PK of guild_id + user_id, so the
+  //    bot must supply both columns). We skip any upsert here and just
+  //    treat this webhook as a cache-bust signal.
   // ------------------------------------------------------------------
-  if (body.data && typeof body.data === "object") {
-    try {
-      await pool.query(
-        `INSERT INTO players (user_id, data)
-         VALUES ($1, $2::jsonb)
-         ON CONFLICT (user_id) DO UPDATE
-           SET data = players.data || EXCLUDED.data`,
-        [userId, JSON.stringify(body.data)]
-      );
-      console.log(`[webhook] Upserted player data for ${userId}`);
-    } catch (err) {
-      console.error(`[webhook] Failed to upsert player ${userId}:`, err);
-      return NextResponse.json(
-        { error: "Failed to update player record" },
-        { status: 500 }
-      );
-    }
-  }
 
   // ------------------------------------------------------------------
   // 4. Fetch the authoritative record from PostgreSQL so we can log it
@@ -73,10 +56,9 @@ export async function POST(req: NextRequest) {
   // ------------------------------------------------------------------
   const dbPlayer = await getPlayerFromDB(userId);
   if (!dbPlayer) {
-    return NextResponse.json(
-      { error: `Player ${userId} not found in database` },
-      { status: 404 }
-    );
+    // Player not in DB yet — still return 200 so the bot isn't retried.
+    console.warn(`[webhook] Player ${userId} not found in DB (bot may not have written yet)`);
+    return NextResponse.json({ ok: true, player: null }, { status: 200 });
   }
 
   // ------------------------------------------------------------------

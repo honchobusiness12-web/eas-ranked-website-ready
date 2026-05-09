@@ -442,8 +442,9 @@ export interface UserBadge {
 }
 
 /**
- * Returns true if the user holds a staff role in the DB player record,
- * OR is in the HARDCODED_STAFF list.
+ * Returns true if the user holds the staff badge in the DB player record
+ * (stored in data->'badges' as a JSON array of badge ID strings),
+ * OR is in the HARDCODED_STAFF list, OR has a matching Discord staff role.
  *
  * Results are cached in-process for 5 minutes.
  */
@@ -461,13 +462,20 @@ export async function isStaffUser(userId: string): Promise<boolean> {
   try {
     const { pool } = await import("@/lib/db");
     const result = await pool.query(
-      `SELECT data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
+      `SELECT data->'badges' AS badges, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
       [userId]
     );
     if (result.rows.length === 0) {
       setCachedBool(staffCache, userId, false);
       return false;
     }
+    // Check dedicated badges array first (set by admin badge manager)
+    const badges: string[] = result.rows[0].badges ?? [];
+    if (badges.includes("staff")) {
+      setCachedBool(staffCache, userId, true);
+      return true;
+    }
+    // Fall back to Discord role IDs in the roles array (set by bot sync)
     const roles: string[] = result.rows[0].roles ?? [];
     const isStaff = STAFF_ROLE_IDS.some((id) => roles.includes(id));
     setCachedBool(staffCache, userId, isStaff);
@@ -479,8 +487,9 @@ export async function isStaffUser(userId: string): Promise<boolean> {
 }
 
 /**
- * Returns true if the user holds a content-creator role in the DB player record,
- * OR is in the HARDCODED_CONTENT_CREATORS list.
+ * Returns true if the user holds the contentCreator badge in the DB player record
+ * (stored in data->'badges' as a JSON array of badge ID strings),
+ * OR is in the HARDCODED_CONTENT_CREATORS list, OR has a matching Discord role.
  *
  * Results are cached in-process for 5 minutes.
  */
@@ -495,13 +504,20 @@ export async function isContentCreator(userId: string): Promise<boolean> {
   try {
     const { pool } = await import("@/lib/db");
     const result = await pool.query(
-      `SELECT data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
+      `SELECT data->'badges' AS badges, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
       [userId]
     );
     if (result.rows.length === 0) {
       setCachedBool(ccCache, userId, false);
       return false;
     }
+    // Check dedicated badges array first (set by admin badge manager)
+    const badges: string[] = result.rows[0].badges ?? [];
+    if (badges.includes("contentCreator")) {
+      setCachedBool(ccCache, userId, true);
+      return true;
+    }
+    // Fall back to Discord role IDs in the roles array (set by bot sync)
     const roles: string[] = result.rows[0].roles ?? [];
     const isCC = CONTENT_CREATOR_ROLE_IDS.some((id) => roles.includes(id));
     setCachedBool(ccCache, userId, isCC);
@@ -513,16 +529,22 @@ export async function isContentCreator(userId: string): Promise<boolean> {
 }
 
 /**
- * Returns true if the user holds a tournament-winner role in the DB player record.
+ * Returns true if the user holds the tournamentWinner badge in the DB player record
+ * (stored in data->'badges' as a JSON array of badge ID strings),
+ * OR has a matching Discord tournament-winner role.
  */
 export async function isTournamentWinner(userId: string): Promise<boolean> {
   try {
     const { pool } = await import("@/lib/db");
     const result = await pool.query(
-      `SELECT data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
+      `SELECT data->'badges' AS badges, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
       [userId]
     );
     if (result.rows.length === 0) return false;
+    // Check dedicated badges array first (set by admin badge manager)
+    const badges: string[] = result.rows[0].badges ?? [];
+    if (badges.includes("tournamentWinner")) return true;
+    // Fall back to Discord role IDs in the roles array (set by bot sync)
     const roles: string[] = result.rows[0].roles ?? [];
     return TOURNAMENT_WINNER_ROLE_IDS.some((id) => roles.includes(id));
   } catch (err) {
@@ -605,65 +627,74 @@ export async function getUserBadges(userId: string): Promise<UserBadge[]> {
 // ---------------------------------------------------------------------------
 
 /**
- * Assigns a badge role to a user by updating their roles array in the DB.
- * This is a DB-level operation; the Discord role must be synced separately.
+ * Assigns a badge to a user by adding the badge ID to data->'badges' in the DB.
+ * The badgeId should be one of: "staff", "contentCreator", "tournamentWinner".
+ * This is independent of Discord role IDs — the website checks data->'badges'
+ * directly, so changes are visible immediately without a Discord sync.
  * Invalidates the in-process status cache for the user.
  */
-export async function assignBadgeRole(userId: string, roleId: string): Promise<void> {
+export async function assignBadgeRole(userId: string, badgeId: string): Promise<void> {
   try {
     const { pool } = await import("@/lib/db");
-    await pool.query(
+    const result = await pool.query(
       `
       UPDATE players
       SET data = jsonb_set(
         COALESCE(data, '{}'),
-        '{roles}',
+        '{badges}',
         (
-          SELECT jsonb_agg(DISTINCT r)
+          SELECT jsonb_agg(DISTINCT b)
           FROM jsonb_array_elements_text(
-            COALESCE(data->'roles', '[]'::jsonb) || $2::jsonb
-          ) AS r
+            COALESCE(data->'badges', '[]'::jsonb) || $2::jsonb
+          ) AS b
         )
       )
       WHERE user_id = $1
       `,
-      [userId, JSON.stringify([roleId])]
+      [userId, JSON.stringify([badgeId])]
     );
-    // Bust the status cache so the next check reflects the new role
+    if (result.rowCount === 0) {
+      throw new Error(`Player ${userId} not found in database`);
+    }
+    // Bust the status cache so the next check reflects the new badge
     invalidatePremiumStatusCache(userId);
   } catch (err) {
-    console.error(`[premium] assignBadgeRole(${userId}, ${roleId}) failed:`, err);
+    console.error(`[premium] assignBadgeRole(${userId}, ${badgeId}) failed:`, err);
     throw err;
   }
 }
 
 /**
- * Removes a badge role from a user's roles array in the DB.
+ * Removes a badge from a user's data->'badges' array in the DB.
+ * The badgeId should be one of: "staff", "contentCreator", "tournamentWinner".
  * Invalidates the in-process status cache for the user.
  */
-export async function removeBadgeRole(userId: string, roleId: string): Promise<void> {
+export async function removeBadgeRole(userId: string, badgeId: string): Promise<void> {
   try {
     const { pool } = await import("@/lib/db");
-    await pool.query(
+    const result = await pool.query(
       `
       UPDATE players
       SET data = jsonb_set(
         COALESCE(data, '{}'),
-        '{roles}',
+        '{badges}',
         (
-          SELECT COALESCE(jsonb_agg(r), '[]'::jsonb)
-          FROM jsonb_array_elements_text(COALESCE(data->'roles', '[]'::jsonb)) AS r
-          WHERE r != $2
+          SELECT COALESCE(jsonb_agg(b), '[]'::jsonb)
+          FROM jsonb_array_elements_text(COALESCE(data->'badges', '[]'::jsonb)) AS b
+          WHERE b != $2
         )
       )
       WHERE user_id = $1
       `,
-      [userId, roleId]
+      [userId, badgeId]
     );
-    // Bust the status cache so the next check reflects the removed role
+    if (result.rowCount === 0) {
+      throw new Error(`Player ${userId} not found in database`);
+    }
+    // Bust the status cache so the next check reflects the removed badge
     invalidatePremiumStatusCache(userId);
   } catch (err) {
-    console.error(`[premium] removeBadgeRole(${userId}, ${roleId}) failed:`, err);
+    console.error(`[premium] removeBadgeRole(${userId}, ${badgeId}) failed:`, err);
     throw err;
   }
 }
