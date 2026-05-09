@@ -3,7 +3,7 @@
 import SoundLink from "@/components/SoundLink";
 import SoundToggle from "@/components/SoundToggle";
 import AuthButton from "@/components/AuthButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { DiscordUser } from "@/lib/auth";
 
 const links = [
@@ -28,6 +28,11 @@ const premiumLinks = [
   { label: "⚙️ Manage Sub",        href: "/premium/manage" },
 ];
 
+const adminLinks = [
+  { label: "🎁 Giveaway Manager", href: "/admin/giveaways" },
+  { label: "⚙️ CR Admin",         href: "/admin/cr" },
+];
+
 export default function Shell({
   children,
   user,
@@ -36,6 +41,14 @@ export default function Shell({
   user?: DiscordUser | null;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/admin/cr/logs?limit=1")
+      .then((r) => { if (r.ok) setIsOwner(true); })
+      .catch(() => {});
+  }, [user]);
 
   return (
     <main className="min-h-screen bg-[#05050b] text-white">
@@ -74,6 +87,27 @@ export default function Shell({
                 {label}
               </SoundLink>
             ))}
+
+            {/* Admin section — owner only */}
+            {isOwner && (
+              <>
+                <div className="pt-4 pb-1">
+                  <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-600/70">
+                    🔐 Admin
+                  </p>
+                </div>
+                {adminLinks.map(({ label, href }) => (
+                  <SoundLink
+                    key={href}
+                    href={href}
+                    soundType="success"
+                    className="block rounded-xl px-4 py-3 text-zinc-500 hover:bg-red-950/20 hover:text-red-300 transition"
+                  >
+                    {label}
+                  </SoundLink>
+                ))}
+              </>
+            )}
           </nav>
 
           {/* Logged-in profile shortcut */}
@@ -158,6 +192,28 @@ export default function Shell({
                       {label}
                     </SoundLink>
                   ))}
+
+                  {/* Admin section — owner only */}
+                  {isOwner && (
+                    <>
+                      <div className="pt-4 pb-1">
+                        <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-600/70">
+                          🔐 Admin
+                        </p>
+                      </div>
+                      {adminLinks.map(({ label, href }) => (
+                        <SoundLink
+                          key={href}
+                          href={href}
+                          soundType="success"
+                          className="block rounded-xl px-4 py-3 text-zinc-500 hover:bg-red-950/20 hover:text-red-300 transition"
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {label}
+                        </SoundLink>
+                      ))}
+                    </>
+                  )}
                 </nav>
               </div>
             </div>
