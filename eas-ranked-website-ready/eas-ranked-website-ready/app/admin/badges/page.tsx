@@ -969,7 +969,7 @@ export default function AdminBadgesPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Update badge state with the fresh list from the server
+        // Update badge state immediately with the fresh list returned by the server
         setBadgeStates((prev) => ({
           ...prev,
           [userId]: {
@@ -978,17 +978,23 @@ export default function AdminBadgesPage() {
             loaded: true,
           },
         }));
+        // Force a server reload to ensure the UI reflects the persisted state
+        loadPlayerBadges(userId);
         setToast({
           type: "success",
           text: `✅ ${badgeOption?.icon ?? ""} ${badgeOption?.label ?? badgeId} assigned to ${playerName}`,
         });
       } else {
+        // Reload to clear any stale state
+        loadPlayerBadges(userId);
         setToast({
           type: "error",
           text: data.error ?? "Failed to assign badge.",
         });
       }
     } catch {
+      // Reload badges so the UI stays consistent even if the request failed
+      loadPlayerBadges(userId);
       setToast({ type: "error", text: "An unexpected error occurred." });
     }
   }
@@ -1019,6 +1025,7 @@ export default function AdminBadgesPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        // Update badge state immediately with the authoritative list from the server
         setBadgeStates((prev) => ({
           ...prev,
           [userId]: {
@@ -1027,12 +1034,14 @@ export default function AdminBadgesPage() {
             loaded: true,
           },
         }));
+        // Force a server reload to ensure stale/old badges are cleared
+        loadPlayerBadges(userId);
         setToast({
           type: "success",
           text: `🗑️ ${badgeOption?.icon ?? ""} ${badgeOption?.label ?? badgeId} removed from ${playerName}`,
         });
       } else {
-        // Revert optimistic update
+        // Revert optimistic update by reloading from server
         loadPlayerBadges(userId);
         setToast({
           type: "error",
