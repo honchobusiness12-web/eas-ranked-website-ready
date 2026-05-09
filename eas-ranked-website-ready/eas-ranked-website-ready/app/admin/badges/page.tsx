@@ -290,6 +290,9 @@ export default function AdminBadgesPage() {
     setOptimisticBadges(null);
     setActionMsg(null);
     setShowDropdown(false);
+    // Clear the search box so the input doesn't show stale text after sidebar selection
+    setSearchQuery("");
+    setSearchResults([]);
     try {
       const res = await fetch(`/api/admin/badges?userId=${encodeURIComponent(userId)}`);
       if (res.ok) {

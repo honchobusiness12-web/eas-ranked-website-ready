@@ -110,6 +110,7 @@ export default function RankBadge({
       className={`inline-flex items-center rounded-lg border font-bold ${sizeClasses}${isPulsing ? " animate-pulse" : ""}`}
       style={customGradientStyle ?? buildStyleProps(color, badgeStyle)}
       title={`${rankName} — ${cr} CR`}
+      {...(customGradientStyle ? { "data-gradient-badge": "true" } : {})}
     >
       <span>{icon}</span>
       {showLabel && <span>{rankName}</span>}
