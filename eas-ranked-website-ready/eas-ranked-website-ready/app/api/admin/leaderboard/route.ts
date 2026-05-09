@@ -109,7 +109,8 @@ export async function PATCH(req: NextRequest) {
 
   const result = await updatePlayerCR(userId, newCR, session.userId, reason);
   if (!result.success) {
-    return NextResponse.json({ error: result.error }, { status: result.error === "Player not found." ? 404 : 500 });
+    const errMsg = result.error;
+    return NextResponse.json({ error: errMsg }, { status: errMsg === "Player not found." ? 404 : 500 });
   }
 
   return NextResponse.json({ success: true, userId, oldCR: result.oldCR, newCR });
