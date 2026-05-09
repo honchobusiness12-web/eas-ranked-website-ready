@@ -133,6 +133,94 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
 }
 
 // ---------------------------------------------------------------------------
+// Premium status helpers — convenience wrappers used by API routes
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the premium expiry date for a user, or null if they have no
+ * time-limited premium (e.g. they have a subscription or permanent access).
+ *
+ * Returns:
+ *  - `{ premium: true,  expiresAt: Date | null, source: string }` when active
+ *  - `{ premium: false, expiresAt: null,        source: null   }` when not active
+ */
+export async function getPremiumStatus(userId: string): Promise<{
+  premium: boolean;
+  expiresAt: Date | null;
+  source: string | null;
+}> {
+  // Developer / owner — permanent
+  if (userId === DEVELOPER_USER_ID) {
+    return { premium: true, expiresAt: null, source: "developer" };
+  }
+  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+  if (ownerIds.includes(userId)) {
+    return { premium: true, expiresAt: null, source: "owner" };
+  }
+
+  try {
+    await ensurePremiumTables();
+
+    // Check Lemonsqueezy subscription
+    const subResult = await pool.query(
+      `SELECT subscription_status, current_period_end FROM subscriptions WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    if (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") {
+      return {
+        premium: true,
+        expiresAt: subResult.rows[0].current_period_end
+          ? new Date(subResult.rows[0].current_period_end)
+          : null,
+        source: "subscription",
+      };
+    }
+
+    // Check giveaway code premium
+    const giveawayResult = await pool.query(
+      `
+      SELECT premium_expires_at
+      FROM players
+      WHERE user_id           = $1
+        AND premium_expires_at IS NOT NULL
+        AND premium_expires_at  > NOW()
+      LIMIT 1
+      `,
+      [userId]
+    );
+    if (giveawayResult.rows.length > 0) {
+      return {
+        premium: true,
+        expiresAt: new Date(giveawayResult.rows[0].premium_expires_at),
+        source: "giveaway_code",
+      };
+    }
+
+    return { premium: false, expiresAt: null, source: null };
+  } catch (err) {
+    console.error(`[premium] getPremiumStatus(${userId}) failed:`, err);
+    return { premium: false, expiresAt: null, source: null };
+  }
+}
+
+/**
+ * Throws an error (suitable for use in API routes) if the user does not have
+ * premium access. Returns void on success.
+ *
+ * Usage:
+ *   await requirePremium(userId);  // throws if not premium
+ */
+export async function requirePremium(userId: string): Promise<void> {
+  const premium = await isPremiumUser(userId);
+  if (!premium) {
+    throw new Error("Premium subscription required");
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Subscription helpers
 // ---------------------------------------------------------------------------
 
