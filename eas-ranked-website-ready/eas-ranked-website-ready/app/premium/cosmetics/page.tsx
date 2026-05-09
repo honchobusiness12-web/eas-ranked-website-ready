@@ -10,7 +10,7 @@ import {
   PLAYER_TITLES,
   PROFILE_COLORS,
   ACHIEVEMENT_FRAMES,
-} from "@/lib/premium";
+} from "@/lib/premium-constants";
 
 interface CosmeticsState {
   theme: string;
