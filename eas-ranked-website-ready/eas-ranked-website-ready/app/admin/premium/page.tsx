@@ -24,6 +24,8 @@ interface PremiumStatusResult {
   expiresAt: string | null;
   premiumExpiresAt: string | null;
   discordPremium: boolean;
+  premiumRoleSynced: boolean;
+  premiumGrantedAt: string | null;
   subscription: {
     status: string | null;
     periodEnd: string | null;
@@ -557,14 +559,16 @@ export default function AdminPremiumPage() {
                       Discord Role Synced
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-500">
-                      {selected.discordPremium
-                        ? "Bot has assigned the Premium User role"
-                        : "Bot has NOT assigned the Premium User role — assign it in Discord first"}
+                      {selected.premiumRoleSynced
+                        ? `Bot synced role ${selected.premiumGrantedAt ? `at ${fmt(selected.premiumGrantedAt)}` : ""}`
+                        : selected.discordPremium
+                        ? "Premium flag set (legacy — no timestamp)"
+                        : "Bot has NOT synced the Premium User role — use !premiumsync in Discord"}
                     </p>
                   </div>
                   <StatusPill
-                    active={selected.discordPremium}
-                    label={selected.discordPremium ? "Synced" : "Not Synced"}
+                    active={selected.discordPremium || selected.premiumRoleSynced}
+                    label={(selected.discordPremium || selected.premiumRoleSynced) ? "YES" : "NO"}
                   />
                 </div>
 

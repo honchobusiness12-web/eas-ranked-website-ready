@@ -47,7 +47,9 @@ export async function GET(req: NextRequest) {
              COALESCE(data->>'display_name', data->>'username', 'Unknown Player') AS name,
              data->>'avatar_url' AS avatar_url,
              premium_expires_at,
-             (data->>'premium')::boolean AS discord_premium
+             (data->>'premium')::boolean AS discord_premium,
+             (data->>'premium_role_synced')::boolean AS premium_role_synced,
+             data->>'premium_granted_at' AS premium_granted_at
            FROM players
            WHERE user_id = $1
            LIMIT 1`,
@@ -77,6 +79,8 @@ export async function GET(req: NextRequest) {
         // Raw fields for full transparency
         premiumExpiresAt: player?.premium_expires_at ?? null,
         discordPremium: player?.discord_premium ?? false,
+        premiumRoleSynced: player?.premium_role_synced ?? false,
+        premiumGrantedAt: player?.premium_granted_at ?? null,
         subscription: subscription
           ? {
               status: subscription.subscription_status,
