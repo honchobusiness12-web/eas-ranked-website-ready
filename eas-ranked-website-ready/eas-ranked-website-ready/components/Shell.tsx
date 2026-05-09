@@ -35,7 +35,57 @@ const adminLinks = [
   { label: "🎁 Giveaway Manager", href: "/admin/giveaways" },
   { label: "⚙️ CR Admin",         href: "/admin/cr" },
   { label: "📢 Announcements",    href: "/admin/announcements" },
+  { label: "🏆 Seasons",          href: "/admin/seasons" },
 ];
+
+interface ShellSeason {
+  name: string;
+  status: "active" | "paused" | "ended" | "upcoming";
+  end_date: string | null;
+  start_date: string | null;
+}
+
+function SeasonStatusWidget({ season }: { season: ShellSeason | null }) {
+  if (!season) {
+    return (
+      <>
+        <div className="flex items-center justify-between">
+          <p className="font-bold text-sm">🏆 Ranked Season</p>
+          <span className="rounded-md bg-gradient-to-r from-zinc-700 to-zinc-600 px-2 py-0.5 text-xs font-black text-white">OFF</span>
+        </div>
+        <p className="mt-3 text-xs text-yellow-300/80">⏸ No active season</p>
+      </>
+    );
+  }
+
+  const statusBadge = {
+    active:   { label: "LIVE",     cls: "from-green-600 to-emerald-600" },
+    paused:   { label: "PAUSED",   cls: "from-yellow-600 to-amber-600" },
+    ended:    { label: "ENDED",    cls: "from-red-700 to-rose-700" },
+    upcoming: { label: "UPCOMING", cls: "from-blue-600 to-indigo-600" },
+  }[season.status] ?? { label: "OFF", cls: "from-zinc-700 to-zinc-600" };
+
+  let daysNote = "";
+  if (season.end_date && season.status === "active") {
+    const daysLeft = Math.max(0, Math.round((new Date(season.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    daysNote = `⏳ ${daysLeft}d remaining`;
+  }
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-1">
+        <p className="font-bold text-sm truncate">{season.name}</p>
+        <span className={`shrink-0 rounded-md bg-gradient-to-r ${statusBadge.cls} px-2 py-0.5 text-xs font-black text-white`}>
+          {statusBadge.label}
+        </span>
+      </div>
+      {daysNote && <p className="mt-2 text-xs text-yellow-300/80">{daysNote}</p>}
+      {!daysNote && season.status === "paused" && <p className="mt-2 text-xs text-yellow-300/80">⏸ Season paused</p>}
+      {!daysNote && season.status === "upcoming" && <p className="mt-2 text-xs text-blue-300/80">🔵 Coming soon</p>}
+      {!daysNote && season.status === "ended" && <p className="mt-2 text-xs text-red-300/80">🔴 Season ended</p>}
+    </>
+  );
+}
 
 export default function Shell({
   children,
@@ -46,6 +96,7 @@ export default function Shell({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [season, setSeason] = useState<ShellSeason | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -53,6 +104,15 @@ export default function Shell({
       .then((r) => { if (r.ok) setIsOwner(true); })
       .catch(() => {});
   }, [user]);
+
+  useEffect(() => {
+    fetch("/api/seasons/current")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.season) setSeason(data.season as ShellSeason);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#05050b] text-white">
@@ -127,14 +187,13 @@ export default function Shell({
           )}
 
           {/* Season status card */}
-          <div className="rounded-2xl border border-yellow-600/30 bg-gradient-to-br from-orange-950/30 to-yellow-950/20 p-4">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-sm">☀️ Summer Season</p>
-              <span className="rounded-md bg-gradient-to-r from-orange-500 to-yellow-500 px-2 py-0.5 text-xs font-black text-white">OFF</span>
-            </div>
-            <p className="mt-1 text-xs text-zinc-400">2026 Season</p>
-            <p className="mt-3 text-xs text-yellow-300/80">⏸ Off season — next season coming soon</p>
-          </div>
+          <SoundLink
+            href={isOwner ? "/admin/seasons" : "/"}
+            soundType="click"
+            className="rounded-2xl border border-yellow-600/30 bg-gradient-to-br from-orange-950/30 to-yellow-950/20 p-4 block hover:border-yellow-500/50 transition"
+          >
+            <SeasonStatusWidget season={season} />
+          </SoundLink>
         </aside>
 
         <section className="w-full md:ml-64">

@@ -6,6 +6,7 @@ import DashboardStats from "@/components/DashboardStats";
 import PremiumUpsell from "@/components/PremiumUpsell";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { syncPlayersFromDB } from "@/lib/cache";
+import { getCurrentSeason, type Season } from "@/lib/seasons";
 
 export const revalidate = 30;
 
@@ -13,8 +14,19 @@ async function getPlayers() {
   return syncPlayersFromDB();
 }
 
+async function fetchCurrentSeason(): Promise<Season | null> {
+  try {
+    return await getCurrentSeason();
+  } catch {
+    return null;
+  }
+}
+
 export default async function HomePage() {
-  const players = await getPlayers();
+  const [players, currentSeason] = await Promise.all([
+    getPlayers(),
+    fetchCurrentSeason(),
+  ]);
 
   const totalPlayers = players.length;
   const rankedPlayers = players.filter((p: any) => p.ranked).length;
@@ -116,26 +128,7 @@ export default async function HomePage() {
 
         <div className="space-y-6">
           {/* Season card */}
-          <div className="rounded-2xl border border-yellow-600/40 bg-gradient-to-br from-orange-950/30 to-yellow-950/20 p-6 relative overflow-hidden">
-            {/* Subtle sun glow */}
-            <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-500/10 blur-2xl" />
-            <div className="relative">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-black">☀️ Summer Season</h3>
-                <span className="rounded-lg bg-gradient-to-r from-orange-500 to-yellow-500 px-3 py-1 text-xs font-black tracking-wider text-white shadow-md">
-                  OFF SEASON
-                </span>
-              </div>
-              <p className="mt-2 text-sm text-zinc-400">2026 Season</p>
-              <div className="mt-4 rounded-xl border border-yellow-700/30 bg-yellow-950/20 px-4 py-3">
-                <p className="text-sm font-bold text-yellow-300">⏸ Season Paused</p>
-                <p className="mt-1 text-xs text-zinc-400">
-                  The ranked season is currently on break. Stay tuned for the next season start date.
-                </p>
-              </div>
-              <p className="mt-4 text-xs text-zinc-500">🌊 Next season coming soon</p>
-            </div>
-          </div>
+          <SeasonCard season={currentSeason} />
 
           {/* Recent activity */}
           <div className="rounded-2xl border border-teal-700/20 bg-[#0d0d14] p-6">
@@ -174,6 +167,116 @@ export default async function HomePage() {
     </Shell>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Season card — shows live season data from DB
+// ---------------------------------------------------------------------------
+
+function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null }) {
+  if (!season) {
+    return (
+      <div className="rounded-2xl border border-yellow-600/40 bg-gradient-to-br from-orange-950/30 to-yellow-950/20 p-6 relative overflow-hidden">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-500/10 blur-2xl" />
+        <div className="relative">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-black">🏆 Ranked Season</h3>
+            <span className="rounded-lg bg-gradient-to-r from-zinc-700 to-zinc-600 px-3 py-1 text-xs font-black tracking-wider text-white shadow-md">
+              OFF SEASON
+            </span>
+          </div>
+          <div className="mt-4 rounded-xl border border-yellow-700/30 bg-yellow-950/20 px-4 py-3">
+            <p className="text-sm font-bold text-yellow-300">⏸ No Active Season</p>
+            <p className="mt-1 text-xs text-zinc-400">
+              No ranked season is currently running. Stay tuned for the next season announcement.
+            </p>
+          </div>
+          <p className="mt-4 text-xs text-zinc-500">🌊 Next season coming soon</p>
+        </div>
+      </div>
+    );
+  }
+
+  const statusConfig = {
+    active:   { badge: "from-green-600 to-emerald-600",  label: "ACTIVE",   icon: "🟢", note: "text-green-300",  noteBg: "border-green-700/30 bg-green-950/20" },
+    paused:   { badge: "from-yellow-600 to-amber-600",   label: "PAUSED",   icon: "⏸",  note: "text-yellow-300", noteBg: "border-yellow-700/30 bg-yellow-950/20" },
+    ended:    { badge: "from-red-700 to-rose-700",       label: "ENDED",    icon: "🔴", note: "text-red-300",    noteBg: "border-red-700/30 bg-red-950/20" },
+    upcoming: { badge: "from-blue-600 to-indigo-600",    label: "UPCOMING", icon: "🔵", note: "text-blue-300",   noteBg: "border-blue-700/30 bg-blue-950/20" },
+  };
+  const cfg = statusConfig[season.status] ?? statusConfig.upcoming;
+
+  // Days remaining
+  let daysNote = "";
+  if (season.end_date) {
+    const daysLeft = Math.max(0, Math.round((new Date(season.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    if (season.status === "active") daysNote = `⏳ ${daysLeft} day${daysLeft !== 1 ? "s" : ""} remaining`;
+    else if (season.status === "ended") daysNote = `🏁 Season ended`;
+    else if (season.status === "upcoming") daysNote = `🚀 Starts soon`;
+  }
+
+  // Progress bar
+  let progressPct = 0;
+  if (season.start_date && season.end_date) {
+    const start = new Date(season.start_date).getTime();
+    const end = new Date(season.end_date).getTime();
+    const now = Date.now();
+    if (end > start) {
+      progressPct = Math.round((Math.max(0, Math.min(now - start, end - start)) / (end - start)) * 100);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-yellow-600/40 bg-gradient-to-br from-orange-950/30 to-yellow-950/20 p-6 relative overflow-hidden">
+      <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-500/10 blur-2xl" />
+      <div className="relative">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xl font-black truncate">{season.name}</h3>
+          <span className={`shrink-0 rounded-lg bg-gradient-to-r ${cfg.badge} px-3 py-1 text-xs font-black tracking-wider text-white shadow-md`}>
+            {cfg.label}
+          </span>
+        </div>
+        {season.description && (
+          <p className="mt-1 text-sm text-zinc-400 line-clamp-2">{season.description}</p>
+        )}
+        {season.start_date && season.end_date && (
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
+              <span>{progressPct}% complete</span>
+              {daysNote && <span>{daysNote}</span>}
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-orange-500 to-yellow-500"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+        )}
+        <div className={`mt-4 rounded-xl border px-4 py-3 ${cfg.noteBg}`}>
+          <p className={`text-sm font-bold ${cfg.note}`}>{cfg.icon} Season {cfg.label.charAt(0) + cfg.label.slice(1).toLowerCase()}</p>
+          {season.status === "active" && (
+            <p className="mt-1 text-xs text-zinc-400">The ranked season is live. Compete and climb the leaderboard!</p>
+          )}
+          {season.status === "paused" && (
+            <p className="mt-1 text-xs text-zinc-400">The ranked season is temporarily paused. Stay tuned for updates.</p>
+          )}
+          {season.status === "ended" && (
+            <p className="mt-1 text-xs text-zinc-400">This season has concluded. Check the leaderboard for final standings.</p>
+          )}
+          {season.status === "upcoming" && (
+            <p className="mt-1 text-xs text-zinc-400">A new season is on the horizon. Get ready to compete!</p>
+          )}
+        </div>
+        {daysNote && season.status === "active" && (
+          <p className="mt-3 text-xs text-zinc-500">{daysNote}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Stat card
+// ---------------------------------------------------------------------------
 
 function Stat({
   title,
