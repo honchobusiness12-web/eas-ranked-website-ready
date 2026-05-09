@@ -10,6 +10,16 @@ interface PremiumStatus {
   source: string | null;
 }
 
+interface ActiveCode {
+  id: string;
+  duration_days: number;
+  max_uses: number;
+  uses: number;
+  uses_left: number;
+  expires_at: string | null;
+  created_at: string;
+}
+
 export default function RedeemPage() {
   const [user, setUser] = useState<{ id: string; username: string; global_name: string | null } | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -18,6 +28,7 @@ export default function RedeemPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [premiumStatus, setPremiumStatus] = useState<PremiumStatus | null>(null);
+  const [activeCodes, setActiveCodes] = useState<ActiveCode[]>([]);
 
   // Load current user session
   useEffect(() => {
@@ -28,6 +39,14 @@ export default function RedeemPage() {
         setLoadingUser(false);
       })
       .catch(() => setLoadingUser(false));
+  }, []);
+
+  // Load active codes (public info — no code values exposed)
+  useEffect(() => {
+    fetch("/api/giveaway/active")
+      .then((r) => r.json())
+      .then((data) => setActiveCodes(data.codes ?? []))
+      .catch(() => {});
   }, []);
 
   // Load premium status once user is known
@@ -119,23 +138,58 @@ export default function RedeemPage() {
           <p className="mt-2 text-zinc-400">
             Enter your giveaway code below to activate Premium access.
           </p>
+          <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-blue-700/30 bg-blue-950/20 px-4 py-2 text-sm text-blue-300">
+            <span>🔗</span>
+            <span>Redeem at <strong>easarena.pro/redeem</strong> or use <code className="font-mono text-xs bg-white/10 px-1 rounded">/redeem &lt;code&gt;</code> in Discord</span>
+          </div>
         </div>
 
         {/* Not logged in */}
         {!loadingUser && !user && (
-          <div className="rounded-2xl border border-yellow-700/40 bg-yellow-950/20 p-8 text-center">
-            <p className="text-2xl mb-3">🔒</p>
-            <h2 className="text-xl font-black text-yellow-300">Login Required</h2>
-            <p className="mt-2 text-sm text-zinc-400">
-              You must be logged in with Discord to redeem a code.
-            </p>
-            <SoundLink
-              href="/auth/login"
-              soundType="success"
-              className="mt-5 inline-block rounded-xl bg-[#5865F2] px-6 py-3 font-black text-white hover:bg-[#4752C4] transition"
-            >
-              Login with Discord →
-            </SoundLink>
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-yellow-700/40 bg-yellow-950/20 p-8 text-center">
+              <p className="text-2xl mb-3">🔒</p>
+              <h2 className="text-xl font-black text-yellow-300">Login Required</h2>
+              <p className="mt-2 text-sm text-zinc-400">
+                You must be logged in with Discord to redeem a code.
+              </p>
+              <SoundLink
+                href="/auth/login"
+                soundType="success"
+                className="mt-5 inline-block rounded-xl bg-[#5865F2] px-6 py-3 font-black text-white hover:bg-[#4752C4] transition"
+              >
+                Login with Discord →
+              </SoundLink>
+            </div>
+            {/* Show active codes even when not logged in */}
+            {activeCodes.length > 0 && (
+              <div className="rounded-2xl border border-green-700/30 bg-green-950/10 p-5">
+                <p className="font-black text-sm text-green-300 mb-3">🎁 Active Giveaway Codes Available</p>
+                <div className="space-y-2">
+                  {activeCodes.map((c, i) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2.5"
+                    >
+                      <div>
+                        <p className="text-sm font-bold text-zinc-200">
+                          Code #{i + 1} — {c.duration_days} day{c.duration_days !== 1 ? "s" : ""} Premium
+                        </p>
+                        {c.expires_at && (
+                          <p className="text-xs text-zinc-500">
+                            Expires {new Date(c.expires_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </p>
+                        )}
+                      </div>
+                      <p className={`text-sm font-black ${c.uses_left <= 3 ? "text-red-400" : "text-green-400"}`}>
+                        {c.uses_left} left
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-zinc-500">Login to redeem a code.</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -222,6 +276,49 @@ export default function RedeemPage() {
               </form>
             </div>
 
+            {/* Active codes info */}
+            {activeCodes.length > 0 && (
+              <div className="rounded-2xl border border-green-700/30 bg-green-950/10 p-5">
+                <p className="font-black text-sm text-green-300 mb-3">🎁 Active Giveaway Codes</p>
+                <div className="space-y-2">
+                  {activeCodes.map((c, i) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2.5"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">🎟️</span>
+                        <div>
+                          <p className="text-sm font-bold text-zinc-200">
+                            Code #{i + 1} — {c.duration_days} day{c.duration_days !== 1 ? "s" : ""} Premium
+                          </p>
+                          {c.expires_at && (
+                            <p className="text-xs text-zinc-500">
+                              Expires{" "}
+                              {new Date(c.expires_at).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-black ${c.uses_left <= 3 ? "text-red-400" : "text-green-400"}`}>
+                          {c.uses_left} use{c.uses_left !== 1 ? "s" : ""} left
+                        </p>
+                        <p className="text-xs text-zinc-600">{c.uses}/{c.max_uses} used</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-zinc-500">
+                  💡 Get codes from giveaways in the EAS Arena Discord server.
+                </p>
+              </div>
+            )}
+
             {/* Info */}
             <div className="rounded-2xl border border-white/5 bg-white/5 p-5 text-sm text-zinc-400 space-y-2">
               <p className="font-bold text-zinc-300">ℹ️ How it works</p>
@@ -229,6 +326,7 @@ export default function RedeemPage() {
               <p>• Codes can only be redeemed once per account.</p>
               <p>• If you already have active Premium, the duration will be stacked on top.</p>
               <p>• Codes may have a limited number of uses or an expiration date.</p>
+              <p>• Redeem codes here at <strong className="text-zinc-300">easarena.pro/redeem</strong> or with <code className="font-mono text-xs bg-white/10 px-1 rounded">/redeem &lt;code&gt;</code> in Discord.</p>
             </div>
 
             {/* Link to subscribe */}

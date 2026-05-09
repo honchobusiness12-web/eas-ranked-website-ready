@@ -86,6 +86,13 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   // Rank badge style from cosmetics
   const rankBadgeStyle = cosmetics?.rank_badge_style ?? "default";
 
+  // Username color from cosmetics
+  const usernameColor = cosmetics?.username_color || null;
+
+  // Gradient color for rank badge (stored as "color1,color2")
+  const gradientColorRaw = cosmetics?.gradient_color || null;
+  const gradientColors = gradientColorRaw ? gradientColorRaw.split(",") : null;
+
   return (
     <Shell>
       {/* Hero */}
@@ -108,7 +115,12 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-1">
-                <h1 className="text-4xl font-black md:text-5xl">{p.name}</h1>
+                <h1
+                  className="text-4xl font-black md:text-5xl"
+                  style={usernameColor ? { color: usernameColor } : undefined}
+                >
+                  {p.name}
+                </h1>
               </div>
               {cosmetics?.player_title && (
                 <p className="text-sm font-bold mb-1" style={{ color: accentColor }}>
@@ -121,7 +133,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                 <BadgeDisplay badges={badges} size="md" className="mb-3" />
               )}
               <div className="flex flex-wrap items-center gap-3">
-                <RankBadge cr={cr} size="lg" badgeStyle={rankBadgeStyle} />
+                <RankBadge cr={cr} size="lg" badgeStyle={rankBadgeStyle} gradientColors={gradientColors} />
                 {p.blacklisted && (
                   <span className="rounded-xl border border-red-600/50 bg-red-950/30 px-3 py-1 text-xs font-bold text-red-400">
                     🚫 Blacklisted

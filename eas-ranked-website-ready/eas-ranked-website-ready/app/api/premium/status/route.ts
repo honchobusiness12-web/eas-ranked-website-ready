@@ -8,5 +8,15 @@ export async function GET(req: NextRequest) {
   }
 
   const premium = await isPremiumUser(userId);
-  return NextResponse.json({ userId, premium });
+
+  // Disable caching so premium status is always fresh after a purchase
+  return NextResponse.json(
+    { userId, premium },
+    {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        Pragma: "no-cache",
+      },
+    }
+  );
 }

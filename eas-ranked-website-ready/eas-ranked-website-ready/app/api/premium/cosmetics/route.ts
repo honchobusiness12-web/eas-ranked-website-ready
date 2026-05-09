@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCosmetics, upsertCosmetics, isPremiumUser } from "@/lib/premium";
 import { getSession } from "@/lib/auth";
 
+const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
+
+function isValidHex(value: unknown): boolean {
+  return typeof value === "string" && HEX_RE.test(value);
+}
+
+/** gradient_color is stored as "color1,color2" — validate both parts */
+function isValidGradient(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const parts = value.split(",");
+  return parts.length === 2 && parts.every((p) => HEX_RE.test(p.trim()));
+}
+
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("userId");
   if (!userId) {
@@ -37,6 +50,17 @@ export async function POST(req: NextRequest) {
     const premium = await isPremiumUser(userId);
     if (!premium) {
       return NextResponse.json({ error: "Premium subscription required" }, { status: 403 });
+    }
+
+    // Validate optional color fields
+    if (data.profile_color !== undefined && data.profile_color !== null && !isValidHex(data.profile_color)) {
+      return NextResponse.json({ error: "Invalid profile_color — must be #RRGGBB" }, { status: 400 });
+    }
+    if (data.username_color !== undefined && data.username_color !== null && !isValidHex(data.username_color)) {
+      return NextResponse.json({ error: "Invalid username_color — must be #RRGGBB" }, { status: 400 });
+    }
+    if (data.gradient_color !== undefined && data.gradient_color !== null && !isValidGradient(data.gradient_color)) {
+      return NextResponse.json({ error: "Invalid gradient_color — must be '#RRGGBB,#RRGGBB'" }, { status: 400 });
     }
 
     await upsertCosmetics(userId, data);

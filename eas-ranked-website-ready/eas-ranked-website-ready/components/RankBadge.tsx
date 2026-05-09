@@ -33,11 +33,14 @@ interface RankBadgeProps {
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
   badgeStyle?: RankBadgeStyle | string | null;
+  /** Custom gradient colors [from, to] — used when badgeStyle === "gradient" */
+  gradientColors?: string[] | null;
 }
 
 function buildStyleProps(
   color: string,
-  badgeStyle: RankBadgeStyle | string | null | undefined
+  badgeStyle: RankBadgeStyle | string | null | undefined,
+  gradientColors?: string[] | null
 ): React.CSSProperties {
   const base: React.CSSProperties = {
     borderColor: `${color}60`,
@@ -52,6 +55,13 @@ function buildStyleProps(
         boxShadow: `0 0 12px ${color}80, 0 0 24px ${color}40`,
       };
     case "gradient":
+      if (gradientColors && gradientColors.length === 2) {
+        return {
+          background: `linear-gradient(135deg, ${gradientColors[0]}, ${gradientColors[1]})`,
+          borderColor: "transparent",
+          color: "#fff",
+        };
+      }
       return {
         ...base,
         background: `linear-gradient(135deg, ${color}30, ${color}10)`,
@@ -74,6 +84,7 @@ export default function RankBadge({
   size = "md",
   showLabel = true,
   badgeStyle = "default",
+  gradientColors = null,
 }: RankBadgeProps) {
   const rankName = getRank(cr);
   const color = getTierColor(rankName);
@@ -91,7 +102,7 @@ export default function RankBadge({
   return (
     <span
       className={`inline-flex items-center rounded-lg border font-bold ${sizeClasses}${isPulsing ? " animate-pulse" : ""}`}
-      style={buildStyleProps(color, badgeStyle)}
+      style={buildStyleProps(color, badgeStyle, gradientColors)}
       title={`${rankName} — ${cr} CR`}
     >
       <span>{icon}</span>

@@ -29,6 +29,8 @@ export interface Cosmetics {
   player_title: string | null;
   profile_color: string | null;
   achievement_frame: string | null;
+  gradient_color: string | null;
+  username_color: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -62,9 +64,18 @@ export async function ensurePremiumTables(): Promise<void> {
         player_title VARCHAR(100),
         profile_color VARCHAR(50) DEFAULT '#FF6B6B',
         achievement_frame VARCHAR(50) DEFAULT 'default',
+        gradient_color VARCHAR(50),
+        username_color VARCHAR(50),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+
+    // Migration: add gradient_color and username_color if they don't exist yet
+    await pool.query(`
+      ALTER TABLE cosmetics
+        ADD COLUMN IF NOT EXISTS gradient_color VARCHAR(50),
+        ADD COLUMN IF NOT EXISTS username_color VARCHAR(50)
     `);
   } catch (err) {
     console.error("[premium] ensurePremiumTables failed:", err);
@@ -206,8 +217,8 @@ export async function upsertCosmetics(
     await ensurePremiumTables();
     await pool.query(
       `
-      INSERT INTO cosmetics (user_id, theme, profile_banner, rank_badge_style, player_title, profile_color, achievement_frame)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO cosmetics (user_id, theme, profile_banner, rank_badge_style, player_title, profile_color, achievement_frame, gradient_color, username_color)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       ON CONFLICT (user_id) DO UPDATE SET
         theme              = EXCLUDED.theme,
         profile_banner     = EXCLUDED.profile_banner,
@@ -215,6 +226,8 @@ export async function upsertCosmetics(
         player_title       = EXCLUDED.player_title,
         profile_color      = EXCLUDED.profile_color,
         achievement_frame  = EXCLUDED.achievement_frame,
+        gradient_color     = EXCLUDED.gradient_color,
+        username_color     = EXCLUDED.username_color,
         updated_at         = NOW()
       `,
       [
@@ -225,6 +238,8 @@ export async function upsertCosmetics(
         data.player_title ?? null,
         data.profile_color ?? "#FF6B6B",
         data.achievement_frame ?? "default",
+        data.gradient_color ?? null,
+        data.username_color ?? null,
       ]
     );
   } catch (err) {
@@ -408,4 +423,6 @@ export {
   PLAYER_TITLES,
   PROFILE_COLORS,
   ACHIEVEMENT_FRAMES,
+  GRADIENT_PRESETS,
+  USERNAME_COLORS,
 } from "@/lib/premium-constants";

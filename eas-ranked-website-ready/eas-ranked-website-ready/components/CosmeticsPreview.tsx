@@ -4,6 +4,8 @@ import {
   RANK_BADGE_STYLES,
   ACHIEVEMENT_FRAMES,
   PROFILE_COLORS,
+  GRADIENT_PRESETS,
+  USERNAME_COLORS,
 } from "@/lib/premium-constants";
 
 interface CosmeticsPreviewProps {
@@ -66,6 +68,26 @@ export default function CosmeticsPreview({ cosmetics }: CosmeticsPreviewProps) {
       icon: "🏷️",
       label: "Player Title",
       value: cosmetics.player_title,
+    });
+  }
+
+  if (cosmetics.gradient_color) {
+    const preset = findById(GRADIENT_PRESETS, cosmetics.gradient_color);
+    rows.push({
+      icon: preset?.icon ?? "🌈",
+      label: "Badge Gradient",
+      value: preset?.label ?? cosmetics.gradient_color,
+      accent: cosmetics.gradient_color.split(",")[0],
+    });
+  }
+
+  if (cosmetics.username_color) {
+    const uColor = findById(USERNAME_COLORS, cosmetics.username_color);
+    rows.push({
+      icon: uColor?.icon ?? "📝",
+      label: "Username Color",
+      value: uColor?.label ?? cosmetics.username_color,
+      accent: cosmetics.username_color,
     });
   }
 

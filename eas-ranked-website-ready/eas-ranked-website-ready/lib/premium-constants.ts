@@ -2,6 +2,34 @@
 // Cosmetic constants — no database imports, safe for Client Components
 // ---------------------------------------------------------------------------
 
+export const GRADIENT_PRESETS = [
+  { id: "#FF6B6B,#FF9F43", label: "Sunset",     icon: "🌅", colors: ["#FF6B6B", "#FF9F43"] },
+  { id: "#00D4FF,#0099FF", label: "Ocean",      icon: "🌊", colors: ["#00D4FF", "#0099FF"] },
+  { id: "#A855F7,#FF6BFF", label: "Neon Purple",icon: "💜", colors: ["#A855F7", "#FF6BFF"] },
+  { id: "#00FF88,#00D4FF", label: "Cyber Mint", icon: "🌿", colors: ["#00FF88", "#00D4FF"] },
+  { id: "#FFD93D,#FF6B6B", label: "Fire Gold",  icon: "🔥", colors: ["#FFD93D", "#FF6B6B"] },
+  { id: "#EF4444,#A855F7", label: "Crimson",    icon: "❤️‍🔥", colors: ["#EF4444", "#A855F7"] },
+  { id: "#00FF88,#A855F7", label: "Aurora",     icon: "🌌", colors: ["#00FF88", "#A855F7"] },
+  { id: "#FF9F43,#FFD93D", label: "Gold Rush",  icon: "✨", colors: ["#FF9F43", "#FFD93D"] },
+  { id: "#0099FF,#A855F7", label: "Galaxy",     icon: "🔮", colors: ["#0099FF", "#A855F7"] },
+  { id: "#FF6BFF,#FF9F43", label: "Candy",      icon: "🍬", colors: ["#FF6BFF", "#FF9F43"] },
+];
+
+export const USERNAME_COLORS = [
+  { id: "#FFFFFF", label: "White",       icon: "⚪" },
+  { id: "#FF6B6B", label: "Coral",       icon: "🔴" },
+  { id: "#FF9F43", label: "Orange",      icon: "🟠" },
+  { id: "#FFD93D", label: "Yellow",      icon: "🟡" },
+  { id: "#00FF88", label: "Lime",        icon: "🟢" },
+  { id: "#00D4FF", label: "Teal",        icon: "🔵" },
+  { id: "#0099FF", label: "Blue",        icon: "💙" },
+  { id: "#A855F7", label: "Purple",      icon: "🟣" },
+  { id: "#FF6BFF", label: "Pink",        icon: "🩷" },
+  { id: "#FFD700", label: "Gold",        icon: "🌟" },
+  { id: "#EF4444", label: "Red",         icon: "❤️" },
+  { id: "#10B981", label: "Emerald",     icon: "💚" },
+];
+
 export const THEMES = [
   { id: "dark",      label: "Dark",      icon: "🎨", preview: "#05050b", available: true },
   { id: "neon",      label: "Neon",      icon: "🌟", preview: "#0a0a1a", available: true },

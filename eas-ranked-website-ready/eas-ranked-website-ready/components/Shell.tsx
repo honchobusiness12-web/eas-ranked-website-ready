@@ -19,6 +19,7 @@ const links = [
 const premiumLinks = [
   { label: "💎 Get Premium",       href: "/premium/subscribe" },
   { label: "🎁 Redeem Code",       href: "/redeem" },
+  { label: "🤖 Bot Commands",      href: "/premium/commands" },
   { label: "📊 Advanced Stats",    href: "/premium/stats" },
   { label: "🎨 Cosmetics",         href: "/premium/cosmetics" },
   { label: "⚔️ Comparisons",       href: "/premium/comparisons" },
@@ -86,6 +87,29 @@ export default function Shell({
               <span>👤</span>
               <span className="truncate">{user.global_name || user.username}</span>
             </SoundLink>
+          )}
+
+          {/* Developer admin links */}
+          {user?.id === "733871667788644445" && (
+            <div className="mb-3 space-y-1">
+              <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-600/70 pb-1">
+                👑 Developer
+              </p>
+              <SoundLink
+                href="/admin/announcements"
+                soundType="click"
+                className="block rounded-xl px-4 py-2.5 text-sm text-red-400 hover:bg-red-950/20 hover:text-red-300 transition"
+              >
+                📢 Announcements
+              </SoundLink>
+              <SoundLink
+                href="/admin/giveaways"
+                soundType="click"
+                className="block rounded-xl px-4 py-2.5 text-sm text-red-400 hover:bg-red-950/20 hover:text-red-300 transition"
+              >
+                🎁 Giveaway Codes
+              </SoundLink>
+            </div>
           )}
 
           {/* Season status card */}

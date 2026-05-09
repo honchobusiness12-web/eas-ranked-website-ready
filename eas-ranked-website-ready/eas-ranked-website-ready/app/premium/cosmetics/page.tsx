@@ -11,6 +11,8 @@ import {
   PLAYER_TITLES,
   PROFILE_COLORS,
   ACHIEVEMENT_FRAMES,
+  GRADIENT_PRESETS,
+  USERNAME_COLORS,
 } from "@/lib/premium-constants";
 
 interface CosmeticsState {
@@ -19,6 +21,8 @@ interface CosmeticsState {
   player_title: string;
   profile_color: string;
   achievement_frame: string;
+  gradient_color: string;
+  username_color: string;
 }
 
 const DEFAULT_COSMETICS: CosmeticsState = {
@@ -27,6 +31,8 @@ const DEFAULT_COSMETICS: CosmeticsState = {
   player_title: "",
   profile_color: "#FF6B6B",
   achievement_frame: "default",
+  gradient_color: "",
+  username_color: "",
 };
 
 export default function CosmeticsPage() {
@@ -37,7 +43,7 @@ export default function CosmeticsPage() {
   const [cosmetics, setCosmetics] = useState<CosmeticsState>(DEFAULT_COSMETICS);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
-  const [activeTab, setActiveTab] = useState<"themes" | "badges" | "titles" | "colors" | "frames">("themes");
+  const [activeTab, setActiveTab] = useState<"themes" | "badges" | "titles" | "colors" | "frames" | "gradients" | "username">("themes");
 
   // On mount: fetch the logged-in user from session, then load their cosmetics
   useEffect(() => {
@@ -74,6 +80,8 @@ export default function CosmeticsPage() {
             player_title: cosData.cosmetics.player_title || "",
             profile_color: cosData.cosmetics.profile_color || "#FF6B6B",
             achievement_frame: cosData.cosmetics.achievement_frame || "default",
+            gradient_color: cosData.cosmetics.gradient_color || "",
+            username_color: cosData.cosmetics.username_color || "",
           });
         }
       } catch {
@@ -111,11 +119,13 @@ export default function CosmeticsPage() {
   }
 
   const TABS = [
-    { id: "themes" as const, label: "🎨 Themes" },
-    { id: "badges" as const, label: "🏅 Rank Badges" },
-    { id: "titles" as const, label: "📛 Titles" },
-    { id: "colors" as const, label: "🎨 Colors" },
-    { id: "frames" as const, label: "🖼️ Frames" },
+    { id: "themes" as const,    label: "🎨 Themes" },
+    { id: "badges" as const,    label: "🏅 Rank Badges" },
+    { id: "titles" as const,    label: "📛 Titles" },
+    { id: "colors" as const,    label: "🎨 Colors" },
+    { id: "frames" as const,    label: "🖼️ Frames" },
+    { id: "gradients" as const, label: "🌈 Gradients" },
+    { id: "username" as const,  label: "📝 Username Color" },
   ];
 
   // Show a loading state while we verify the session
@@ -402,6 +412,113 @@ export default function CosmeticsPage() {
               </div>
             )}
 
+            {/* Gradient color picker */}
+            {activeTab === "gradients" && (
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+                <h3 className="mb-1 text-lg font-black">Rank Badge Gradient</h3>
+                <p className="mb-4 text-sm text-zinc-400">Choose a gradient for your rank badge when the &quot;Gradient&quot; badge style is active.</p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <button
+                    onClick={() => setCosmetics((c) => ({ ...c, gradient_color: "" }))}
+                    className={`relative rounded-xl border p-4 text-left transition ${
+                      cosmetics.gradient_color === ""
+                        ? "border-yellow-500 bg-yellow-950/20"
+                        : "border-white/10 bg-white/5 hover:border-yellow-600/40"
+                    }`}
+                  >
+                    <div className="mb-2 h-10 w-full rounded-lg border border-white/10 bg-zinc-800 flex items-center justify-center">
+                      <span className="text-xs text-zinc-400">Default</span>
+                    </div>
+                    <p className="font-bold text-sm text-center">⭐ Default</p>
+                    {cosmetics.gradient_color === "" && (
+                      <span className="absolute right-2 top-2 text-yellow-400 text-sm">✓</span>
+                    )}
+                  </button>
+                  {GRADIENT_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => setCosmetics((c) => ({ ...c, gradient_color: preset.id }))}
+                      className={`relative rounded-xl border p-4 text-left transition ${
+                        cosmetics.gradient_color === preset.id
+                          ? "border-yellow-500 bg-yellow-950/20"
+                          : "border-white/10 bg-white/5 hover:border-yellow-600/40"
+                      }`}
+                    >
+                      <div
+                        className="mb-2 h-10 w-full rounded-lg flex items-center justify-center"
+                        style={{ background: `linear-gradient(90deg, ${preset.colors[0]}, ${preset.colors[1]})` }}
+                      >
+                        <span className="text-lg drop-shadow">{preset.icon}</span>
+                      </div>
+                      <p className="font-bold text-sm text-center">{preset.icon} {preset.label}</p>
+                      {cosmetics.gradient_color === preset.id && (
+                        <span className="absolute right-2 top-2 text-yellow-400 text-sm">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {cosmetics.gradient_color && (
+                  <p className="mt-4 text-sm text-zinc-400">
+                    Selected: <span className="font-mono text-xs text-zinc-300">{cosmetics.gradient_color}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Username color picker */}
+            {activeTab === "username" && (
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+                <h3 className="mb-1 text-lg font-black">Username Color</h3>
+                <p className="mb-4 text-sm text-zinc-400">Choose a custom color for your display name on your profile.</p>
+                <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
+                  <button
+                    onClick={() => setCosmetics((c) => ({ ...c, username_color: "" }))}
+                    className={`relative rounded-xl border p-3 text-center transition ${
+                      cosmetics.username_color === ""
+                        ? "border-yellow-500 bg-yellow-950/20"
+                        : "border-white/10 bg-white/5 hover:border-yellow-600/40"
+                    }`}
+                  >
+                    <div className="mb-1 flex justify-center">
+                      <div className="h-8 w-8 rounded-full border-2 border-zinc-600 bg-zinc-700 flex items-center justify-center text-xs text-zinc-400">✕</div>
+                    </div>
+                    <p className="text-xs font-bold text-zinc-400">None</p>
+                    {cosmetics.username_color === "" && (
+                      <span className="absolute right-1 top-1 text-yellow-400 text-xs">✓</span>
+                    )}
+                  </button>
+                  {USERNAME_COLORS.map((color) => (
+                    <button
+                      key={color.id}
+                      onClick={() => setCosmetics((c) => ({ ...c, username_color: color.id }))}
+                      title={color.label}
+                      className={`relative rounded-xl border p-3 text-center transition ${
+                        cosmetics.username_color === color.id
+                          ? "border-yellow-500 bg-yellow-950/20"
+                          : "border-white/10 bg-white/5 hover:border-yellow-600/40"
+                      }`}
+                    >
+                      <div className="mb-1 flex justify-center">
+                        <div
+                          className="h-8 w-8 rounded-full border-2 border-white/20"
+                          style={{ backgroundColor: color.id }}
+                        />
+                      </div>
+                      <p className="text-xs font-bold" style={{ color: color.id }}>{color.label}</p>
+                      {cosmetics.username_color === color.id && (
+                        <span className="absolute right-1 top-1 text-yellow-400 text-xs">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {cosmetics.username_color && (
+                  <p className="mt-4 text-sm text-zinc-400">
+                    Selected: <span className="font-bold" style={{ color: cosmetics.username_color }}>{cosmetics.username_color}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Save button */}
             <div className="flex items-center gap-4">
               <button
@@ -440,7 +557,12 @@ export default function CosmeticsPage() {
                     P
                   </div>
                   <div>
-                    <p className="font-black">Your Name</p>
+                    <p
+                      className="font-black"
+                      style={cosmetics.username_color ? { color: cosmetics.username_color } : undefined}
+                    >
+                      Your Name
+                    </p>
                     {cosmetics.player_title && (
                       <p className="text-xs font-bold" style={{ color: cosmetics.profile_color }}>
                         {cosmetics.player_title}
@@ -466,7 +588,9 @@ export default function CosmeticsPage() {
                           : "none",
                       background:
                         cosmetics.rank_badge_style === "gradient"
-                          ? `linear-gradient(90deg, ${cosmetics.profile_color}, #FF9F43)`
+                          ? cosmetics.gradient_color
+                            ? `linear-gradient(90deg, ${cosmetics.gradient_color.split(",")[0]}, ${cosmetics.gradient_color.split(",")[1]})`
+                            : `linear-gradient(90deg, ${cosmetics.profile_color}, #FF9F43)`
                           : undefined,
                     }}
                   >
@@ -505,6 +629,12 @@ export default function CosmeticsPage() {
                 <p>Theme: <span className="text-zinc-300 font-bold capitalize">{THEMES.find((t) => t.id === cosmetics.theme)?.icon} {cosmetics.theme}</span></p>
                 <p>Badge: <span className="text-zinc-300 font-bold capitalize">{RANK_BADGE_STYLES.find((b) => b.id === cosmetics.rank_badge_style)?.icon} {cosmetics.rank_badge_style}</span></p>
                 <p>Frame: <span className="text-zinc-300 font-bold capitalize">{ACHIEVEMENT_FRAMES.find((f) => f.id === cosmetics.achievement_frame)?.icon} {cosmetics.achievement_frame}</span></p>
+                {cosmetics.gradient_color && (
+                  <p>Gradient: <span className="font-mono text-zinc-300">{cosmetics.gradient_color}</span></p>
+                )}
+                {cosmetics.username_color && (
+                  <p>Username: <span className="font-bold" style={{ color: cosmetics.username_color }}>{cosmetics.username_color}</span></p>
+                )}
               </div>
             </div>
           </div>
