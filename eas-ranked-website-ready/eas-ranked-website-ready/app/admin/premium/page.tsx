@@ -33,6 +33,20 @@ interface PremiumStatusResult {
 }
 
 // ---------------------------------------------------------------------------
+// Source label map
+// ---------------------------------------------------------------------------
+
+const SOURCE_CONFIG: Record<
+  string,
+  { label: string; color: string; bg: string; border: string }
+> = {
+  developer:     { label: "👑 Developer",      color: "text-yellow-300", bg: "bg-yellow-950/30", border: "border-yellow-700/40" },
+  subscription:  { label: "💳 Subscription",   color: "text-blue-300",   bg: "bg-blue-950/30",   border: "border-blue-700/40"   },
+  giveaway_code: { label: "🎁 Manual Grant",   color: "text-purple-300", bg: "bg-purple-950/30", border: "border-purple-700/40" },
+  discord_role:  { label: "🎮 Discord Role",   color: "text-indigo-300", bg: "bg-indigo-950/30", border: "border-indigo-700/40" },
+};
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -48,32 +62,30 @@ function fmt(dateStr: string | null): string {
 }
 
 function fmtDateInput(date: Date): string {
-  // Returns YYYY-MM-DD for <input type="date">
   return date.toISOString().split("T")[0];
 }
 
-function SourceBadge({ source }: { source: PremiumStatusResult["source"] }) {
-  if (!source) return <span className="text-zinc-500">—</span>;
+function hasActiveManualGrant(premiumExpiresAt: string | null): boolean {
+  return !!premiumExpiresAt && new Date(premiumExpiresAt) > new Date();
+}
 
-  const map: Record<string, { label: string; cls: string }> = {
-    developer:     { label: "👑 Developer",        cls: "from-yellow-600 to-amber-600" },
-    subscription:  { label: "💳 Subscription",     cls: "from-blue-600 to-indigo-600" },
-    giveaway_code: { label: "🎁 Giveaway Code",    cls: "from-purple-600 to-violet-600" },
-    discord_role:  { label: "🎮 Discord Role",     cls: "from-indigo-600 to-blue-600" },
-  };
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
-  const config = map[source] ?? { label: source, cls: "from-zinc-600 to-zinc-500" };
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-lg bg-gradient-to-r ${config.cls} px-2.5 py-0.5 text-xs font-black text-white`}
-    >
-      {config.label}
+function StatusPill({ active, label }: { active: boolean; label: string }) {
+  return active ? (
+    <span className="inline-flex items-center gap-1 rounded-lg border border-green-700/40 bg-green-950/30 px-2.5 py-1 text-xs font-black text-green-400">
+      ✓ {label}
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-black text-zinc-500">
+      ✗ {label}
     </span>
   );
 }
 
-function StatusBanner({
+function Toast({
   msg,
   onDismiss,
 }: {
@@ -82,16 +94,16 @@ function StatusBanner({
 }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-bold ${
+      className={`flex items-start justify-between gap-3 rounded-2xl border px-5 py-4 text-sm font-bold shadow-xl ${
         msg.type === "success"
           ? "border-green-700/40 bg-green-950/20 text-green-300"
           : "border-red-700/40 bg-red-950/20 text-red-300"
       }`}
     >
-      <span>{msg.text}</span>
+      <span className="leading-snug">{msg.text}</span>
       <button
         onClick={onDismiss}
-        className="ml-3 text-xs opacity-60 hover:opacity-100 transition"
+        className="mt-0.5 shrink-0 text-xs opacity-50 hover:opacity-100 transition"
       >
         ✕
       </button>
@@ -107,7 +119,7 @@ export default function AdminPremiumPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
 
-  // Search state
+  // Search
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PlayerRow[]>([]);
   const [searching, setSearching] = useState(false);
@@ -115,11 +127,11 @@ export default function AdminPremiumPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Selected player state
+  // Selected player
   const [selected, setSelected] = useState<PremiumStatusResult | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
 
-  // Grant form state
+  // Actions
   const [customExpiry, setCustomExpiry] = useState(false);
   const [expiryDate, setExpiryDate] = useState(
     fmtDateInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000))
@@ -145,21 +157,15 @@ export default function AdminPremiumPage() {
       .catch(() => setAuthChecked(true));
   }, []);
 
-  // ---------------------------------------------------------------------------
-  // Auto-dismiss success messages
-  // ---------------------------------------------------------------------------
-
+  // Auto-dismiss success toasts
   useEffect(() => {
     if (actionMsg?.type === "success") {
-      const t = setTimeout(() => setActionMsg(null), 5000);
+      const t = setTimeout(() => setActionMsg(null), 6000);
       return () => clearTimeout(t);
     }
   }, [actionMsg]);
 
-  // ---------------------------------------------------------------------------
   // Close dropdown on outside click
-  // ---------------------------------------------------------------------------
-
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -171,7 +177,7 @@ export default function AdminPremiumPage() {
   }, []);
 
   // ---------------------------------------------------------------------------
-  // Player search
+  // Search
   // ---------------------------------------------------------------------------
 
   async function runSearch(q: string) {
@@ -207,9 +213,9 @@ export default function AdminPremiumPage() {
     debounceRef.current = setTimeout(() => runSearch(value), 300);
   }
 
-  async function selectPlayer(userId: string) {
+  async function selectPlayer(userId: string, displayName?: string) {
     setDropdownOpen(false);
-    setQuery("");
+    setQuery(displayName ?? "");
     setSearchResults([]);
     setSelected(null);
     setActionMsg(null);
@@ -221,6 +227,7 @@ export default function AdminPremiumPage() {
       if (res.ok) {
         const data = await res.json();
         setSelected(data);
+        setQuery(data.name ?? displayName ?? "");
       }
     } finally {
       setLoadingStatus(false);
@@ -228,7 +235,7 @@ export default function AdminPremiumPage() {
   }
 
   // ---------------------------------------------------------------------------
-  // Grant premium
+  // Grant
   // ---------------------------------------------------------------------------
 
   async function handleGrant() {
@@ -253,8 +260,7 @@ export default function AdminPremiumPage() {
           type: "success",
           text: `✅ Premium granted to ${selected.name ?? selected.userId}. Expires: ${fmt(data.expiresAt)}`,
         });
-        // Refresh status
-        await selectPlayer(selected.userId);
+        await selectPlayer(selected.userId, selected.name ?? undefined);
       } else {
         setActionMsg({ type: "error", text: data.error ?? "Failed to grant premium." });
       }
@@ -266,7 +272,7 @@ export default function AdminPremiumPage() {
   }
 
   // ---------------------------------------------------------------------------
-  // Revoke premium
+  // Revoke
   // ---------------------------------------------------------------------------
 
   async function handleRevoke() {
@@ -285,8 +291,7 @@ export default function AdminPremiumPage() {
           type: "success",
           text: `✅ Manual premium revoked from ${selected.name ?? selected.userId}.`,
         });
-        // Refresh status
-        await selectPlayer(selected.userId);
+        await selectPlayer(selected.userId, selected.name ?? undefined);
       } else {
         setActionMsg({ type: "error", text: data.error ?? "Failed to revoke premium." });
       }
@@ -305,7 +310,7 @@ export default function AdminPremiumPage() {
     return (
       <Shell>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <p className="text-zinc-400 animate-pulse">Checking access…</p>
+          <p className="animate-pulse text-zinc-400">Checking access…</p>
         </div>
       </Shell>
     );
@@ -316,7 +321,7 @@ export default function AdminPremiumPage() {
       <Shell>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <p className="text-5xl mb-4">🚫</p>
+            <p className="mb-4 text-5xl">🚫</p>
             <h1 className="text-2xl font-black text-red-400">Access Denied</h1>
             <p className="mt-2 text-zinc-400">
               This page is restricted to the EAS Arena developer.
@@ -335,87 +340,57 @@ export default function AdminPremiumPage() {
   }
 
   // ---------------------------------------------------------------------------
+  // Derived state
+  // ---------------------------------------------------------------------------
+
+  const manualGrantActive = selected ? hasActiveManualGrant(selected.premiumExpiresAt) : false;
+  const sourceConfig = selected?.source ? SOURCE_CONFIG[selected.source] : null;
+
+  // ---------------------------------------------------------------------------
   // Main UI
   // ---------------------------------------------------------------------------
 
   return (
     <Shell>
-      {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-4xl font-black">💎 Premium Management</h1>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-black tracking-tight">💎 Premium Manager</h1>
         <p className="mt-2 text-zinc-400">
-          Search for players, inspect their premium status, and manually grant or
-          revoke access. Developer access only.
+          Search for a player, check their status, then grant or revoke premium access.
         </p>
       </div>
 
-      {/* Premium sources reference card */}
-      <div className="mb-6 rounded-2xl border border-yellow-700/30 bg-gradient-to-br from-yellow-950/20 to-black p-5">
-        <h2 className="mb-3 text-sm font-black uppercase tracking-widest text-yellow-500/80">
-          📋 Premium Sources (priority order)
-        </h2>
-        <ol className="space-y-2 text-sm">
-          {[
-            {
-              num: "1",
-              label: "Developer ID",
-              desc: "Permanent — hardcoded to user 733871667788644445",
-              color: "text-yellow-300",
-            },
-            {
-              num: "2",
-              label: "Lemonsqueezy Subscription",
-              desc: "Active subscription row in the subscriptions table",
-              color: "text-blue-300",
-            },
-            {
-              num: "3",
-              label: "Giveaway / Manual Grant",
-              desc: "premium_expires_at > NOW() in the players table",
-              color: "text-purple-300",
-            },
-            {
-              num: "4",
-              label: "Discord Premium Role",
-              desc: "data->>'premium' = true in the players table (set by bot)",
-              color: "text-indigo-300",
-            },
-          ].map(({ num, label, desc, color }) => (
-            <li key={num} className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-black text-zinc-400">
-                {num}
-              </span>
-              <div>
-                <span className={`font-bold ${color}`}>{label}</span>
-                <span className="ml-2 text-zinc-500">{desc}</span>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
+      {/* Toast */}
+      {actionMsg && (
+        <div className="mb-6">
+          <Toast msg={actionMsg} onDismiss={() => setActionMsg(null)} />
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
-        {/* Left — search */}
+      {/* Two-column layout */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
+
+        {/* ── LEFT: Search + Player Card ── */}
         <div className="space-y-5">
-          {/* Search input */}
-          <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
-            <h2 className="mb-3 text-sm font-black uppercase tracking-widest text-zinc-500">
-              🔍 Find Player
-            </h2>
+
+          {/* Search box */}
+          <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+            <p className="mb-3 text-xs font-black uppercase tracking-widest text-zinc-500">
+              Step 1 — Find a Player
+            </p>
             <div ref={searchRef} className="relative">
               <div className="relative flex items-center">
+                <span className="absolute left-4 text-zinc-500 text-base pointer-events-none">🔍</span>
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => handleSearchInput(e.target.value)}
                   onFocus={() => searchResults.length > 0 && setDropdownOpen(true)}
-                  placeholder="Search by name or Discord ID…"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-8 text-sm text-white placeholder-zinc-600 focus:border-yellow-600/50 focus:outline-none"
+                  placeholder="Type a player name or Discord ID…"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-10 text-sm text-white placeholder-zinc-600 focus:border-yellow-600/50 focus:outline-none transition"
                 />
                 {searching && (
-                  <span className="absolute right-3 text-zinc-500 text-xs animate-pulse">
-                    …
-                  </span>
+                  <span className="absolute right-4 animate-pulse text-xs text-zinc-500">…</span>
                 )}
                 {!searching && query && (
                   <button
@@ -423,37 +398,41 @@ export default function AdminPremiumPage() {
                       setQuery("");
                       setSearchResults([]);
                       setDropdownOpen(false);
+                      setSelected(null);
+                      setActionMsg(null);
                     }}
-                    className="absolute right-3 text-zinc-500 hover:text-zinc-300 text-xs transition"
+                    className="absolute right-4 text-zinc-500 hover:text-zinc-300 text-xs transition"
                   >
                     ✕
                   </button>
                 )}
               </div>
 
-              {/* Dropdown results */}
+              {/* Dropdown */}
               {dropdownOpen && searchResults.length > 0 && (
-                <div className="absolute z-30 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] shadow-2xl overflow-hidden">
+                <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#0d0d14] shadow-2xl">
                   {searchResults.map((player) => (
                     <button
                       key={player.user_id}
-                      onMouseDown={() => selectPlayer(player.user_id)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/[0.07] transition border-b border-white/5 last:border-0"
+                      onMouseDown={() => selectPlayer(player.user_id, player.name)}
+                      className="flex w-full items-center gap-3 border-b border-white/5 px-4 py-3 text-left transition last:border-0 hover:bg-white/[0.07]"
                     >
-                      <div>
-                        <p className="font-bold text-sm text-white">{player.name}</p>
-                        <p className="text-[10px] font-mono text-zinc-500">
-                          {player.user_id}
-                        </p>
+                      {/* Avatar */}
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-base">
+                        👤
                       </div>
-                      <div className="text-right shrink-0 ml-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-white">{player.name}</p>
+                        <p className="truncate font-mono text-[10px] text-zinc-500">{player.user_id}</p>
+                      </div>
+                      <div className="shrink-0">
                         {player.premium_expires_at &&
                         new Date(player.premium_expires_at) > new Date() ? (
-                          <span className="rounded-md bg-yellow-950/40 border border-yellow-700/40 px-2 py-0.5 text-[10px] font-black text-yellow-400">
+                          <span className="rounded-md border border-yellow-700/40 bg-yellow-950/40 px-2 py-0.5 text-[10px] font-black text-yellow-400">
                             PREMIUM
                           </span>
                         ) : (
-                          <span className="rounded-md bg-zinc-900 border border-white/5 px-2 py-0.5 text-[10px] font-black text-zinc-500">
+                          <span className="rounded-md border border-white/5 bg-zinc-900 px-2 py-0.5 text-[10px] font-black text-zinc-500">
                             FREE
                           </span>
                         )}
@@ -463,240 +442,246 @@ export default function AdminPremiumPage() {
                 </div>
               )}
 
-              {dropdownOpen &&
-                searchResults.length === 0 &&
-                query.trim() &&
-                !searching && (
-                  <div className="absolute z-30 mt-1 w-full rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3 text-sm text-zinc-500 shadow-2xl">
-                    No players found for &quot;{query}&quot;
-                  </div>
-                )}
+              {dropdownOpen && searchResults.length === 0 && query.trim() && !searching && (
+                <div className="absolute z-30 mt-2 w-full rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3 text-sm text-zinc-500 shadow-2xl">
+                  No players found for &quot;{query}&quot;
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Loading state */}
+          {/* Loading */}
           {loadingStatus && (
-            <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-8 text-center">
-              <p className="text-zinc-400 animate-pulse text-sm">
-                Loading premium status…
-              </p>
+            <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-[#0d0d14] p-12">
+              <p className="animate-pulse text-sm text-zinc-400">Loading player status…</p>
             </div>
           )}
 
           {/* Empty state */}
           {!selected && !loadingStatus && (
-            <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-10 text-center">
-              <p className="text-4xl mb-3">💎</p>
-              <p className="text-zinc-500 text-sm">
-                Search for a player above to view and manage their premium status.
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-[#0d0d14] p-14 text-center">
+              <p className="mb-3 text-5xl">💎</p>
+              <p className="text-sm font-bold text-zinc-400">No player selected</p>
+              <p className="mt-1 text-xs text-zinc-600">
+                Search above to load a player&apos;s premium status.
               </p>
             </div>
           )}
 
-          {/* Player premium status card */}
+          {/* ── Player Status Card ── */}
           {selected && !loadingStatus && (
-            <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 space-y-5">
-              {/* Player header */}
-              <div className="flex items-center gap-3">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d14]">
+
+              {/* Card header — avatar + name + big YES/NO badge */}
+              <div
+                className={`flex items-center gap-4 p-6 ${
+                  selected.premium
+                    ? "bg-gradient-to-r from-yellow-950/30 to-transparent"
+                    : "bg-gradient-to-r from-zinc-900/50 to-transparent"
+                }`}
+              >
+                {/* Avatar */}
                 {selected.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={selected.avatarUrl}
                     alt={selected.name ?? "Player"}
-                    className="h-12 w-12 rounded-full border border-white/10"
+                    className="h-16 w-16 rounded-full border-2 border-white/10 shadow-lg"
                   />
                 ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xl">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/10 bg-white/5 text-2xl shadow-lg">
                     👤
                   </div>
                 )}
-                <div>
-                  <p className="font-black text-lg text-white">
+
+                {/* Name + ID */}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xl font-black text-white">
                     {selected.name ?? "Unknown Player"}
                   </p>
-                  <p className="text-[11px] font-mono text-zinc-500">
+                  <p className="mt-0.5 truncate font-mono text-xs text-zinc-500">
                     {selected.userId}
                   </p>
                 </div>
-                <div className="ml-auto">
+
+                {/* Big premium YES/NO */}
+                <div className="shrink-0 text-right">
                   {selected.premium ? (
-                    <span className="rounded-xl bg-gradient-to-r from-yellow-600 to-amber-600 px-3 py-1 text-sm font-black text-white">
-                      💎 PREMIUM
-                    </span>
+                    <div className="rounded-2xl bg-gradient-to-br from-yellow-500 to-amber-600 px-4 py-2 shadow-lg shadow-yellow-900/30">
+                      <p className="text-xs font-black uppercase tracking-widest text-yellow-100/80">
+                        Premium
+                      </p>
+                      <p className="text-2xl font-black text-white leading-none">YES</p>
+                    </div>
                   ) : (
-                    <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-sm font-black text-zinc-400">
-                      FREE
-                    </span>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
+                      <p className="text-xs font-black uppercase tracking-widest text-zinc-500">
+                        Premium
+                      </p>
+                      <p className="text-2xl font-black text-zinc-400 leading-none">NO</p>
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Status breakdown */}
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
-                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-500">
-                  Premium Status Breakdown
-                </h3>
+              {/* Status rows */}
+              <div className="divide-y divide-white/5 border-t border-white/10">
 
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                {/* Active source */}
+                <div className="flex items-center justify-between px-6 py-4">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600 mb-1">
+                    <p className="text-xs font-black uppercase tracking-wider text-zinc-600">
                       Active Source
                     </p>
-                    <SourceBadge source={selected.source} />
+                    <p className="mt-0.5 text-sm text-zinc-400">
+                      Where premium is coming from
+                    </p>
                   </div>
+                  {sourceConfig ? (
+                    <span
+                      className={`rounded-xl border px-3 py-1.5 text-sm font-black ${sourceConfig.color} ${sourceConfig.bg} ${sourceConfig.border}`}
+                    >
+                      {sourceConfig.label}
+                    </span>
+                  ) : (
+                    <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-black text-zinc-500">
+                      None
+                    </span>
+                  )}
+                </div>
+
+                {/* Discord role synced */}
+                <div className="flex items-center justify-between px-6 py-4">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600 mb-1">
-                      Expires At
+                    <p className="text-xs font-black uppercase tracking-wider text-zinc-600">
+                      Discord Role Synced
                     </p>
-                    <p className="text-white font-bold">
-                      {selected.expiresAt ? fmt(selected.expiresAt) : "Never / N/A"}
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      {selected.discordPremium
+                        ? "Bot has assigned the Premium User role"
+                        : "Bot has NOT assigned the Premium User role — assign it in Discord first"}
                     </p>
                   </div>
+                  <StatusPill
+                    active={selected.discordPremium}
+                    label={selected.discordPremium ? "Synced" : "Not Synced"}
+                  />
                 </div>
 
-                {/* Individual source rows */}
-                <div className="mt-2 space-y-2 border-t border-white/5 pt-3">
-                  {/* Developer */}
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">👑 Developer ID</span>
-                    <span
-                      className={
-                        selected.isDeveloper ? "text-yellow-400 font-bold" : "text-zinc-600"
-                      }
-                    >
-                      {selected.isDeveloper ? "✓ Active" : "—"}
-                    </span>
-                  </div>
-
-                  {/* Subscription */}
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">💳 Lemonsqueezy Subscription</span>
-                    <span
-                      className={
-                        selected.subscription?.status === "active"
-                          ? "text-blue-400 font-bold"
-                          : "text-zinc-600"
-                      }
-                    >
-                      {selected.subscription?.status === "active"
-                        ? `✓ Active (ends ${fmt(selected.subscription.periodEnd)})`
-                        : selected.subscription?.status
-                        ? `✗ ${selected.subscription.status}`
-                        : "—"}
-                    </span>
-                  </div>
-
-                  {/* Giveaway / manual */}
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">🎁 Giveaway / Manual Grant</span>
-                    <span
-                      className={
-                        selected.premiumExpiresAt &&
-                        new Date(selected.premiumExpiresAt) > new Date()
-                          ? "text-purple-400 font-bold"
-                          : "text-zinc-600"
-                      }
-                    >
-                      {selected.premiumExpiresAt &&
-                      new Date(selected.premiumExpiresAt) > new Date()
-                        ? `✓ Active (expires ${fmt(selected.premiumExpiresAt)})`
+                {/* Manual grant */}
+                <div className="flex items-center justify-between px-6 py-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider text-zinc-600">
+                      Manual Grant
+                    </p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      {manualGrantActive
+                        ? `Expires ${fmt(selected.premiumExpiresAt)}`
                         : selected.premiumExpiresAt
-                        ? `✗ Expired ${fmt(selected.premiumExpiresAt)}`
-                        : "—"}
-                    </span>
+                        ? `Expired ${fmt(selected.premiumExpiresAt)}`
+                        : "No manual grant on record"}
+                    </p>
                   </div>
-
-                  {/* Discord role */}
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">🎮 Discord Premium Role</span>
-                    <span
-                      className={
-                        selected.discordPremium ? "text-indigo-400 font-bold" : "text-zinc-600"
-                      }
-                    >
-                      {selected.discordPremium ? "✓ Active" : "—"}
-                    </span>
-                  </div>
+                  <StatusPill active={manualGrantActive} label={manualGrantActive ? "Active" : "Inactive"} />
                 </div>
-              </div>
 
-              {/* Action feedback */}
-              {actionMsg && (
-                <StatusBanner
-                  msg={actionMsg}
-                  onDismiss={() => setActionMsg(null)}
-                />
-              )}
+                {/* Developer */}
+                {selected.isDeveloper && (
+                  <div className="flex items-center justify-between px-6 py-4">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wider text-zinc-600">
+                        Developer
+                      </p>
+                      <p className="mt-0.5 text-xs text-zinc-500">Permanent premium — hardcoded</p>
+                    </div>
+                    <StatusPill active label="Active" />
+                  </div>
+                )}
+
+                {/* Subscription */}
+                {selected.subscription && (
+                  <div className="flex items-center justify-between px-6 py-4">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wider text-zinc-600">
+                        Subscription
+                      </p>
+                      <p className="mt-0.5 text-xs text-zinc-500">
+                        {selected.subscription.status === "active"
+                          ? `Active — renews ${fmt(selected.subscription.periodEnd)}`
+                          : `Status: ${selected.subscription.status ?? "none"}`}
+                      </p>
+                    </div>
+                    <StatusPill
+                      active={selected.subscription.status === "active"}
+                      label={selected.subscription.status === "active" ? "Active" : "Inactive"}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Right — grant / revoke panel */}
-        <div className="space-y-4">
-          {/* Grant premium */}
-          <div className="rounded-2xl border border-yellow-700/30 bg-gradient-to-br from-yellow-950/20 to-black p-5">
-            <h2 className="mb-1 text-sm font-black uppercase tracking-widest text-yellow-500/80">
-              ✨ Grant Premium
-            </h2>
-            <p className="mb-4 text-xs text-zinc-500">
-              Sets{" "}
-              <code className="rounded bg-white/5 px-1 py-0.5 font-mono text-zinc-400">
-                premium_expires_at
-              </code>{" "}
-              on the player record. Defaults to 1 year from now.
-            </p>
+        {/* ── RIGHT: Actions ── */}
+        <div className="space-y-5">
+          <p className="text-xs font-black uppercase tracking-widest text-zinc-500">
+            Step 2 — Take Action
+          </p>
 
-            {!selected && (
-              <p className="text-xs text-zinc-600 italic">
-                Search for a player first.
+          {/* Grant Premium */}
+          <div
+            className={`rounded-2xl border p-6 transition-all ${
+              selected && !selected.premium
+                ? "border-green-700/40 bg-gradient-to-br from-green-950/20 to-black"
+                : "border-white/10 bg-[#0d0d14] opacity-60"
+            }`}
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-950/50 text-xl border border-green-700/30">
+                ✨
+              </div>
+              <div>
+                <h2 className="text-base font-black text-white">Grant Premium</h2>
+                <p className="text-xs text-zinc-500">
+                  Sets <code className="rounded bg-white/5 px-1 font-mono text-zinc-400">premium_expires_at</code> on the player
+                </p>
+              </div>
+            </div>
+
+            {!selected ? (
+              <p className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 text-xs text-zinc-600 italic">
+                Search for a player first to enable this action.
               </p>
-            )}
-
-            {selected && (
+            ) : selected.premium ? (
+              <p className="rounded-xl border border-yellow-700/20 bg-yellow-950/10 px-4 py-3 text-xs font-bold text-yellow-600">
+                This player already has premium — no need to grant.
+              </p>
+            ) : (
               <div className="space-y-3">
-                {/* Selected player pill */}
-                <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                  <span className="text-sm">👤</span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-white">
-                      {selected.name ?? selected.userId}
-                    </p>
-                    <p className="truncate text-[10px] font-mono text-zinc-500">
-                      {selected.userId}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Custom expiry toggle */}
+                {/* Expiry toggle */}
                 <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-400">
                   <input
                     type="checkbox"
                     checked={customExpiry}
                     onChange={(e) => setCustomExpiry(e.target.checked)}
-                    className="rounded border-white/20 bg-white/5 accent-yellow-500"
+                    className="rounded border-white/20 bg-white/5 accent-green-500"
                   />
                   Set custom expiry date
                 </label>
 
-                {customExpiry && (
+                {customExpiry ? (
                   <input
                     type="date"
                     value={expiryDate}
                     min={fmtDateInput(new Date(Date.now() + 86400000))}
                     onChange={(e) => setExpiryDate(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-yellow-600/50 focus:outline-none"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-green-600/50 focus:outline-none"
                   />
-                )}
-
-                {!customExpiry && (
+                ) : (
                   <p className="text-xs text-zinc-600">
-                    Will expire:{" "}
-                    <span className="text-zinc-400 font-bold">
-                      {fmt(
-                        new Date(
-                          Date.now() + 365 * 24 * 60 * 60 * 1000
-                        ).toISOString()
-                      )}
+                    Default expiry:{" "}
+                    <span className="font-bold text-zinc-400">
+                      {fmt(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString())}
                     </span>
                   </p>
                 )}
@@ -704,111 +689,103 @@ export default function AdminPremiumPage() {
                 <button
                   onClick={handleGrant}
                   disabled={granting || revoking}
-                  className="w-full rounded-xl bg-gradient-to-r from-yellow-600 to-amber-600 py-2.5 font-black text-white hover:from-yellow-500 hover:to-amber-500 transition-all disabled:opacity-50"
+                  className="w-full rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 py-3.5 text-base font-black text-white shadow-lg shadow-green-900/30 transition-all hover:from-green-500 hover:to-emerald-500 disabled:opacity-50"
                 >
-                  {granting ? "Granting…" : "💎 Grant Premium"}
+                  {granting ? "Granting…" : "✨ Grant Premium"}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Revoke premium */}
-          <div className="rounded-2xl border border-red-700/30 bg-gradient-to-br from-red-950/20 to-black p-5">
-            <h2 className="mb-1 text-sm font-black uppercase tracking-widest text-red-500/80">
-              🚫 Revoke Manual Premium
-            </h2>
-            <p className="mb-4 text-xs text-zinc-500">
-              Clears{" "}
-              <code className="rounded bg-white/5 px-1 py-0.5 font-mono text-zinc-400">
-                premium_expires_at
-              </code>
-              . Does not cancel Lemonsqueezy subscriptions or Discord role
-              premium.
-            </p>
+          {/* Revoke Manual Grant */}
+          <div
+            className={`rounded-2xl border p-6 transition-all ${
+              manualGrantActive
+                ? "border-red-700/40 bg-gradient-to-br from-red-950/20 to-black"
+                : "border-white/10 bg-[#0d0d14] opacity-60"
+            }`}
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-950/50 text-xl border border-red-700/30">
+                🚫
+              </div>
+              <div>
+                <h2 className="text-base font-black text-white">Revoke Manual Grant</h2>
+                <p className="text-xs text-zinc-500">
+                  Clears <code className="rounded bg-white/5 px-1 font-mono text-zinc-400">premium_expires_at</code> only
+                </p>
+              </div>
+            </div>
 
-            {!selected && (
-              <p className="text-xs text-zinc-600 italic">
-                Search for a player first.
+            {!selected ? (
+              <p className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 text-xs text-zinc-600 italic">
+                Search for a player first to enable this action.
               </p>
-            )}
-
-            {selected && (
+            ) : !manualGrantActive ? (
+              <p className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 text-xs text-zinc-600 italic">
+                No active manual grant to revoke.
+              </p>
+            ) : (
               <div className="space-y-3">
-                {/* Selected player pill */}
-                <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                  <span className="text-sm">👤</span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-white">
-                      {selected.name ?? selected.userId}
-                    </p>
-                    <p className="truncate text-[10px] font-mono text-zinc-500">
-                      {selected.userId}
-                    </p>
-                  </div>
-                </div>
-
-                {selected.premiumExpiresAt &&
-                new Date(selected.premiumExpiresAt) > new Date() ? (
-                  <p className="text-xs text-zinc-400">
-                    Current manual expiry:{" "}
-                    <span className="font-bold text-purple-400">
-                      {fmt(selected.premiumExpiresAt)}
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-xs text-zinc-600 italic">
-                    No active manual premium grant to revoke.
-                  </p>
-                )}
+                <p className="rounded-xl border border-red-700/20 bg-red-950/10 px-4 py-3 text-xs text-zinc-400">
+                  Current expiry:{" "}
+                  <span className="font-bold text-red-400">
+                    {fmt(selected.premiumExpiresAt)}
+                  </span>
+                  <br />
+                  <span className="text-zinc-600">
+                    This will not cancel subscriptions or remove the Discord role.
+                  </span>
+                </p>
 
                 <button
                   onClick={handleRevoke}
-                  disabled={
-                    revoking ||
-                    granting ||
-                    !selected.premiumExpiresAt ||
-                    new Date(selected.premiumExpiresAt) <= new Date()
-                  }
-                  className="w-full rounded-xl border border-red-700/40 bg-red-950/20 py-2.5 font-black text-red-400 hover:bg-red-950/40 transition-all disabled:opacity-40"
+                  disabled={revoking || granting}
+                  className="w-full rounded-xl border border-red-700/50 bg-red-950/30 py-3.5 text-base font-black text-red-400 shadow-lg transition-all hover:bg-red-950/50 disabled:opacity-50"
                 >
-                  {revoking ? "Revoking…" : "🚫 Revoke Manual Premium"}
+                  {revoking ? "Revoking…" : "🚫 Revoke Manual Grant"}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Quick reference */}
+          {/* Info box */}
           <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
-            <h2 className="mb-3 text-sm font-black uppercase tracking-widest text-zinc-500">
-              ℹ️ Quick Reference
-            </h2>
-            <ul className="space-y-2 text-xs text-zinc-500">
-              <li>
-                <span className="font-bold text-zinc-400">Grant</span> sets{" "}
-                <code className="rounded bg-white/5 px-1 font-mono">
-                  premium_expires_at
-                </code>{" "}
-                — takes effect immediately.
+            <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-zinc-500">
+              ℹ️ How It Works
+            </h3>
+            <ul className="space-y-2.5 text-xs text-zinc-500">
+              <li className="flex gap-2">
+                <span className="mt-0.5 shrink-0 text-green-500">✓</span>
+                <span>
+                  <span className="font-bold text-zinc-400">Grant</span> sets a manual expiry date — takes effect immediately.
+                </span>
               </li>
-              <li>
-                <span className="font-bold text-zinc-400">Revoke</span> only
-                clears the manual grant — subscriptions and Discord roles are
-                unaffected.
+              <li className="flex gap-2">
+                <span className="mt-0.5 shrink-0 text-red-500">✗</span>
+                <span>
+                  <span className="font-bold text-zinc-400">Revoke</span> only clears the manual grant. Subscriptions and Discord roles are unaffected.
+                </span>
               </li>
-              <li>
-                To cancel a Lemonsqueezy subscription, use the{" "}
-                <SoundLink
-                  href="/premium/manage"
-                  soundType="click"
-                  className="text-blue-400 hover:text-blue-300 underline"
-                >
-                  Manage Subscription
-                </SoundLink>{" "}
-                page or the Lemonsqueezy dashboard.
+              <li className="flex gap-2">
+                <span className="mt-0.5 shrink-0 text-indigo-400">🎮</span>
+                <span>
+                  <span className="font-bold text-zinc-400">Discord role</span> premium is synced by the bot. Assign or remove the role in Discord to change it.
+                </span>
               </li>
-              <li>
-                Discord role premium is synced by the bot — remove the role in
-                Discord to revoke it.
+              <li className="flex gap-2">
+                <span className="mt-0.5 shrink-0 text-blue-400">💳</span>
+                <span>
+                  To cancel a subscription, use the{" "}
+                  <SoundLink
+                    href="/premium/manage"
+                    soundType="click"
+                    className="text-blue-400 underline hover:text-blue-300"
+                  >
+                    Manage Subscription
+                  </SoundLink>{" "}
+                  page.
+                </span>
               </li>
             </ul>
           </div>
