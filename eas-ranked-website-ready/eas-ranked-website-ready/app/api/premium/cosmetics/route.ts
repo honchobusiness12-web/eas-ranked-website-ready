@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCosmetics, upsertCosmetics, isPremiumUser } from "@/lib/premium";
+import { getSession } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("userId");
@@ -13,10 +14,24 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    // Require an authenticated session
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { userId, ...data } = body;
     if (!userId) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    }
+
+    // Only allow users to edit their own cosmetics
+    if (userId !== session.userId) {
+      return NextResponse.json(
+        { error: "You can only edit your own cosmetics" },
+        { status: 403 }
+      );
     }
 
     const premium = await isPremiumUser(userId);
