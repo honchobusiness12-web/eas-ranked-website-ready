@@ -77,16 +77,10 @@ export default function CRAdminPage() {
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/admin/check")
       .then((r) => r.json())
-      .then(async (data) => {
-        if (!data.user) {
-          setAuthChecked(true);
-          return;
-        }
-        // Use the logs endpoint as the owner gate — 403 = not owner
-        const probe = await fetch("/api/admin/cr/logs?limit=1");
-        setIsOwner(probe.ok);
+      .then((data) => {
+        setIsOwner(data.isDeveloper === true);
         setAuthChecked(true);
       })
       .catch(() => setAuthChecked(true));

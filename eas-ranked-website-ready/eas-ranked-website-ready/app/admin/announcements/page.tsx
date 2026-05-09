@@ -50,15 +50,10 @@ export default function AdminAnnouncementsPage() {
 
   // Auth check
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/admin/check")
       .then((r) => r.json())
-      .then(async (data) => {
-        if (!data.user) {
-          setAuthChecked(true);
-          return;
-        }
-        const res = await fetch("/api/admin/announcements");
-        setIsOwner(res.ok);
+      .then((data) => {
+        setIsOwner(data.isDeveloper === true);
         setAuthChecked(true);
       })
       .catch(() => setAuthChecked(true));

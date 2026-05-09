@@ -146,15 +146,10 @@ export default function AdminSeasonsPage() {
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/admin/check")
       .then((r) => r.json())
-      .then(async (data) => {
-        if (!data.user) {
-          setAuthChecked(true);
-          return;
-        }
-        const res = await fetch("/api/admin/seasons");
-        setIsOwner(res.ok);
+      .then((data) => {
+        setIsOwner(data.isDeveloper === true);
         setAuthChecked(true);
       })
       .catch(() => setAuthChecked(true));

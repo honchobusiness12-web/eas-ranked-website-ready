@@ -69,16 +69,10 @@ export default function AdminGiveawaysPage() {
 
   // Check auth on mount
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/admin/check")
       .then((r) => r.json())
-      .then(async (data) => {
-        if (!data.user) {
-          setAuthChecked(true);
-          return;
-        }
-        // Check owner status via list endpoint (403 = not owner)
-        const listRes = await fetch("/api/giveaway/list");
-        setIsOwner(listRes.ok);
+      .then((data) => {
+        setIsOwner(data.isDeveloper === true);
         setAuthChecked(true);
       })
       .catch(() => setAuthChecked(true));
