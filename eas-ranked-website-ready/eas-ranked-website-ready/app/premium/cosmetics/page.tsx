@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Shell from "@/components/Shell";
 import SoundLink from "@/components/SoundLink";
 import PremiumBadge from "@/components/PremiumBadge";
@@ -29,47 +30,62 @@ const DEFAULT_COSMETICS: CosmeticsState = {
 };
 
 export default function CosmeticsPage() {
+  const router = useRouter();
   const [userId, setUserId] = useState("");
-  const [inputId, setInputId] = useState("");
   const [isPremium, setIsPremium] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [cosmetics, setCosmetics] = useState<CosmeticsState>(DEFAULT_COSMETICS);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
   const [activeTab, setActiveTab] = useState<"themes" | "badges" | "titles" | "colors" | "frames">("themes");
 
-  async function checkPremium(uid: string) {
-    setChecking(true);
-    try {
-      const [statusRes, cosRes] = await Promise.all([
-        fetch(`/api/premium/status?userId=${uid}`),
-        fetch(`/api/premium/cosmetics?userId=${uid}`),
-      ]);
-      const statusData = await statusRes.json();
-      const cosData = await cosRes.json();
-      setIsPremium(statusData.premium ?? false);
-      if (cosData.cosmetics) {
-        setCosmetics({
-          theme: cosData.cosmetics.theme || "dark",
-          rank_badge_style: cosData.cosmetics.rank_badge_style || "default",
-          player_title: cosData.cosmetics.player_title || "",
-          profile_color: cosData.cosmetics.profile_color || "#FF6B6B",
-          achievement_frame: cosData.cosmetics.achievement_frame || "default",
-        });
-      }
-    } catch {
-      setIsPremium(false);
-    } finally {
-      setChecking(false);
-    }
-  }
+  // On mount: fetch the logged-in user from session, then load their cosmetics
+  useEffect(() => {
+    async function init() {
+      setLoading(true);
+      try {
+        // 1. Get the current session user
+        const meRes = await fetch("/api/auth/me");
+        const meData = await meRes.json();
 
-  function handleLookup(e: React.FormEvent) {
-    e.preventDefault();
-    if (!inputId.trim()) return;
-    setUserId(inputId.trim());
-    checkPremium(inputId.trim());
-  }
+        if (!meData.user) {
+          // Not logged in — redirect to login
+          router.replace("/auth/login");
+          return;
+        }
+
+        const uid: string = meData.user.id;
+        setUserId(uid);
+
+        // 2. Load premium status and existing cosmetics for this user
+        const [statusRes, cosRes] = await Promise.all([
+          fetch(`/api/premium/status?userId=${uid}`),
+          fetch(`/api/premium/cosmetics?userId=${uid}`),
+        ]);
+        const statusData = await statusRes.json();
+        const cosData = await cosRes.json();
+
+        setIsPremium(statusData.premium ?? false);
+
+        if (cosData.cosmetics) {
+          setCosmetics({
+            theme: cosData.cosmetics.theme || "dark",
+            rank_badge_style: cosData.cosmetics.rank_badge_style || "default",
+            player_title: cosData.cosmetics.player_title || "",
+            profile_color: cosData.cosmetics.profile_color || "#FF6B6B",
+            achievement_frame: cosData.cosmetics.achievement_frame || "default",
+          });
+        }
+      } catch {
+        // On error, redirect to login as a safe fallback
+        router.replace("/auth/login");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    init();
+  }, [router]);
 
   async function handleSave() {
     if (!userId || !isPremium) return;
@@ -82,7 +98,11 @@ export default function CosmeticsPage() {
         body: JSON.stringify({ userId, ...cosmetics }),
       });
       const data = await res.json();
-      setSaveMsg(data.success ? "✅ Cosmetics saved successfully!" : data.error || "Failed to save.");
+      if (res.status === 403) {
+        setSaveMsg("❌ " + (data.error || "You can only edit your own cosmetics."));
+      } else {
+        setSaveMsg(data.success ? "✅ Cosmetics saved successfully!" : data.error || "Failed to save.");
+      }
     } catch {
       setSaveMsg("An error occurred. Please try again.");
     } finally {
@@ -98,6 +118,17 @@ export default function CosmeticsPage() {
     { id: "frames" as const, label: "🖼️ Frames" },
   ];
 
+  // Show a loading state while we verify the session
+  if (loading) {
+    return (
+      <Shell>
+        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-12 text-center">
+          <p className="text-zinc-400 animate-pulse">Loading your cosmetics…</p>
+        </div>
+      </Shell>
+    );
+  }
+
   return (
     <Shell>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -108,27 +139,17 @@ export default function CosmeticsPage() {
         <PremiumBadge size="lg" />
       </div>
 
-      {/* User ID lookup */}
-      <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6 mb-6">
-        <h2 className="mb-3 text-lg font-black">🔍 Enter Your Discord User ID</h2>
-        <form onSubmit={handleLookup} className="flex gap-3">
-          <input
-            type="text"
-            value={inputId}
-            onChange={(e) => setInputId(e.target.value)}
-            placeholder="Discord User ID (e.g. 123456789012345678)"
-            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-yellow-600/60 focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-5 py-2.5 text-sm font-black text-white hover:from-yellow-400 hover:to-orange-400 transition-all"
-          >
-            {checking ? "Checking…" : "Load"}
-          </button>
-        </form>
+      {/* Logged-in user info */}
+      <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-4 mb-6 flex items-center gap-3">
+        <span className="text-lg">🔒</span>
+        <p className="text-sm text-zinc-400">
+          Editing cosmetics for your account.{" "}
+          <span className="text-zinc-500 font-mono text-xs">(ID: {userId})</span>
+        </p>
+        <p className="ml-auto text-xs text-zinc-600">You can only edit your own cosmetics.</p>
       </div>
 
-      {userId && !checking && !isPremium && (
+      {!isPremium && (
         <div className="rounded-2xl border border-yellow-700/40 bg-gradient-to-br from-yellow-950/30 to-black p-8 text-center mb-6">
           <span className="text-5xl">💎</span>
           <h2 className="mt-4 text-2xl font-black text-yellow-300">Premium Required</h2>
@@ -143,7 +164,7 @@ export default function CosmeticsPage() {
         </div>
       )}
 
-      {userId && !checking && isPremium && (
+      {isPremium && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
           {/* Selector panel */}
           <div className="space-y-4">
@@ -490,13 +511,7 @@ export default function CosmeticsPage() {
         </div>
       )}
 
-      {!userId && (
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-12 text-center">
-          <p className="text-5xl mb-4">🎨</p>
-          <h2 className="text-xl font-black text-zinc-300">Enter your Discord User ID above to get started</h2>
-          <p className="mt-2 text-sm text-zinc-500">Premium members can customise their profile appearance.</p>
-        </div>
-      )}
+
     </Shell>
   );
 }
