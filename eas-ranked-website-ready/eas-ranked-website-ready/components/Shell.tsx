@@ -39,6 +39,7 @@ const adminLinks = [
   { label: "🏆 Seasons",          href: "/admin/seasons" },
   { label: "🏅 Badge Manager",    href: "/admin/badges" },
   { label: "👥 Player Management",href: "/admin/players" },
+  { label: "💎 Premium Manager",  href: "/admin/premium" },
   { label: "📋 Leaderboard Mgmt", href: "/admin/leaderboard" },
   { label: "📊 Analytics",        href: "/admin/analytics" },
   { label: "🛡️ Moderation",       href: "/admin/moderation" },

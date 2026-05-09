@@ -700,6 +700,56 @@ export async function removeBadgeRole(userId: string, badgeId: string): Promise<
 }
 
 // ---------------------------------------------------------------------------
+// Manual premium grant / revoke (admin use)
+// ---------------------------------------------------------------------------
+
+/**
+ * Manually grants premium to a user by setting premium_expires_at.
+ * Defaults to 1 year from now if no expiry is provided.
+ * Invalidates the in-process premium cache for the user.
+ */
+export async function grantPremium(
+  userId: string,
+  expiresAt?: Date
+): Promise<void> {
+  try {
+    const expiry = expiresAt ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    const result = await pool.query(
+      `UPDATE players SET premium_expires_at = $1 WHERE user_id = $2`,
+      [expiry.toISOString(), userId]
+    );
+    if (result.rowCount === 0) {
+      throw new Error(`Player ${userId} not found in database`);
+    }
+    invalidatePremiumStatusCache(userId);
+  } catch (err) {
+    console.error(`[premium] grantPremium(${userId}) failed:`, err);
+    throw err;
+  }
+}
+
+/**
+ * Revokes manually-granted premium from a user by clearing premium_expires_at.
+ * Does not affect Lemonsqueezy subscriptions or Discord role premium.
+ * Invalidates the in-process premium cache for the user.
+ */
+export async function revokePremium(userId: string): Promise<void> {
+  try {
+    const result = await pool.query(
+      `UPDATE players SET premium_expires_at = NULL WHERE user_id = $1`,
+      [userId]
+    );
+    if (result.rowCount === 0) {
+      throw new Error(`Player ${userId} not found in database`);
+    }
+    invalidatePremiumStatusCache(userId);
+  } catch (err) {
+    console.error(`[premium] revokePremium(${userId}) failed:`, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Scrim hosting — waitlist bypass logic
 // ---------------------------------------------------------------------------
 
