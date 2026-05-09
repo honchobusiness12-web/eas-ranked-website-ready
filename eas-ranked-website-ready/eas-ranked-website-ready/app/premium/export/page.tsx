@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Shell from "@/components/Shell";
 import SoundLink from "@/components/SoundLink";
 import PremiumBadge from "@/components/PremiumBadge";
@@ -19,6 +19,9 @@ interface PlayerStats {
 }
 
 export default function ExportPage() {
+  const [sessionUserId, setSessionUserId] = useState("");
+  const [sessionIsPremium, setSessionIsPremium] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [userId, setUserId] = useState("");
   const [inputId, setInputId] = useState("");
   const [isPremium, setIsPremium] = useState(false);
@@ -28,10 +31,39 @@ export default function ExportPage() {
   const [error, setError] = useState("");
   const [exportMsg, setExportMsg] = useState("");
 
+  // Load the authenticated user's session on mount and pre-fill the input
+  useEffect(() => {
+    setSessionLoading(true);
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          const uid: string = data.user.id;
+          setSessionUserId(uid);
+          setInputId(uid);
+          return fetch(`/api/premium/status?userId=${uid}`)
+            .then((r) => r.json())
+            .then((s) => setSessionIsPremium(s.premium ?? false));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setSessionLoading(false));
+  }, []);
+
+  // Whether the currently loaded stats belong to the authenticated user
+  const isOwnStats = sessionUserId !== "" && userId === sessionUserId;
+
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
     if (!inputId.trim()) return;
     const uid = inputId.trim();
+
+    // Only allow exporting own stats
+    if (sessionUserId && uid !== sessionUserId) {
+      setError("You can only export your own stats. Please enter your own Discord User ID.");
+      return;
+    }
+
     setUserId(uid);
     setChecking(true);
     setError("");
@@ -136,9 +168,32 @@ export default function ExportPage() {
         <PremiumBadge size="lg" />
       </div>
 
+      {/* Session info */}
+      {!sessionLoading && (
+        <div className={`rounded-2xl border p-4 mb-6 flex items-center gap-3 ${sessionUserId ? "border-white/10 bg-[#0d0d14]" : "border-yellow-700/40 bg-yellow-950/20"}`}>
+          <span className="text-lg">{sessionUserId ? "🔒" : "⚠️"}</span>
+          {sessionUserId ? (
+            <p className="text-sm text-zinc-400">
+              Signed in as{" "}
+              <span className="text-zinc-300 font-mono text-xs">{sessionUserId}</span>
+              {sessionIsPremium ? (
+                <span className="ml-2 text-yellow-400 font-bold text-xs">💎 Premium</span>
+              ) : (
+                <span className="ml-2 text-zinc-500 text-xs">(no premium)</span>
+              )}
+            </p>
+          ) : (
+            <p className="text-sm text-yellow-300 font-bold">
+              You must be signed in to export stats.
+            </p>
+          )}
+          <p className="ml-auto text-xs text-zinc-600">You can only export your own stats.</p>
+        </div>
+      )}
+
       {/* Lookup */}
       <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6 mb-6">
-        <h2 className="mb-3 text-lg font-black">🔍 Enter Your Discord User ID</h2>
+        <h2 className="mb-3 text-lg font-black">🔍 Your Discord User ID</h2>
         <form onSubmit={handleLookup} className="flex gap-3">
           <input
             type="text"
@@ -149,11 +204,15 @@ export default function ExportPage() {
           />
           <button
             type="submit"
-            className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-5 py-2.5 text-sm font-black text-white hover:from-yellow-400 hover:to-orange-400 transition-all"
+            disabled={checking || sessionLoading}
+            className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-5 py-2.5 text-sm font-black text-white hover:from-yellow-400 hover:to-orange-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {checking ? "Loading…" : "Load"}
           </button>
         </form>
+        {isOwnStats && (
+          <p className="mt-2 text-xs font-bold text-green-400">✅ Exporting your own stats</p>
+        )}
       </div>
 
       {error && (

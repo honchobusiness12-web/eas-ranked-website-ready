@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isPremiumUser } from "@/lib/premium";
+import { getSession } from "@/lib/auth";
 import { pool } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
@@ -188,15 +189,34 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Verify the requester has premium (if provided)
-  if (requesterId) {
-    const premium = await isPremiumUser(requesterId);
-    if (!premium) {
-      return NextResponse.json(
-        { error: "Premium subscription required" },
-        { status: 403 }
-      );
-    }
+  // Verify the requester is authenticated and has premium.
+  // If a requesterId is provided, it must match the authenticated session.
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 }
+    );
+  }
+
+  // If a requesterId was supplied, verify it matches the authenticated session
+  if (requesterId && requesterId !== session.userId) {
+    console.warn(
+      `[api/premium/comparisons] Ownership violation: session user ${session.userId} supplied requesterId ${requesterId}`
+    );
+    return NextResponse.json(
+      { error: "requesterId does not match authenticated user" },
+      { status: 403 }
+    );
+  }
+
+  const effectiveRequesterId = requesterId ?? session.userId;
+  const premium = await isPremiumUser(effectiveRequesterId);
+  if (!premium) {
+    return NextResponse.json(
+      { error: "Premium subscription required" },
+      { status: 403 }
+    );
   }
 
   try {

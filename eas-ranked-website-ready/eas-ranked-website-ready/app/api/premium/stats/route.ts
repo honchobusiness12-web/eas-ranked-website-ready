@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isPremiumUser } from "@/lib/premium";
+import { getSession } from "@/lib/auth";
 import { pool } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
@@ -8,6 +9,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "userId is required" }, { status: 400 });
   }
 
+  // Require the requester to be authenticated
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  // The target user must have premium (stats are a premium feature)
   const premium = await isPremiumUser(userId);
   if (!premium) {
     return NextResponse.json({ error: "Premium subscription required" }, { status: 403 });

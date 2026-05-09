@@ -232,6 +232,7 @@ export default function ComparisonsPage() {
   const [compError, setCompError] = useState("");
 
   const [saved, setSaved] = useState<SavedComparison[]>([]);
+  const [saveError, setSaveError] = useState("");
 
   // Load players list and saved comparisons on mount
   useEffect(() => {
@@ -241,14 +242,9 @@ export default function ComparisonsPage() {
       .then((data) => setPlayers(Array.isArray(data) ? data : []))
       .catch(() => {})
       .finally(() => setLoadingPlayers(false));
-
-    try {
-      const stored = localStorage.getItem("eas_premium_comparisons");
-      if (stored) setSaved(JSON.parse(stored));
-    } catch {}
   }, []);
 
-  // Auto-check session on mount
+  // Auto-check session on mount; load user-scoped saved comparisons once userId is known
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
@@ -257,6 +253,11 @@ export default function ComparisonsPage() {
           const uid: string = data.user.id;
           setUserId(uid);
           setInputId(uid);
+          // Load saved comparisons scoped to this authenticated user
+          try {
+            const stored = localStorage.getItem(`eas_premium_comparisons_${uid}`);
+            if (stored) setSaved(JSON.parse(stored));
+          } catch {}
           return fetch(`/api/premium/status?userId=${uid}`)
             .then((r) => r.json())
             .then((s) => setIsPremium(s.premium ?? false));
@@ -318,6 +319,15 @@ export default function ComparisonsPage() {
 
   function saveComparison() {
     if (!playerA || !playerB) return;
+
+    // Only allow saving comparisons when authenticated as own account
+    if (!userId) {
+      setSaveError("You must be signed in to save comparisons.");
+      return;
+    }
+
+    setSaveError("");
+    const storageKey = `eas_premium_comparisons_${userId}`;
     const newComp: SavedComparison = {
       id: `${Date.now()}`,
       playerA,
@@ -328,7 +338,7 @@ export default function ComparisonsPage() {
     const updated = [newComp, ...saved].slice(0, 20);
     setSaved(updated);
     try {
-      localStorage.setItem("eas_premium_comparisons", JSON.stringify(updated));
+      localStorage.setItem(storageKey, JSON.stringify(updated));
     } catch {}
   }
 
@@ -336,7 +346,10 @@ export default function ComparisonsPage() {
     const updated = saved.filter((c) => c.id !== id);
     setSaved(updated);
     try {
-      localStorage.setItem("eas_premium_comparisons", JSON.stringify(updated));
+      const storageKey = userId
+        ? `eas_premium_comparisons_${userId}`
+        : "eas_premium_comparisons";
+      localStorage.setItem(storageKey, JSON.stringify(updated));
     } catch {}
   }
 
@@ -425,12 +438,19 @@ export default function ComparisonsPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-black">⚔️ Select Players</h2>
               {playerA && playerB && playerA.user_id !== playerB.user_id && (
-                <button
-                  onClick={saveComparison}
-                  className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-2 text-sm font-black text-white hover:from-yellow-400 hover:to-orange-400 transition-all"
-                >
-                  💾 Save Comparison
-                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <button
+                    onClick={saveComparison}
+                    disabled={!userId}
+                    title={!userId ? "Sign in to save comparisons" : "Save this comparison"}
+                    className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-2 text-sm font-black text-white hover:from-yellow-400 hover:to-orange-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    💾 Save Comparison
+                  </button>
+                  {saveError && (
+                    <p className="text-xs text-red-400 font-bold">{saveError}</p>
+                  )}
+                </div>
               )}
             </div>
 
