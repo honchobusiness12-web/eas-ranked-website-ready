@@ -109,14 +109,24 @@ function PlayerInitials({ name }: { name: string | null }) {
 function PlayerSearchInput({
   placeholder,
   onSelect,
+  badgeId,
+  badgeLabel,
+  onAddBadge,
 }: {
   placeholder?: string;
-  onSelect: (player: PlayerRow) => void;
+  onSelect?: (player: PlayerRow) => void;
+  badgeId?: string;
+  badgeLabel?: string;
+  onAddBadge?: (player: PlayerRow, badgeId: string) => Promise<{ success: boolean; error?: string; playerName?: string }>;
 }) {
-  const [query, setQuery]       = useState("");
-  const [results, setResults]   = useState<PlayerRow[]>([]);
+  const [query, setQuery]         = useState("");
+  const [results, setResults]     = useState<PlayerRow[]>([]);
   const [searching, setSearching] = useState(false);
-  const [open, setOpen]         = useState(false);
+  const [open, setOpen]           = useState(false);
+  // Per-player loading state when badgeId mode is active
+  const [addingId, setAddingId]   = useState<string | null>(null);
+  // Inline success/error feedback
+  const [feedback, setFeedback]   = useState<{ type: "success" | "error"; text: string } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapRef     = useRef<HTMLDivElement>(null);
 
@@ -129,6 +139,14 @@ function PlayerSearchInput({
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
+
+  // Auto-dismiss success feedback after 4 s
+  useEffect(() => {
+    if (feedback?.type === "success") {
+      const t = setTimeout(() => setFeedback(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [feedback]);
 
   async function runSearch(q: string) {
     const trimmed = q.trim();
@@ -163,12 +181,42 @@ function PlayerSearchInput({
     debounceRef.current = setTimeout(() => runSearch(value), 300);
   }
 
+  // Called when badgeId mode is NOT active — just select the player
   function handleSelect(player: PlayerRow) {
-    onSelect(player);
+    onSelect?.(player);
     setQuery("");
     setResults([]);
     setOpen(false);
   }
+
+  // Called when badgeId mode IS active — assign the badge immediately
+  async function handleAddBadge(e: React.MouseEvent, player: PlayerRow) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!badgeId || !onAddBadge || addingId) return;
+
+    setAddingId(player.user_id);
+    setFeedback(null);
+    try {
+      const result = await onAddBadge(player, badgeId);
+      if (result.success) {
+        setFeedback({
+          type: "success",
+          text: `✅ ${badgeLabel ?? badgeId} assigned to ${player.name ?? player.user_id}`,
+        });
+        // Clear the search so the user can add another player
+        setQuery("");
+        setResults([]);
+        setOpen(false);
+      } else {
+        setFeedback({ type: "error", text: result.error ?? "Failed to assign badge." });
+      }
+    } finally {
+      setAddingId(null);
+    }
+  }
+
+  const isBadgeMode = Boolean(badgeId && onAddBadge);
 
   return (
     <div ref={wrapRef} className="relative">
@@ -195,22 +243,64 @@ function PlayerSearchInput({
         )}
       </div>
 
+      {/* Inline feedback banner */}
+      {feedback && (
+        <div
+          className={`mt-2 flex items-center justify-between rounded-xl border px-4 py-2.5 text-sm font-black ${
+            feedback.type === "success"
+              ? "border-green-500/40 bg-green-950/40 text-green-300"
+              : "border-red-500/40 bg-red-950/40 text-red-300"
+          }`}
+        >
+          <span>{feedback.text}</span>
+          <button
+            onClick={() => setFeedback(null)}
+            className="ml-3 opacity-60 hover:opacity-100 transition font-black"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {open && results.length > 0 && (
         <div className="absolute z-30 mt-2 w-full rounded-2xl border-2 border-cyan-700/40 bg-zinc-900 shadow-[0_8px_40px_rgba(0,212,255,0.15)] overflow-hidden">
-          {results.map((player, i) => (
-            <button
-              key={player.user_id}
-              onMouseDown={() => handleSelect(player)}
-              className={`w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-cyan-950/40 transition border-b border-white/5 last:border-0 ${i % 2 === 0 ? "bg-zinc-900" : "bg-zinc-800/50"}`}
-            >
-              <PlayerInitials name={player.name} />
-              <div className="flex-1">
-                <p className="font-black text-base text-white">{player.name}</p>
-                <p className="text-xs font-mono text-zinc-500">{player.user_id}</p>
+          {results.map((player, i) => {
+            const isThisAdding = addingId === player.user_id;
+            return isBadgeMode ? (
+              // Badge mode: dedicated "Add to [Badge]" button, row is not itself clickable
+              <div
+                key={player.user_id}
+                className={`flex items-center gap-3 px-5 py-3.5 border-b border-white/5 last:border-0 ${i % 2 === 0 ? "bg-zinc-900" : "bg-zinc-800/50"}`}
+              >
+                <PlayerInitials name={player.name} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-base text-white truncate">{player.name}</p>
+                  <p className="text-xs font-mono text-zinc-500 truncate">{player.user_id}</p>
+                </div>
+                <button
+                  onMouseDown={(e) => handleAddBadge(e, player)}
+                  disabled={isThisAdding || Boolean(addingId)}
+                  className="shrink-0 rounded-xl border-2 border-green-500/50 bg-green-950/30 px-4 py-2 text-sm font-black text-green-300 hover:bg-green-500/20 hover:border-green-400 hover:shadow-[0_0_16px_rgba(34,197,94,0.30)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isThisAdding ? "⟳ Adding…" : `➕ Add to ${badgeLabel ?? badgeId}`}
+                </button>
               </div>
-              <span className="text-sm font-black text-cyan-400 shrink-0">➕ Add</span>
-            </button>
-          ))}
+            ) : (
+              // Select mode: whole row is a button
+              <button
+                key={player.user_id}
+                onMouseDown={() => handleSelect(player)}
+                className={`w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-cyan-950/40 transition border-b border-white/5 last:border-0 ${i % 2 === 0 ? "bg-zinc-900" : "bg-zinc-800/50"}`}
+              >
+                <PlayerInitials name={player.name} />
+                <div className="flex-1">
+                  <p className="font-black text-base text-white">{player.name}</p>
+                  <p className="text-xs font-mono text-zinc-500">{player.user_id}</p>
+                </div>
+                <span className="text-sm font-black text-cyan-400 shrink-0">👆 Select</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -237,9 +327,6 @@ export default function AdminBadgesPage() {
   // All badge holders (for Badge View)
   const [badgeHolders,   setBadgeHolders]   = useState<PlayerRow[]>([]);
   const [loadingHolders, setLoadingHolders] = useState(false);
-
-  // Per-badge add-search loading state
-  const [addingTo, setAddingTo] = useState<BadgeId | null>(null);
 
   // User View state
   const [userQuery,        setUserQuery]        = useState("");
@@ -355,8 +442,10 @@ export default function AdminBadgesPage() {
   // Badge View — add a user to a badge
   // ---------------------------------------------------------------------------
 
-  async function handleAddToBadge(player: PlayerRow, badgeId: BadgeId) {
-    setAddingTo(badgeId);
+  async function handleAddToBadge(
+    player: PlayerRow,
+    badgeId: string
+  ): Promise<{ success: boolean; error?: string }> {
     setBadgeMsg(null);
     try {
       const res = await fetch("/api/admin/badges", {
@@ -365,20 +454,14 @@ export default function AdminBadgesPage() {
         body: JSON.stringify({ userId: player.user_id, badge: badgeId }),
       });
       const data = await res.json();
-      const badgeOption = BADGE_OPTIONS.find((b) => b.id === badgeId)!;
       if (res.ok && data.success) {
-        setBadgeMsg({
-          type: "success",
-          text: `✅ ${badgeOption.icon} ${badgeOption.label} assigned to ${player.name ?? player.user_id}`,
-        });
         loadBadgeHolders();
+        return { success: true };
       } else {
-        setBadgeMsg({ type: "error", text: data.error ?? "Failed to assign badge." });
+        return { success: false, error: data.error ?? "Failed to assign badge." };
       }
     } catch {
-      setBadgeMsg({ type: "error", text: "An unexpected error occurred." });
-    } finally {
-      setAddingTo(null);
+      return { success: false, error: "An unexpected error occurred." };
     }
   }
 
@@ -705,7 +788,6 @@ export default function AdminBadgesPage() {
         {/* One card per badge */}
         {BADGE_OPTIONS.map((badge) => {
           const holders = holdersForBadge(badge.id);
-          const isAdding = addingTo === badge.id;
 
           return (
             <div
@@ -813,17 +895,12 @@ export default function AdminBadgesPage() {
                   <p className="text-sm font-black uppercase tracking-widest mb-3" style={{ color: badge.color }}>
                     ➕ Add a Player to {badge.label}
                   </p>
-                  <div className="flex gap-3 items-start">
-                    <div className="flex-1">
-                      <PlayerSearchInput
-                        placeholder={`🔎 Search player to grant ${badge.label}…`}
-                        onSelect={(player) => handleAddToBadge(player, badge.id)}
-                      />
-                    </div>
-                    {isAdding && (
-                      <span className="text-sm font-black text-cyan-400 animate-pulse pt-3.5">⟳ Adding…</span>
-                    )}
-                  </div>
+                  <PlayerSearchInput
+                    placeholder={`🔎 Search player to grant ${badge.label}…`}
+                    badgeId={badge.id}
+                    badgeLabel={badge.label}
+                    onAddBadge={handleAddToBadge}
+                  />
                 </div>
               </div>
             </div>
