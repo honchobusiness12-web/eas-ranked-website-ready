@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ANNOUNCEMENT_COLORS } from "@/lib/announcements";
+import { ANNOUNCEMENT_COLORS } from "@/lib/announcement-constants";
 import { playSuccess } from "@/lib/sounds";
 
 interface Announcement {

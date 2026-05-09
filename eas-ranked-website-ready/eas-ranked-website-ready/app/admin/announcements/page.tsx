@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Shell from "@/components/Shell";
 import SoundLink from "@/components/SoundLink";
-import { ANNOUNCEMENT_COLORS } from "@/lib/announcements";
+import { ANNOUNCEMENT_COLORS } from "@/lib/announcement-constants";
 
 interface Announcement {
   id: string;
