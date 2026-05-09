@@ -5,7 +5,6 @@ import {
   PREMIUM_ROLE_ID,
   STAFF_ROLE_IDS,
   CONTENT_CREATOR_ROLE_IDS,
-  TOURNAMENT_WINNER_ROLE_IDS,
   getUserBadges,
   assignBadgeRole,
   removeBadgeRole,
@@ -21,12 +20,9 @@ function isDeveloper(userId: string): boolean {
   return userId === DEVELOPER_USER_ID;
 }
 
-// Badge type → role ID mapping
-const BADGE_ROLE_MAP: Record<string, string> = {
-  staff: STAFF_ROLE_IDS[0],
-  contentCreator: CONTENT_CREATOR_ROLE_IDS[0],
-  tournamentWinner: TOURNAMENT_WINNER_ROLE_IDS[0],
-};
+// Valid badge IDs — assignBadgeRole/removeBadgeRole now store these directly
+// in data->'badges', independent of Discord role IDs.
+const VALID_BADGE_IDS = new Set(["staff", "contentCreator", "tournamentWinner"]);
 
 // ---------------------------------------------------------------------------
 // GET /api/admin/badges
@@ -163,20 +159,25 @@ export async function GET(req: NextRequest) {
     const allRoleIds = [
       ...STAFF_ROLE_IDS,
       ...CONTENT_CREATOR_ROLE_IDS,
-      ...TOURNAMENT_WINNER_ROLE_IDS,
     ];
     const result = await pool.query(
-      `SELECT user_id, name, data->'roles' AS roles
+      `SELECT user_id, name, data->'roles' AS roles, data->'badges' AS badges
        FROM players
-       WHERE data->'roles' IS NOT NULL
-         AND data->'roles' != '[]'::jsonb
+       WHERE (
+         (data->'badges' IS NOT NULL AND data->'badges' != '[]'::jsonb)
+         OR (data->'roles' IS NOT NULL AND data->'roles' != '[]'::jsonb)
+       )
        ORDER BY name ASC
-       LIMIT 100`
+       LIMIT 200`
     );
-    // Filter to only players who have at least one badge role
+    // Include players who have at least one admin-assigned badge OR a Discord badge role
     const players = result.rows.filter((row) => {
+      const badges: string[] = row.badges ?? [];
       const roles: string[] = row.roles ?? [];
-      return allRoleIds.some((id) => roles.includes(id));
+      return (
+        badges.some((b) => VALID_BADGE_IDS.has(b)) ||
+        allRoleIds.some((id) => roles.includes(id))
+      );
     });
     return NextResponse.json({ players });
   } catch (err) {
@@ -211,19 +212,17 @@ export async function POST(req: NextRequest) {
   if (!userId?.trim()) {
     return NextResponse.json({ error: "userId is required" }, { status: 400 });
   }
-  if (!badge || !BADGE_ROLE_MAP[badge]) {
+  if (!badge || !VALID_BADGE_IDS.has(badge)) {
     return NextResponse.json(
-      { error: `badge must be one of: ${Object.keys(BADGE_ROLE_MAP).join(", ")}` },
+      { error: `badge must be one of: ${Array.from(VALID_BADGE_IDS).join(", ")}` },
       { status: 400 }
     );
   }
 
-  const roleId = BADGE_ROLE_MAP[badge];
-
   try {
-    await assignBadgeRole(userId.trim(), roleId);
+    await assignBadgeRole(userId.trim(), badge);
     const badges = await getUserBadges(userId.trim());
-    return NextResponse.json({ success: true, userId, badge, roleId, badges });
+    return NextResponse.json({ success: true, userId, badge, badges });
   } catch (err) {
     console.error("[api/admin/badges] POST failed:", err);
     return NextResponse.json({ error: "Failed to assign badge" }, { status: 500 });
@@ -256,19 +255,17 @@ export async function DELETE(req: NextRequest) {
   if (!userId?.trim()) {
     return NextResponse.json({ error: "userId is required" }, { status: 400 });
   }
-  if (!badge || !BADGE_ROLE_MAP[badge]) {
+  if (!badge || !VALID_BADGE_IDS.has(badge)) {
     return NextResponse.json(
-      { error: `badge must be one of: ${Object.keys(BADGE_ROLE_MAP).join(", ")}` },
+      { error: `badge must be one of: ${Array.from(VALID_BADGE_IDS).join(", ")}` },
       { status: 400 }
     );
   }
 
-  const roleId = BADGE_ROLE_MAP[badge];
-
   try {
-    await removeBadgeRole(userId.trim(), roleId);
+    await removeBadgeRole(userId.trim(), badge);
     const badges = await getUserBadges(userId.trim());
-    return NextResponse.json({ success: true, userId, badge, roleId, badges });
+    return NextResponse.json({ success: true, userId, badge, badges });
   } catch (err) {
     console.error("[api/admin/badges] DELETE failed:", err);
     return NextResponse.json({ error: "Failed to remove badge" }, { status: 500 });
@@ -304,9 +301,9 @@ export async function PATCH(req: NextRequest) {
   if (userIds.length > 50) {
     return NextResponse.json({ error: "Maximum 50 users per batch operation" }, { status: 400 });
   }
-  if (!badge || !BADGE_ROLE_MAP[badge]) {
+  if (!badge || !VALID_BADGE_IDS.has(badge)) {
     return NextResponse.json(
-      { error: `badge must be one of: ${Object.keys(BADGE_ROLE_MAP).join(", ")}` },
+      { error: `badge must be one of: ${Array.from(VALID_BADGE_IDS).join(", ")}` },
       { status: 400 }
     );
   }
@@ -314,11 +311,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "action must be 'assign' or 'remove'" }, { status: 400 });
   }
 
-  const roleId = BADGE_ROLE_MAP[badge];
   const fn = action === "assign" ? assignBadgeRole : removeBadgeRole;
 
   const results = await Promise.allSettled(
-    userIds.map((id) => fn(id.trim(), roleId))
+    userIds.map((id) => fn(id.trim(), badge))
   );
 
   const succeeded: string[] = [];
