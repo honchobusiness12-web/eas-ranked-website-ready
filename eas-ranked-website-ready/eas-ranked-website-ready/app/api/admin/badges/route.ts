@@ -29,8 +29,10 @@ const BADGE_ROLE_MAP: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// GET /api/admin/badges?userId=xxx — get badges for a user (owner only)
-// GET /api/admin/badges?search=xxx — search users and their badges (owner only)
+// GET /api/admin/badges?userId=xxx        — get badges for a user (owner only)
+// GET /api/admin/badges?search=xxx        — search ALL players by name or ID
+// GET /api/admin/badges?role=xxx          — Discord role member list
+// GET /api/admin/badges                   — list all players (not just badge holders)
 // ---------------------------------------------------------------------------
 
 export async function GET(req: NextRequest) {
@@ -51,17 +53,30 @@ export async function GET(req: NextRequest) {
   if (userId) {
     try {
       const badges = await getUserBadges(userId);
-      // Also fetch raw roles from DB
+      // Also fetch player info from DB
       const result = await pool.query(
-        `SELECT user_id, name, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
+        `SELECT
+           user_id,
+           COALESCE(data->>'display_name', data->>'username', name, 'Unknown Player') AS name,
+           data->'roles' AS roles,
+           COALESCE((data->>'cr')::int, 0)     AS cr,
+           COALESCE((data->>'wins')::int, 0)    AS wins,
+           COALESCE((data->>'losses')::int, 0)  AS losses,
+           COALESCE((data->>'matches')::int, 0) AS matches
+         FROM players WHERE user_id = $1 LIMIT 1`,
         [userId]
       );
       const player = result.rows[0] ?? null;
       return NextResponse.json({
         userId,
-        name: player?.name ?? null,
+        name:    player?.name    ?? null,
         badges,
-        roles: player?.roles ?? [],
+        roles:   player?.roles   ?? [],
+        cr:      player?.cr      ?? 0,
+        wins:    player?.wins    ?? 0,
+        losses:  player?.losses  ?? 0,
+        matches: player?.matches ?? 0,
+        exists:  player !== null,
       });
     } catch (err) {
       console.error("[api/admin/badges] GET single user failed:", err);
@@ -69,16 +84,25 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Search players by name
+  // Search ALL players by name OR Discord ID
   if (search) {
     try {
+      const trimmed = search.trim();
       const result = await pool.query(
-        `SELECT user_id, name, data->'roles' AS roles
+        `SELECT
+           user_id,
+           COALESCE(data->>'display_name', data->>'username', name, 'Unknown Player') AS name,
+           data->'roles' AS roles,
+           COALESCE((data->>'cr')::int, 0)    AS cr,
+           COALESCE((data->>'wins')::int, 0)   AS wins,
+           COALESCE((data->>'losses')::int, 0) AS losses
          FROM players
-         WHERE name ILIKE $1
-         ORDER BY name ASC
-         LIMIT 20`,
-        [`%${search}%`]
+         WHERE
+           LOWER(COALESCE(data->>'display_name', data->>'username', name, '')) ILIKE $1
+           OR user_id = $2
+         ORDER BY COALESCE((data->>'cr')::int, 0) DESC
+         LIMIT 25`,
+        [`%${trimmed.toLowerCase()}%`, trimmed]
       );
       return NextResponse.json({ players: result.rows });
     } catch (err) {
@@ -110,30 +134,24 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // List all players with badge roles
+  // Default: list ALL players ordered by CR (not just badge holders)
   try {
-    const allRoleIds = [
-      ...STAFF_ROLE_IDS,
-      ...CONTENT_CREATOR_ROLE_IDS,
-      ...TOURNAMENT_WINNER_ROLE_IDS,
-    ];
     const result = await pool.query(
-      `SELECT user_id, name, data->'roles' AS roles
+      `SELECT
+         user_id,
+         COALESCE(data->>'display_name', data->>'username', name, 'Unknown Player') AS name,
+         data->'roles' AS roles,
+         COALESCE((data->>'cr')::int, 0)    AS cr,
+         COALESCE((data->>'wins')::int, 0)   AS wins,
+         COALESCE((data->>'losses')::int, 0) AS losses
        FROM players
-       WHERE data->'roles' IS NOT NULL
-         AND data->'roles' != '[]'::jsonb
-       ORDER BY name ASC
+       ORDER BY COALESCE((data->>'cr')::int, 0) DESC
        LIMIT 100`
     );
-    // Filter to only players who have at least one badge role
-    const players = result.rows.filter((row) => {
-      const roles: string[] = row.roles ?? [];
-      return allRoleIds.some((id) => roles.includes(id));
-    });
-    return NextResponse.json({ players });
+    return NextResponse.json({ players: result.rows });
   } catch (err) {
     console.error("[api/admin/badges] GET list failed:", err);
-    return NextResponse.json({ error: "Failed to list badge holders" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to list players" }, { status: 500 });
   }
 }
 
@@ -224,5 +242,114 @@ export async function DELETE(req: NextRequest) {
   } catch (err) {
     console.error("[api/admin/badges] DELETE failed:", err);
     return NextResponse.json({ error: "Failed to remove badge" }, { status: 500 });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PUT /api/admin/badges — create a minimal player record (owner only)
+// Body: { userId: string; name?: string }
+// Creates the player row if it doesn't exist, then returns the player data.
+// ---------------------------------------------------------------------------
+
+export async function PUT(req: NextRequest) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isDeveloper(session.userId)) {
+    return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
+  }
+
+  let body: { userId?: string; name?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const { userId, name } = body;
+
+  if (!userId?.trim()) {
+    return NextResponse.json({ error: "userId is required" }, { status: 400 });
+  }
+
+  const uid  = userId.trim();
+  const displayName = name?.trim() || uid;
+
+  try {
+    // Check if player already exists
+    const existing = await pool.query(
+      `SELECT user_id FROM players WHERE user_id = $1 LIMIT 1`,
+      [uid]
+    );
+
+    if (existing.rows.length > 0) {
+      // Player already exists — just return their current data
+      const result = await pool.query(
+        `SELECT
+           user_id,
+           COALESCE(data->>'display_name', data->>'username', name, 'Unknown Player') AS name,
+           data->'roles' AS roles,
+           COALESCE((data->>'cr')::int, 0)     AS cr,
+           COALESCE((data->>'wins')::int, 0)    AS wins,
+           COALESCE((data->>'losses')::int, 0)  AS losses,
+           COALESCE((data->>'matches')::int, 0) AS matches
+         FROM players WHERE user_id = $1 LIMIT 1`,
+        [uid]
+      );
+      const badges = await getUserBadges(uid);
+      const player = result.rows[0];
+      return NextResponse.json({
+        created: false,
+        userId: uid,
+        name:    player?.name    ?? displayName,
+        badges,
+        roles:   player?.roles   ?? [],
+        cr:      player?.cr      ?? 0,
+        wins:    player?.wins    ?? 0,
+        losses:  player?.losses  ?? 0,
+        matches: player?.matches ?? 0,
+        exists:  true,
+      });
+    }
+
+    // Create a minimal player record
+    await pool.query(
+      `INSERT INTO players (user_id, name, data)
+       VALUES ($1, $2, $3::jsonb)
+       ON CONFLICT (user_id) DO NOTHING`,
+      [
+        uid,
+        displayName,
+        JSON.stringify({
+          display_name: displayName,
+          username:     displayName,
+          cr:           0,
+          wins:         0,
+          losses:       0,
+          matches:      0,
+          roles:        [],
+          registered:   false,
+          ranked:       false,
+        }),
+      ]
+    );
+
+    const badges = await getUserBadges(uid);
+    return NextResponse.json({
+      created: true,
+      userId:  uid,
+      name:    displayName,
+      badges,
+      roles:   [],
+      cr:      0,
+      wins:    0,
+      losses:  0,
+      matches: 0,
+      exists:  true,
+    });
+  } catch (err) {
+    console.error("[api/admin/badges] PUT failed:", err);
+    return NextResponse.json({ error: "Failed to create player record" }, { status: 500 });
   }
 }
