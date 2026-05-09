@@ -12,16 +12,11 @@ import {
 import { pool } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
-// Owner check
+// Developer-only check
 // ---------------------------------------------------------------------------
 
-function isOwner(userId: string): boolean {
-  if (userId === DEVELOPER_USER_ID) return true;
-  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-  return ownerIds.includes(userId);
+function isDeveloper(userId: string): boolean {
+  return userId === DEVELOPER_USER_ID;
 }
 
 // Badge type → role ID mapping
@@ -41,8 +36,8 @@ export async function GET(req: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!isOwner(session.userId)) {
-    return NextResponse.json({ error: "Forbidden. Owner access required." }, { status: 403 });
+  if (!isDeveloper(session.userId)) {
+    return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
   }
 
   const userId = req.nextUrl.searchParams.get("userId");
@@ -125,8 +120,8 @@ export async function POST(req: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!isOwner(session.userId)) {
-    return NextResponse.json({ error: "Forbidden. Owner access required." }, { status: 403 });
+  if (!isDeveloper(session.userId)) {
+    return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
   }
 
   let body: { userId?: string; badge?: string };
@@ -170,8 +165,8 @@ export async function DELETE(req: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!isOwner(session.userId)) {
-    return NextResponse.json({ error: "Forbidden. Owner access required." }, { status: 403 });
+  if (!isDeveloper(session.userId)) {
+    return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
   }
 
   let body: { userId?: string; badge?: string };

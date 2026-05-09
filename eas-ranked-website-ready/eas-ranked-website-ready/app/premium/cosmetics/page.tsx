@@ -11,6 +11,11 @@ import {
   PLAYER_TITLES,
   PROFILE_COLORS,
   ACHIEVEMENT_FRAMES,
+  GRADIENT_PRESETS,
+  BANNER_COLORS,
+  BANNER_PATTERNS,
+  PROFILE_EFFECTS,
+  buildGradientCSS,
 } from "@/lib/premium-constants";
 
 interface CosmeticsState {
@@ -19,6 +24,10 @@ interface CosmeticsState {
   player_title: string;
   profile_color: string;
   achievement_frame: string;
+  gradient_preset: string;
+  banner_color: string;
+  banner_pattern: string;
+  profile_effect: string;
 }
 
 const DEFAULT_COSMETICS: CosmeticsState = {
@@ -27,6 +36,10 @@ const DEFAULT_COSMETICS: CosmeticsState = {
   player_title: "",
   profile_color: "#FF6B6B",
   achievement_frame: "default",
+  gradient_preset: "none",
+  banner_color: "default",
+  banner_pattern: "none",
+  profile_effect: "none",
 };
 
 export default function CosmeticsPage() {
@@ -37,7 +50,7 @@ export default function CosmeticsPage() {
   const [cosmetics, setCosmetics] = useState<CosmeticsState>(DEFAULT_COSMETICS);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
-  const [activeTab, setActiveTab] = useState<"themes" | "badges" | "titles" | "colors" | "frames">("themes");
+  const [activeTab, setActiveTab] = useState<"themes" | "badges" | "titles" | "colors" | "frames" | "gradient" | "banner" | "effects">("themes");
 
   // On mount: fetch the logged-in user from session, then load their cosmetics
   useEffect(() => {
@@ -74,6 +87,10 @@ export default function CosmeticsPage() {
             player_title: cosData.cosmetics.player_title || "",
             profile_color: cosData.cosmetics.profile_color || "#FF6B6B",
             achievement_frame: cosData.cosmetics.achievement_frame || "default",
+            gradient_preset: cosData.cosmetics.gradient_preset || "none",
+            banner_color: cosData.cosmetics.banner_color || "default",
+            banner_pattern: cosData.cosmetics.banner_pattern || "none",
+            profile_effect: cosData.cosmetics.profile_effect || "none",
           });
         }
       } catch {
@@ -111,11 +128,14 @@ export default function CosmeticsPage() {
   }
 
   const TABS = [
-    { id: "themes" as const, label: "🎨 Themes" },
-    { id: "badges" as const, label: "🏅 Rank Badges" },
-    { id: "titles" as const, label: "📛 Titles" },
-    { id: "colors" as const, label: "🎨 Colors" },
-    { id: "frames" as const, label: "🖼️ Frames" },
+    { id: "themes" as const,   label: "🎨 Themes" },
+    { id: "badges" as const,   label: "🏅 Rank Badges" },
+    { id: "titles" as const,   label: "📛 Titles" },
+    { id: "colors" as const,   label: "🎨 Colors" },
+    { id: "frames" as const,   label: "🖼️ Frames" },
+    { id: "gradient" as const, label: "🌈 Gradient" },
+    { id: "banner" as const,   label: "🖼 Banner" },
+    { id: "effects" as const,  label: "✨ Effects" },
   ];
 
   // Show a loading state while we verify the session
@@ -402,6 +422,148 @@ export default function CosmeticsPage() {
               </div>
             )}
 
+            {/* Gradient presets */}
+            {activeTab === "gradient" && (
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+                <h3 className="mb-4 text-lg font-black">🌈 Gradient Preset</h3>
+                <p className="mb-4 text-sm text-zinc-400">
+                  Applies a gradient to your rank badge, profile accent, and banner.
+                </p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {GRADIENT_PRESETS.map((preset) => {
+                    const gradientCSS = buildGradientCSS(preset.id);
+                    return (
+                      <button
+                        key={preset.id}
+                        onClick={() => setCosmetics((c) => ({ ...c, gradient_preset: preset.id }))}
+                        className={`relative rounded-xl border p-4 text-left transition ${
+                          cosmetics.gradient_preset === preset.id
+                            ? "border-yellow-500 bg-yellow-950/20"
+                            : "border-white/10 bg-white/5 hover:border-yellow-600/40"
+                        }`}
+                      >
+                        <div
+                          className="mb-2 h-8 w-full rounded-lg"
+                          style={{
+                            background: gradientCSS ?? "#3f3f46",
+                          }}
+                        />
+                        <p className="font-bold text-sm">{preset.label}</p>
+                        {cosmetics.gradient_preset === preset.id && (
+                          <span className="absolute right-2 top-2 text-yellow-400 text-sm">✓</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Banner customization */}
+            {activeTab === "banner" && (
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+                  <h3 className="mb-4 text-lg font-black">🖼 Banner Color / Gradient</h3>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {BANNER_COLORS.map((banner) => (
+                      <button
+                        key={banner.id}
+                        onClick={() => setCosmetics((c) => ({ ...c, banner_color: banner.id }))}
+                        className={`relative rounded-xl border p-4 text-left transition ${
+                          cosmetics.banner_color === banner.id
+                            ? "border-yellow-500 bg-yellow-950/20"
+                            : "border-white/10 bg-white/5 hover:border-yellow-600/40"
+                        }`}
+                      >
+                        <div
+                          className="mb-2 h-8 w-full rounded-lg border border-white/10"
+                          style={{
+                            background: banner.gradient ?? (banner.color ? banner.color + "40" : "#1a1a2e"),
+                          }}
+                        />
+                        <p className="font-bold text-sm">{banner.label}</p>
+                        {cosmetics.banner_color === banner.id && (
+                          <span className="absolute right-2 top-2 text-yellow-400 text-sm">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+                  <h3 className="mb-4 text-lg font-black">🔲 Banner Pattern</h3>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {BANNER_PATTERNS.map((pattern) => (
+                      <button
+                        key={pattern.id}
+                        onClick={() => pattern.available && setCosmetics((c) => ({ ...c, banner_pattern: pattern.id }))}
+                        disabled={!pattern.available}
+                        className={`relative rounded-xl border p-4 text-left transition ${
+                          cosmetics.banner_pattern === pattern.id
+                            ? "border-yellow-500 bg-yellow-950/20"
+                            : pattern.available
+                            ? "border-white/10 bg-white/5 hover:border-yellow-600/40"
+                            : "border-white/5 bg-white/5 opacity-50 cursor-not-allowed"
+                        }`}
+                      >
+                        <div className="mb-2 flex items-center justify-center h-8 text-2xl">
+                          {pattern.icon}
+                        </div>
+                        <p className="font-bold text-sm text-center">{pattern.label}</p>
+                        {!pattern.available && (
+                          <span className="absolute right-2 top-2 rounded-md bg-zinc-700 px-1.5 py-0.5 text-[10px] font-bold text-zinc-400">
+                            Soon
+                          </span>
+                        )}
+                        {cosmetics.banner_pattern === pattern.id && (
+                          <span className="absolute right-2 top-2 text-yellow-400 text-sm">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Profile effects */}
+            {activeTab === "effects" && (
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
+                <h3 className="mb-4 text-lg font-black">✨ Profile Effects</h3>
+                <p className="mb-4 text-sm text-zinc-400">
+                  Animated effects that appear on your profile. More coming soon!
+                </p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {PROFILE_EFFECTS.map((effect) => (
+                    <button
+                      key={effect.id}
+                      onClick={() => effect.available && setCosmetics((c) => ({ ...c, profile_effect: effect.id }))}
+                      disabled={!effect.available}
+                      className={`relative rounded-xl border p-4 text-left transition ${
+                        cosmetics.profile_effect === effect.id
+                          ? "border-yellow-500 bg-yellow-950/20"
+                          : effect.available
+                          ? "border-white/10 bg-white/5 hover:border-yellow-600/40"
+                          : "border-white/5 bg-white/5 opacity-50 cursor-not-allowed"
+                      }`}
+                    >
+                      <div className="mb-2 flex items-center justify-center h-10 text-3xl">
+                        {effect.icon}
+                      </div>
+                      <p className="font-bold text-sm text-center">{effect.label}</p>
+                      {!effect.available && (
+                        <span className="absolute right-2 top-2 rounded-md bg-zinc-700 px-1.5 py-0.5 text-[10px] font-bold text-zinc-400">
+                          Soon
+                        </span>
+                      )}
+                      {cosmetics.profile_effect === effect.id && (
+                        <span className="absolute right-2 top-2 text-yellow-400 text-sm">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Save button */}
             <div className="flex items-center gap-4">
               <button
@@ -429,7 +591,14 @@ export default function CosmeticsPage() {
                 className="rounded-xl border p-4"
                 style={{
                   borderColor: `${cosmetics.profile_color}40`,
-                  background: `linear-gradient(135deg, #0d0d14, ${cosmetics.profile_color}10)`,
+                  background: (() => {
+                    const bannerOpt = BANNER_COLORS.find((b) => b.id === cosmetics.banner_color);
+                    if (bannerOpt?.gradient) return bannerOpt.gradient;
+                    if (bannerOpt?.color) return `linear-gradient(135deg, #0d0d14, ${bannerOpt.color}30)`;
+                    const gradCSS = buildGradientCSS(cosmetics.gradient_preset, "135deg");
+                    if (gradCSS) return gradCSS.replace(")", ", #0d0d14)").replace("linear-gradient(135deg,", "linear-gradient(135deg, #0d0d14,");
+                    return `linear-gradient(135deg, #0d0d14, ${cosmetics.profile_color}10)`;
+                  })(),
                 }}
               >
                 <div className="flex items-center gap-3 mb-3">
@@ -459,15 +628,17 @@ export default function CosmeticsPage() {
                     style={{
                       borderColor: `${cosmetics.profile_color}60`,
                       backgroundColor: `${cosmetics.profile_color}18`,
-                      color: cosmetics.profile_color,
+                      color: cosmetics.rank_badge_style === "gradient" || buildGradientCSS(cosmetics.gradient_preset) ? "#fff" : cosmetics.profile_color,
                       boxShadow:
                         cosmetics.rank_badge_style === "glowing"
                           ? `0 0 10px ${cosmetics.profile_color}50`
                           : "none",
                       background:
-                        cosmetics.rank_badge_style === "gradient"
+                        buildGradientCSS(cosmetics.gradient_preset) ??
+                        (cosmetics.rank_badge_style === "gradient"
                           ? `linear-gradient(90deg, ${cosmetics.profile_color}, #FF9F43)`
-                          : undefined,
+                          : undefined),
+                      border: buildGradientCSS(cosmetics.gradient_preset) ? "none" : undefined,
                     }}
                   >
                     🌟 R5 All-Star High

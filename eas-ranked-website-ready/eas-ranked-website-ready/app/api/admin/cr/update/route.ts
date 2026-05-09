@@ -6,13 +6,8 @@ import { updatePlayerCR, validateCRValue, getPlayerCRInfo } from "@/lib/cr-admin
 // Owner check helper (mirrors pattern used across other admin routes)
 // ---------------------------------------------------------------------------
 
-function isOwner(userId: string): boolean {
-  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-  if (userId === "733871667788644445") return true;
-  return ownerIds.includes(userId);
+function isDeveloper(userId: string): boolean {
+  return userId === "733871667788644445";
 }
 
 // ---------------------------------------------------------------------------
@@ -30,8 +25,8 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Require owner
-  if (!isOwner(session.userId)) {
-    return NextResponse.json({ error: "Forbidden. Owner access required." }, { status: 403 });
+  if (!isDeveloper(session.userId)) {
+    return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
   }
 
   // 3. Parse body

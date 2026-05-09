@@ -300,6 +300,9 @@ export default function ComparisonsPage() {
     }
   }, [isPremium, playerA, playerB, fetchComparison]);
 
+  // Gate: must be logged in and have premium (checked via session auto-load)
+  // The page already shows PremiumUpsell when !isPremium, which covers this case.
+
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
     if (!inputId.trim()) return;

@@ -102,6 +102,7 @@ export default function Shell({
 
   useEffect(() => {
     if (!user) return;
+    // Admin nav is developer-only — probe the CR logs endpoint (403 = not developer)
     fetch("/api/admin/cr/logs?limit=1")
       .then((r) => { if (r.ok) setIsOwner(true); })
       .catch(() => {});

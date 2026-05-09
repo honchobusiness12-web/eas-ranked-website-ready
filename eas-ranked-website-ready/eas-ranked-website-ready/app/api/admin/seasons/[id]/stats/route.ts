@@ -6,13 +6,8 @@ import { getSeasonById, getSeasonStats } from "@/lib/seasons";
 // Owner check
 // ---------------------------------------------------------------------------
 
-function isOwner(userId: string): boolean {
-  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-  if (userId === "733871667788644445") return true;
-  return ownerIds.includes(userId);
+function isDeveloper(userId: string): boolean {
+  return userId === "733871667788644445";
 }
 
 // ---------------------------------------------------------------------------
@@ -27,8 +22,8 @@ export async function GET(
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!isOwner(session.userId)) {
-    return NextResponse.json({ error: "Forbidden. Owner access required." }, { status: 403 });
+  if (!isDeveloper(session.userId)) {
+    return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
   }
 
   const { id } = await params;

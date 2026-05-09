@@ -6,6 +6,22 @@ import { pool } from "@/lib/db";
 export const PREMIUM_ROLE_ID = "1502426990995836928";
 
 // ---------------------------------------------------------------------------
+// Hardcoded badge holders — no premium required, assigned in code
+// ---------------------------------------------------------------------------
+
+/** Users who always have the Content Creator badge, regardless of DB roles. */
+export const HARDCODED_CONTENT_CREATORS: string[] = [
+  // Add content creator Discord user IDs here, e.g.:
+  // "123456789012345678",
+];
+
+/** Users who always have the Staff badge, regardless of DB roles. */
+export const HARDCODED_STAFF: string[] = [
+  // Add staff Discord user IDs here, e.g.:
+  // "987654321098765432",
+];
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -29,6 +45,10 @@ export interface Cosmetics {
   player_title: string | null;
   profile_color: string | null;
   achievement_frame: string | null;
+  gradient_preset: string | null;
+  banner_color: string | null;
+  banner_pattern: string | null;
+  profile_effect: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -62,10 +82,23 @@ export async function ensurePremiumTables(): Promise<void> {
         player_title VARCHAR(100),
         profile_color VARCHAR(50) DEFAULT '#FF6B6B',
         achievement_frame VARCHAR(50) DEFAULT 'default',
+        gradient_preset VARCHAR(50) DEFAULT 'none',
+        banner_color VARCHAR(50) DEFAULT 'default',
+        banner_pattern VARCHAR(50) DEFAULT 'none',
+        profile_effect VARCHAR(50) DEFAULT 'none',
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `);
+
+    // Add new columns to existing tables if they don't exist (migration)
+    await pool.query(`
+      ALTER TABLE cosmetics
+        ADD COLUMN IF NOT EXISTS gradient_preset VARCHAR(50) DEFAULT 'none',
+        ADD COLUMN IF NOT EXISTS banner_color VARCHAR(50) DEFAULT 'default',
+        ADD COLUMN IF NOT EXISTS banner_pattern VARCHAR(50) DEFAULT 'none',
+        ADD COLUMN IF NOT EXISTS profile_effect VARCHAR(50) DEFAULT 'none'
+    `).catch(() => {}); // Ignore if table doesn't exist yet
   } catch (err) {
     console.error("[premium] ensurePremiumTables failed:", err);
   }
@@ -78,9 +111,8 @@ export async function ensurePremiumTables(): Promise<void> {
 /**
  * Returns true if the user has premium access from ANY source:
  *  1. Developer user ID (permanent)
- *  2. Owner user IDs from OWNER_USER_IDS env var (permanent)
- *  3. Active Lemonsqueezy subscription
- *  4. Active giveaway code premium (premium_expires_at > now)
+ *  2. Active subscription (Discord role synced on login, or Lemonsqueezy)
+ *  3. Active giveaway code premium (premium_expires_at > now)
  */
 export async function isPremiumUser(userId: string): Promise<boolean> {
   // Developer gets permanent premium access
@@ -88,19 +120,10 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
     return true;
   }
 
-  // Owner IDs get permanent premium access
-  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-  if (ownerIds.includes(userId)) {
-    return true;
-  }
-
   try {
     await ensurePremiumTables();
 
-    // Check Lemonsqueezy subscription
+    // Check subscription table (covers both Discord-role-synced and Lemonsqueezy)
     const subResult = await pool.query(
       `SELECT subscription_status FROM subscriptions WHERE user_id = $1 LIMIT 1`,
       [userId]
@@ -149,16 +172,9 @@ export async function getPremiumStatus(userId: string): Promise<{
   expiresAt: Date | null;
   source: string | null;
 }> {
-  // Developer / owner — permanent
+  // Developer — permanent
   if (userId === DEVELOPER_USER_ID) {
     return { premium: true, expiresAt: null, source: "developer" };
-  }
-  const ownerIds = (process.env.OWNER_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-  if (ownerIds.includes(userId)) {
-    return { premium: true, expiresAt: null, source: "owner" };
   }
 
   try {
@@ -294,8 +310,8 @@ export async function upsertCosmetics(
     await ensurePremiumTables();
     await pool.query(
       `
-      INSERT INTO cosmetics (user_id, theme, profile_banner, rank_badge_style, player_title, profile_color, achievement_frame)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO cosmetics (user_id, theme, profile_banner, rank_badge_style, player_title, profile_color, achievement_frame, gradient_preset, banner_color, banner_pattern, profile_effect)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       ON CONFLICT (user_id) DO UPDATE SET
         theme              = EXCLUDED.theme,
         profile_banner     = EXCLUDED.profile_banner,
@@ -303,6 +319,10 @@ export async function upsertCosmetics(
         player_title       = EXCLUDED.player_title,
         profile_color      = EXCLUDED.profile_color,
         achievement_frame  = EXCLUDED.achievement_frame,
+        gradient_preset    = EXCLUDED.gradient_preset,
+        banner_color       = EXCLUDED.banner_color,
+        banner_pattern     = EXCLUDED.banner_pattern,
+        profile_effect     = EXCLUDED.profile_effect,
         updated_at         = NOW()
       `,
       [
@@ -313,6 +333,10 @@ export async function upsertCosmetics(
         data.player_title ?? null,
         data.profile_color ?? "#FF6B6B",
         data.achievement_frame ?? "default",
+        data.gradient_preset ?? "none",
+        data.banner_color ?? "default",
+        data.banner_pattern ?? "none",
+        data.profile_effect ?? "none",
       ]
     );
   } catch (err) {
@@ -326,6 +350,11 @@ export async function upsertCosmetics(
 
 /** The one and only developer user ID. */
 export const DEVELOPER_USER_ID = "733871667788644445";
+
+/** Returns true if the given user ID is the developer. */
+export function isDeveloper(userId: string): boolean {
+  return userId === DEVELOPER_USER_ID;
+}
 
 /**
  * Discord role IDs that grant the Staff badge.
@@ -360,12 +389,15 @@ export interface UserBadge {
 }
 
 /**
- * Returns true if the user holds a staff role in the DB player record.
- * The player `data` JSON blob may contain a `roles` array of Discord role IDs.
+ * Returns true if the user holds a staff role in the DB player record,
+ * OR is in the HARDCODED_STAFF list.
  */
 export async function isStaffUser(userId: string): Promise<boolean> {
   // Developer is implicitly staff
   if (userId === DEVELOPER_USER_ID) return true;
+
+  // Hardcoded staff list — no DB lookup needed
+  if (HARDCODED_STAFF.includes(userId)) return true;
 
   try {
     const { pool } = await import("@/lib/db");
@@ -383,9 +415,13 @@ export async function isStaffUser(userId: string): Promise<boolean> {
 }
 
 /**
- * Returns true if the user holds a content-creator role in the DB player record.
+ * Returns true if the user holds a content-creator role in the DB player record,
+ * OR is in the HARDCODED_CONTENT_CREATORS list.
  */
 export async function isContentCreator(userId: string): Promise<boolean> {
+  // Hardcoded content creator list — no DB lookup needed
+  if (HARDCODED_CONTENT_CREATORS.includes(userId)) return true;
+
   try {
     const { pool } = await import("@/lib/db");
     const result = await pool.query(
@@ -596,4 +632,9 @@ export {
   PLAYER_TITLES,
   PROFILE_COLORS,
   ACHIEVEMENT_FRAMES,
+  GRADIENT_PRESETS,
+  BANNER_COLORS,
+  BANNER_PATTERNS,
+  PROFILE_EFFECTS,
+  buildGradientCSS,
 } from "@/lib/premium-constants";

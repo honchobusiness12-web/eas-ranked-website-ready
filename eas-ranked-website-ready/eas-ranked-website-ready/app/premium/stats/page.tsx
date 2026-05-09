@@ -28,6 +28,7 @@ interface AdvancedStats {
 export default function AdvancedStatsPage() {
   const [sessionUserId, setSessionUserId] = useState("");
   const [sessionIsPremium, setSessionIsPremium] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [userId, setUserId] = useState("");
   const [inputId, setInputId] = useState("");
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -37,6 +38,7 @@ export default function AdvancedStatsPage() {
 
   // Auto-load the authenticated user's ID and premium status on mount
   useEffect(() => {
+    setSessionLoading(true);
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
@@ -48,7 +50,8 @@ export default function AdvancedStatsPage() {
             .then((s) => setSessionIsPremium(s.premium ?? false));
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setSessionLoading(false));
   }, []);
 
   async function handleLookup(e: React.FormEvent) {
@@ -83,6 +86,33 @@ export default function AdvancedStatsPage() {
 
   // Whether the currently viewed stats belong to the authenticated user
   const isOwnStats = sessionUserId !== "" && userId === sessionUserId;
+
+  // Show loading while checking session
+  if (sessionLoading) {
+    return (
+      <Shell>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-zinc-400 animate-pulse">Checking premium status…</p>
+        </div>
+      </Shell>
+    );
+  }
+
+  // Gate: must be logged in and have premium
+  if (!sessionLoading && sessionUserId && !sessionIsPremium) {
+    return (
+      <Shell>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black">📊 Advanced Stats</h1>
+            <p className="mt-2 text-zinc-400">Deep-dive analytics for Premium members.</p>
+          </div>
+          <PremiumBadge size="lg" />
+        </div>
+        <PremiumUpsell message="Advanced Stats are a Premium-only feature. Upgrade to unlock deep-dive analytics, CR trend charts, and more." />
+      </Shell>
+    );
+  }
 
   // Mini sparkline from cr_deltas
   function renderSparkline(deltas: number[]) {
