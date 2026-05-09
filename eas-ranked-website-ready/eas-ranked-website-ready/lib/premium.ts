@@ -409,3 +409,328 @@ export {
   PROFILE_COLORS,
   ACHIEVEMENT_FRAMES,
 } from "@/lib/premium-constants";
+
+// ---------------------------------------------------------------------------
+// CR Edit Audit — types & helpers
+// ---------------------------------------------------------------------------
+
+export interface CRAuditEntry {
+  id: string;
+  user_id: string;
+  player_id: string;
+  old_cr: number;
+  new_cr: number;
+  reason: string | null;
+  edited_at: string;
+  edited_by: string;
+  reversible: boolean;
+  /** Joined from players table — display name of the affected player */
+  player_name?: string;
+}
+
+/**
+ * Idempotently create the cr_edit_audit table.
+ * Called automatically by logCREdit / getCRAuditLog / rollbackCREdit.
+ */
+async function ensureCRAuditTable(): Promise<void> {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS cr_edit_audit (
+        id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id    VARCHAR(32) NOT NULL,
+        player_id  VARCHAR(32) NOT NULL,
+        old_cr     INT         NOT NULL,
+        new_cr     INT         NOT NULL,
+        reason     TEXT,
+        edited_at  TIMESTAMP   NOT NULL DEFAULT NOW(),
+        edited_by  VARCHAR(32) NOT NULL,
+        reversible BOOLEAN     NOT NULL DEFAULT TRUE
+      )
+    `);
+    await pool.query(
+      `CREATE INDEX IF NOT EXISTS idx_cr_audit_player_id ON cr_edit_audit(player_id)`
+    );
+    await pool.query(
+      `CREATE INDEX IF NOT EXISTS idx_cr_audit_edited_by ON cr_edit_audit(edited_by)`
+    );
+    await pool.query(
+      `CREATE INDEX IF NOT EXISTS idx_cr_audit_edited_at ON cr_edit_audit(edited_at DESC)`
+    );
+  } catch (err) {
+    console.error("[premium] ensureCRAuditTable failed:", err);
+  }
+}
+
+/**
+ * Write a single CR change to the audit log.
+ * Does NOT update the players table — the caller is responsible for that.
+ */
+export async function logCREdit(opts: {
+  editedBy: string;
+  playerId: string;
+  oldCr: number;
+  newCr: number;
+  reason?: string;
+  reversible?: boolean;
+}): Promise<CRAuditEntry | null> {
+  try {
+    await ensureCRAuditTable();
+    const result = await pool.query<CRAuditEntry>(
+      `
+      INSERT INTO cr_edit_audit
+        (user_id, player_id, old_cr, new_cr, reason, edited_by, reversible)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+      `,
+      [
+        opts.playerId,
+        opts.playerId,
+        opts.oldCr,
+        opts.newCr,
+        opts.reason ?? null,
+        opts.editedBy,
+        opts.reversible ?? true,
+      ]
+    );
+    return result.rows[0] ?? null;
+  } catch (err) {
+    console.error("[premium] logCREdit failed:", err);
+    return null;
+  }
+}
+
+/**
+ * Fetch the CR audit log with optional filters.
+ * Results are ordered newest-first.
+ */
+export async function getCRAuditLog(opts?: {
+  playerId?: string;
+  editedBy?: string;
+  since?: Date;
+  until?: Date;
+  limit?: number;
+  offset?: number;
+}): Promise<CRAuditEntry[]> {
+  try {
+    await ensureCRAuditTable();
+
+    const conditions: string[] = [];
+    const params: (string | number | Date)[] = [];
+    let idx = 1;
+
+    if (opts?.playerId) {
+      conditions.push(`a.player_id = ${idx++}`);
+      params.push(opts.playerId);
+    }
+    if (opts?.editedBy) {
+      conditions.push(`a.edited_by = ${idx++}`);
+      params.push(opts.editedBy);
+    }
+    if (opts?.since) {
+      conditions.push(`a.edited_at >= ${idx++}`);
+      params.push(opts.since);
+    }
+    if (opts?.until) {
+      conditions.push(`a.edited_at <= ${idx++}`);
+      params.push(opts.until);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const limit = Math.min(opts?.limit ?? 100, 500);
+    const offset = opts?.offset ?? 0;
+
+    const result = await pool.query<CRAuditEntry>(
+      `
+      SELECT
+        a.*,
+        COALESCE(p.data->>'display_name', p.data->>'username', a.player_id) AS player_name
+      FROM cr_edit_audit a
+      LEFT JOIN players p ON p.user_id = a.player_id
+      ${where}
+      ORDER BY a.edited_at DESC
+      LIMIT ${idx++} OFFSET ${idx++}
+      `,
+      [...params, limit, offset]
+    );
+
+    return result.rows;
+  } catch (err) {
+    console.error("[premium] getCRAuditLog failed:", err);
+    return [];
+  }
+}
+
+/**
+ * Rollback a single CR edit by its audit log ID.
+ * Restores the player's CR to old_cr and logs the reversal.
+ * Returns the new audit entry for the rollback, or null on failure.
+ */
+export async function rollbackCREdit(
+  auditId: string,
+  rolledBackBy: string
+): Promise<{ ok: boolean; entry?: CRAuditEntry; error?: string }> {
+  const client = await pool.connect();
+  try {
+    await ensureCRAuditTable();
+    await client.query("BEGIN");
+
+    // Fetch the original audit entry
+    const auditResult = await client.query<CRAuditEntry>(
+      `SELECT * FROM cr_edit_audit WHERE id = $1 FOR UPDATE`,
+      [auditId]
+    );
+    if (auditResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return { ok: false, error: "Audit entry not found." };
+    }
+
+    const entry = auditResult.rows[0];
+    if (!entry.reversible) {
+      await client.query("ROLLBACK");
+      return { ok: false, error: "This edit is marked as non-reversible." };
+    }
+
+    // Fetch current CR so we can log it accurately
+    const playerResult = await client.query(
+      `SELECT COALESCE((data->>'cr')::int, 0) AS cr FROM players WHERE user_id = $1`,
+      [entry.player_id]
+    );
+    if (playerResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return { ok: false, error: "Player not found." };
+    }
+    const currentCr: number = playerResult.rows[0].cr;
+
+    // Restore CR in the players table
+    await client.query(
+      `UPDATE players SET data = jsonb_set(data, '{cr}', $1::text::jsonb) WHERE user_id = $2`,
+      [entry.old_cr, entry.player_id]
+    );
+
+    // Mark original entry as no longer reversible (prevent double-rollback)
+    await client.query(
+      `UPDATE cr_edit_audit SET reversible = FALSE WHERE id = $1`,
+      [auditId]
+    );
+
+    // Log the rollback itself
+    const rollbackEntry = await client.query<CRAuditEntry>(
+      `
+      INSERT INTO cr_edit_audit
+        (user_id, player_id, old_cr, new_cr, reason, edited_by, reversible)
+      VALUES ($1, $2, $3, $4, $5, $6, FALSE)
+      RETURNING *
+      `,
+      [
+        entry.player_id,
+        entry.player_id,
+        currentCr,
+        entry.old_cr,
+        `Rollback of audit entry ${auditId}`,
+        rolledBackBy,
+      ]
+    );
+
+    await client.query("COMMIT");
+    return { ok: true, entry: rollbackEntry.rows[0] };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("[premium] rollbackCREdit failed:", err);
+    return { ok: false, error: "An unexpected error occurred during rollback." };
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Rollback all CR edits made within a time range.
+ * Each affected player's CR is restored to what it was before the earliest
+ * edit in the range. Returns the number of players rolled back.
+ */
+export async function rollbackCREditRange(opts: {
+  since: Date;
+  until: Date;
+  rolledBackBy: string;
+}): Promise<{ ok: boolean; count: number; error?: string }> {
+  const client = await pool.connect();
+  try {
+    await ensureCRAuditTable();
+    await client.query("BEGIN");
+
+    // Find all reversible edits in the range, ordered oldest-first per player
+    const editsResult = await client.query<CRAuditEntry>(
+      `
+      SELECT DISTINCT ON (player_id)
+        id, player_id, old_cr, new_cr, edited_at
+      FROM cr_edit_audit
+      WHERE edited_at >= $1
+        AND edited_at <= $2
+        AND reversible = TRUE
+      ORDER BY player_id, edited_at ASC
+      `,
+      [opts.since, opts.until]
+    );
+
+    if (editsResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return { ok: true, count: 0 };
+    }
+
+    let count = 0;
+    for (const edit of editsResult.rows) {
+      // Get current CR
+      const playerResult = await client.query(
+        `SELECT COALESCE((data->>'cr')::int, 0) AS cr FROM players WHERE user_id = $1`,
+        [edit.player_id]
+      );
+      if (playerResult.rows.length === 0) continue;
+      const currentCr: number = playerResult.rows[0].cr;
+
+      // Restore CR
+      await client.query(
+        `UPDATE players SET data = jsonb_set(data, '{cr}', $1::text::jsonb) WHERE user_id = $2`,
+        [edit.old_cr, edit.player_id]
+      );
+
+      // Mark all edits in range for this player as non-reversible
+      await client.query(
+        `
+        UPDATE cr_edit_audit
+        SET reversible = FALSE
+        WHERE player_id = $1
+          AND edited_at >= $2
+          AND edited_at <= $3
+        `,
+        [edit.player_id, opts.since, opts.until]
+      );
+
+      // Log the rollback
+      await client.query(
+        `
+        INSERT INTO cr_edit_audit
+          (user_id, player_id, old_cr, new_cr, reason, edited_by, reversible)
+        VALUES ($1, $2, $3, $4, $5, $6, FALSE)
+        `,
+        [
+          edit.player_id,
+          edit.player_id,
+          currentCr,
+          edit.old_cr,
+          `Bulk rollback of edits from ${opts.since.toISOString()} to ${opts.until.toISOString()}`,
+          opts.rolledBackBy,
+        ]
+      );
+
+      count++;
+    }
+
+    await client.query("COMMIT");
+    return { ok: true, count };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("[premium] rollbackCREditRange failed:", err);
+    return { ok: false, count: 0, error: "An unexpected error occurred during bulk rollback." };
+  } finally {
+    client.release();
+  }
+}

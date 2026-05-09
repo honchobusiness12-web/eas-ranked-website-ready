@@ -29,8 +29,8 @@ const premiumLinks = [
 ];
 
 const adminLinks = [
-  { label: "🎁 Giveaway Manager", href: "/admin/giveaways" },
-  { label: "⚙️ CR Admin",         href: "/admin/cr" },
+  { label: "🎁 Giveaway Codes",    href: "/admin/giveaways" },
+  { label: "🛡️ CR Manager",        href: "/admin/cr-manager" },
 ];
 
 export default function Shell({
@@ -45,7 +45,7 @@ export default function Shell({
 
   useEffect(() => {
     if (!user) return;
-    fetch("/api/admin/cr/logs?limit=1")
+    fetch("/api/admin/cr/audit?limit=1")
       .then((r) => { if (r.ok) setIsOwner(true); })
       .catch(() => {});
   }, [user]);
