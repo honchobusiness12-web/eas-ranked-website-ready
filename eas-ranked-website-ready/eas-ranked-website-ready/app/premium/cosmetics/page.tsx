@@ -183,10 +183,12 @@ export default function CosmeticsPage() {
                       }`}
                     >
                       <div
-                        className="mb-2 h-10 w-full rounded-lg border border-white/10"
+                        className="mb-2 h-10 w-full rounded-lg border border-white/10 flex items-center justify-center"
                         style={{ backgroundColor: theme.preview }}
-                      />
-                      <p className="font-bold text-sm">{theme.label}</p>
+                      >
+                        <span className="text-xl drop-shadow">{theme.icon}</span>
+                      </div>
+                      <p className="font-bold text-sm">{theme.icon} {theme.label}</p>
                       {!theme.available && (
                         <span className="absolute right-2 top-2 rounded-md bg-zinc-700 px-1.5 py-0.5 text-[10px] font-bold text-zinc-400">
                           Soon
@@ -238,10 +240,10 @@ export default function CosmeticsPage() {
                               : {}
                           }
                         >
-                          🌟 All-Star
+                          {style.icon} All-Star
                         </span>
                       </div>
-                      <p className="font-bold text-sm text-center">{style.label}</p>
+                      <p className="font-bold text-sm text-center">{style.icon} {style.label}</p>
                       {!style.available && (
                         <span className="absolute right-2 top-2 rounded-md bg-zinc-700 px-1.5 py-0.5 text-[10px] font-bold text-zinc-400">
                           Soon
@@ -339,24 +341,32 @@ export default function CosmeticsPage() {
                     >
                       <div className="mb-2 flex items-center justify-center h-12">
                         <div
-                          className="h-10 w-10 rounded-full flex items-center justify-center text-lg"
+                          className="h-10 w-10 rounded-full flex items-center justify-center text-xl"
                           style={{
                             border: frame.id === "gold"
                               ? "2px solid #FFD700"
                               : frame.id === "diamond"
                               ? "2px solid #00D4FF"
+                              : frame.id === "fire"
+                              ? "2px solid #FF4500"
+                              : frame.id === "ice"
+                              ? "2px solid #87CEEB"
                               : "2px solid #6b7280",
                             boxShadow: frame.id === "gold"
                               ? "0 0 8px rgba(255,215,0,0.4)"
                               : frame.id === "diamond"
                               ? "0 0 8px rgba(0,212,255,0.4)"
+                              : frame.id === "fire"
+                              ? "0 0 8px rgba(255,69,0,0.4)"
+                              : frame.id === "ice"
+                              ? "0 0 8px rgba(135,206,235,0.4)"
                               : "none",
                           }}
                         >
-                          🏅
+                          {frame.icon}
                         </div>
                       </div>
-                      <p className="font-bold text-sm text-center">{frame.label}</p>
+                      <p className="font-bold text-sm text-center">{frame.icon} {frame.label}</p>
                       {!frame.available && (
                         <span className="absolute right-2 top-2 rounded-md bg-zinc-700 px-1.5 py-0.5 text-[10px] font-bold text-zinc-400">
                           Soon
@@ -471,9 +481,9 @@ export default function CosmeticsPage() {
               </div>
 
               <div className="mt-4 space-y-2 text-xs text-zinc-500">
-                <p>Theme: <span className="text-zinc-300 font-bold capitalize">{cosmetics.theme}</span></p>
-                <p>Badge: <span className="text-zinc-300 font-bold capitalize">{cosmetics.rank_badge_style}</span></p>
-                <p>Frame: <span className="text-zinc-300 font-bold capitalize">{cosmetics.achievement_frame}</span></p>
+                <p>Theme: <span className="text-zinc-300 font-bold capitalize">{THEMES.find((t) => t.id === cosmetics.theme)?.icon} {cosmetics.theme}</span></p>
+                <p>Badge: <span className="text-zinc-300 font-bold capitalize">{RANK_BADGE_STYLES.find((b) => b.id === cosmetics.rank_badge_style)?.icon} {cosmetics.rank_badge_style}</span></p>
+                <p>Frame: <span className="text-zinc-300 font-bold capitalize">{ACHIEVEMENT_FRAMES.find((f) => f.id === cosmetics.achievement_frame)?.icon} {cosmetics.achievement_frame}</span></p>
               </div>
             </div>
           </div>

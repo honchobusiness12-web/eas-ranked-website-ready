@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import Shell from "@/components/Shell";
 import SoundLink from "@/components/SoundLink";
 import PremiumBadge from "@/components/PremiumBadge";
+import {
+  THEMES,
+  RANK_BADGE_STYLES,
+  ACHIEVEMENT_FRAMES,
+  PROFILE_COLORS,
+} from "@/lib/premium-constants";
 
 interface Subscription {
   id: string;
@@ -235,27 +241,51 @@ export default function ManagePage() {
                 </SoundLink>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {[
-                  { label: "Theme", value: cosmetics.theme },
-                  { label: "Badge Style", value: cosmetics.rank_badge_style },
-                  { label: "Player Title", value: cosmetics.player_title },
-                  { label: "Profile Color", value: cosmetics.profile_color },
-                  { label: "Achievement Frame", value: cosmetics.achievement_frame },
-                ].map(({ label, value }) => (
-                  <div key={label} className="rounded-xl bg-white/5 p-3">
-                    <p className="text-xs text-zinc-500">{label}</p>
-                    <p className="mt-1 font-bold text-sm text-white">{value || "Default"}</p>
-                  </div>
-                ))}
+                {/* Theme */}
+                <div className="rounded-xl bg-white/5 p-3">
+                  <p className="text-xs text-zinc-500">Theme</p>
+                  <p className="mt-1 font-bold text-sm text-white">
+                    {THEMES.find((t) => t.id === cosmetics.theme)?.icon}{" "}
+                    {cosmetics.theme || "Default"}
+                  </p>
+                </div>
+                {/* Badge Style */}
+                <div className="rounded-xl bg-white/5 p-3">
+                  <p className="text-xs text-zinc-500">Badge Style</p>
+                  <p className="mt-1 font-bold text-sm text-white">
+                    {RANK_BADGE_STYLES.find((b) => b.id === cosmetics.rank_badge_style)?.icon}{" "}
+                    {cosmetics.rank_badge_style || "Default"}
+                  </p>
+                </div>
+                {/* Player Title */}
+                <div className="rounded-xl bg-white/5 p-3">
+                  <p className="text-xs text-zinc-500">Player Title</p>
+                  <p className="mt-1 font-bold text-sm text-white">
+                    {cosmetics.player_title || "None"}
+                  </p>
+                </div>
+                {/* Achievement Frame */}
+                <div className="rounded-xl bg-white/5 p-3">
+                  <p className="text-xs text-zinc-500">Achievement Frame</p>
+                  <p className="mt-1 font-bold text-sm text-white">
+                    {ACHIEVEMENT_FRAMES.find((f) => f.id === cosmetics.achievement_frame)?.icon}{" "}
+                    {cosmetics.achievement_frame || "Default"}
+                  </p>
+                </div>
+                {/* Profile Color */}
                 {cosmetics.profile_color && (
                   <div className="rounded-xl bg-white/5 p-3 flex items-center gap-3">
                     <div
-                      className="h-8 w-8 rounded-full border border-white/20 shrink-0"
+                      className="h-8 w-8 rounded-full border border-white/20 shrink-0 flex items-center justify-center text-sm"
                       style={{ backgroundColor: cosmetics.profile_color }}
-                    />
+                    >
+                      {PROFILE_COLORS.find((c) => c.id === cosmetics.profile_color)?.icon}
+                    </div>
                     <div>
-                      <p className="text-xs text-zinc-500">Color Preview</p>
-                      <p className="font-bold text-sm text-white">{cosmetics.profile_color}</p>
+                      <p className="text-xs text-zinc-500">Profile Color</p>
+                      <p className="font-bold text-sm text-white">
+                        {PROFILE_COLORS.find((c) => c.id === cosmetics.profile_color)?.label || cosmetics.profile_color}
+                      </p>
                     </div>
                   </div>
                 )}
