@@ -12,6 +12,8 @@ const PROTECTED_ROUTES = [
   "/redeem",
   "/admin/giveaways",
   "/admin/cr",
+  "/admin/announcements",
+  "/cosmetics/colors",
 ];
 
 // Routes that are always public
@@ -26,6 +28,8 @@ const PUBLIC_ROUTES = [
   "/auth/login",
   "/auth/callback",
   "/premium/subscribe",
+  "/premium/commands",
+  "/giveaway/redeem",
 ];
 
 const SESSION_COOKIE = "eas_session";
