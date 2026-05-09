@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Shell from "@/components/Shell";
 
-export default function CallbackPage() {
+function LoadingUI() {
+  return (
+    <Shell>
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mb-6 text-6xl animate-spin">⚙️</div>
+          <h1 className="text-2xl font-black">Logging you in…</h1>
+          <p className="mt-2 text-zinc-400">Connecting to Discord, please wait.</p>
+        </div>
+      </div>
+    </Shell>
+  );
+}
+
+function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -21,15 +35,13 @@ export default function CallbackPage() {
     router.replace(`/api/auth/discord?code=${encodeURIComponent(code)}`);
   }, [router, searchParams]);
 
+  return <LoadingUI />;
+}
+
+export default function CallbackPage() {
   return (
-    <Shell>
-      <div className="flex min-h-[70vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mb-6 text-6xl animate-spin">⚙️</div>
-          <h1 className="text-2xl font-black">Logging you in…</h1>
-          <p className="mt-2 text-zinc-400">Connecting to Discord, please wait.</p>
-        </div>
-      </div>
-    </Shell>
+    <Suspense fallback={<LoadingUI />}>
+      <CallbackHandler />
+    </Suspense>
   );
 }
