@@ -1,6 +1,39 @@
 import { pool } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
+// In-memory cache for premium / badge status (5-minute TTL)
+// ---------------------------------------------------------------------------
+
+const STATUS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+interface StatusCacheEntry<T> {
+  value: T;
+  expiresAt: number;
+}
+
+const premiumCache = new Map<string, StatusCacheEntry<boolean>>();
+const staffCache   = new Map<string, StatusCacheEntry<boolean>>();
+const ccCache      = new Map<string, StatusCacheEntry<boolean>>();
+
+function getCachedBool(map: Map<string, StatusCacheEntry<boolean>>, key: string): boolean | null {
+  const entry = map.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) { map.delete(key); return null; }
+  return entry.value;
+}
+
+function setCachedBool(map: Map<string, StatusCacheEntry<boolean>>, key: string, value: boolean): void {
+  map.set(key, { value, expiresAt: Date.now() + STATUS_CACHE_TTL_MS });
+}
+
+/** Invalidate all status caches for a user (call after badge/subscription changes). */
+export function invalidatePremiumStatusCache(userId: string): void {
+  premiumCache.delete(userId);
+  staffCache.delete(userId);
+  ccCache.delete(userId);
+}
+
+// ---------------------------------------------------------------------------
 // Premium Role ID (Discord)
 // ---------------------------------------------------------------------------
 export const PREMIUM_ROLE_ID = "1502426990995836928";
@@ -113,6 +146,8 @@ export async function ensurePremiumTables(): Promise<void> {
  *  1. Developer user ID (permanent)
  *  2. Active subscription (Discord role synced on login, or Lemonsqueezy)
  *  3. Active giveaway code premium (premium_expires_at > now)
+ *
+ * Results are cached in-process for 5 minutes.
  */
 export async function isPremiumUser(userId: string): Promise<boolean> {
   // Developer gets permanent premium access
@@ -120,35 +155,38 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
     return true;
   }
 
+  // Check cache
+  const cached = getCachedBool(premiumCache, userId);
+  if (cached !== null) return cached;
+
   try {
     await ensurePremiumTables();
 
-    // Check subscription table (covers both Discord-role-synced and Lemonsqueezy)
-    const subResult = await pool.query(
-      `SELECT subscription_status FROM subscriptions WHERE user_id = $1 LIMIT 1`,
-      [userId]
-    );
-    if (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") {
-      return true;
-    }
+    // Batch both queries in a single round-trip using Promise.all
+    const [subResult, giveawayResult] = await Promise.all([
+      pool.query(
+        `SELECT subscription_status FROM subscriptions WHERE user_id = $1 LIMIT 1`,
+        [userId]
+      ),
+      pool.query(
+        `
+        SELECT 1
+        FROM players
+        WHERE user_id           = $1
+          AND premium_expires_at IS NOT NULL
+          AND premium_expires_at  > NOW()
+        LIMIT 1
+        `,
+        [userId]
+      ),
+    ]);
 
-    // Check active giveaway code premium
-    const giveawayResult = await pool.query(
-      `
-      SELECT 1
-      FROM players
-      WHERE user_id           = $1
-        AND premium_expires_at IS NOT NULL
-        AND premium_expires_at  > NOW()
-      LIMIT 1
-      `,
-      [userId]
-    );
-    if (giveawayResult.rows.length > 0) {
-      return true;
-    }
+    const result =
+      (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") ||
+      giveawayResult.rows.length > 0;
 
-    return false;
+    setCachedBool(premiumCache, userId, result);
+    return result;
   } catch (err) {
     console.error(`[premium] isPremiumUser(${userId}) failed:`, err);
     return false;
@@ -391,6 +429,8 @@ export interface UserBadge {
 /**
  * Returns true if the user holds a staff role in the DB player record,
  * OR is in the HARDCODED_STAFF list.
+ *
+ * Results are cached in-process for 5 minutes.
  */
 export async function isStaffUser(userId: string): Promise<boolean> {
   // Developer is implicitly staff
@@ -399,15 +439,24 @@ export async function isStaffUser(userId: string): Promise<boolean> {
   // Hardcoded staff list — no DB lookup needed
   if (HARDCODED_STAFF.includes(userId)) return true;
 
+  // Check cache
+  const cached = getCachedBool(staffCache, userId);
+  if (cached !== null) return cached;
+
   try {
     const { pool } = await import("@/lib/db");
     const result = await pool.query(
       `SELECT data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
       [userId]
     );
-    if (result.rows.length === 0) return false;
+    if (result.rows.length === 0) {
+      setCachedBool(staffCache, userId, false);
+      return false;
+    }
     const roles: string[] = result.rows[0].roles ?? [];
-    return STAFF_ROLE_IDS.some((id) => roles.includes(id));
+    const isStaff = STAFF_ROLE_IDS.some((id) => roles.includes(id));
+    setCachedBool(staffCache, userId, isStaff);
+    return isStaff;
   } catch (err) {
     console.error(`[premium] isStaffUser(${userId}) failed:`, err);
     return false;
@@ -417,10 +466,16 @@ export async function isStaffUser(userId: string): Promise<boolean> {
 /**
  * Returns true if the user holds a content-creator role in the DB player record,
  * OR is in the HARDCODED_CONTENT_CREATORS list.
+ *
+ * Results are cached in-process for 5 minutes.
  */
 export async function isContentCreator(userId: string): Promise<boolean> {
   // Hardcoded content creator list — no DB lookup needed
   if (HARDCODED_CONTENT_CREATORS.includes(userId)) return true;
+
+  // Check cache
+  const cached = getCachedBool(ccCache, userId);
+  if (cached !== null) return cached;
 
   try {
     const { pool } = await import("@/lib/db");
@@ -428,9 +483,14 @@ export async function isContentCreator(userId: string): Promise<boolean> {
       `SELECT data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
       [userId]
     );
-    if (result.rows.length === 0) return false;
+    if (result.rows.length === 0) {
+      setCachedBool(ccCache, userId, false);
+      return false;
+    }
     const roles: string[] = result.rows[0].roles ?? [];
-    return CONTENT_CREATOR_ROLE_IDS.some((id) => roles.includes(id));
+    const isCC = CONTENT_CREATOR_ROLE_IDS.some((id) => roles.includes(id));
+    setCachedBool(ccCache, userId, isCC);
+    return isCC;
   } catch (err) {
     console.error(`[premium] isContentCreator(${userId}) failed:`, err);
     return false;
@@ -532,6 +592,7 @@ export async function getUserBadges(userId: string): Promise<UserBadge[]> {
 /**
  * Assigns a badge role to a user by updating their roles array in the DB.
  * This is a DB-level operation; the Discord role must be synced separately.
+ * Invalidates the in-process status cache for the user.
  */
 export async function assignBadgeRole(userId: string, roleId: string): Promise<void> {
   try {
@@ -553,6 +614,8 @@ export async function assignBadgeRole(userId: string, roleId: string): Promise<v
       `,
       [userId, JSON.stringify([roleId])]
     );
+    // Bust the status cache so the next check reflects the new role
+    invalidatePremiumStatusCache(userId);
   } catch (err) {
     console.error(`[premium] assignBadgeRole(${userId}, ${roleId}) failed:`, err);
     throw err;
@@ -561,6 +624,7 @@ export async function assignBadgeRole(userId: string, roleId: string): Promise<v
 
 /**
  * Removes a badge role from a user's roles array in the DB.
+ * Invalidates the in-process status cache for the user.
  */
 export async function removeBadgeRole(userId: string, roleId: string): Promise<void> {
   try {
@@ -581,6 +645,8 @@ export async function removeBadgeRole(userId: string, roleId: string): Promise<v
       `,
       [userId, roleId]
     );
+    // Bust the status cache so the next check reflects the removed role
+    invalidatePremiumStatusCache(userId);
   } catch (err) {
     console.error(`[premium] removeBadgeRole(${userId}, ${roleId}) failed:`, err);
     throw err;

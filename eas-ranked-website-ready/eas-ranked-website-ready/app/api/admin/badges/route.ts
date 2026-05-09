@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import {
   DEVELOPER_USER_ID,
+  PREMIUM_ROLE_ID,
   STAFF_ROLE_IDS,
   CONTENT_CREATOR_ROLE_IDS,
   TOURNAMENT_WINNER_ROLE_IDS,
@@ -9,6 +10,7 @@ import {
   assignBadgeRole,
   removeBadgeRole,
 } from "@/lib/premium";
+import { fetchAllUsersWithRole } from "@/lib/discord-roles";
 import { pool } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
@@ -42,6 +44,8 @@ export async function GET(req: NextRequest) {
 
   const userId = req.nextUrl.searchParams.get("userId");
   const search = req.nextUrl.searchParams.get("search");
+  const role   = req.nextUrl.searchParams.get("role");
+  const force  = req.nextUrl.searchParams.get("force") === "true";
 
   // Single user badge lookup
   if (userId) {
@@ -80,6 +84,29 @@ export async function GET(req: NextRequest) {
     } catch (err) {
       console.error("[api/admin/badges] GET search failed:", err);
       return NextResponse.json({ error: "Failed to search players" }, { status: 500 });
+    }
+  }
+
+  // Discord role member lookup — returns all guild members with the given role
+  if (role) {
+    const ROLE_MAP: Record<string, string> = {
+      contentCreator: CONTENT_CREATOR_ROLE_IDS[0],
+      staff:          STAFF_ROLE_IDS[0],
+      premium:        PREMIUM_ROLE_ID,
+    };
+    const roleId = ROLE_MAP[role];
+    if (!roleId) {
+      return NextResponse.json(
+        { error: `role must be one of: ${Object.keys(ROLE_MAP).join(", ")}` },
+        { status: 400 }
+      );
+    }
+    try {
+      const members = await fetchAllUsersWithRole(roleId, force);
+      return NextResponse.json({ members });
+    } catch (err) {
+      console.error("[api/admin/badges] GET role members failed:", err);
+      return NextResponse.json({ error: "Failed to fetch role members" }, { status: 500 });
     }
   }
 
