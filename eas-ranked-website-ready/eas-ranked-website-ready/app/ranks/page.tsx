@@ -1,4 +1,4 @@
-import Shell from "@/components/Shell";
+import Shell from "@/components/ServerShell";
 import SoundLink from "@/components/SoundLink";
 import { ranks } from "@/lib/ranks";
 

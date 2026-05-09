@@ -2,7 +2,9 @@
 
 import SoundLink from "@/components/SoundLink";
 import SoundToggle from "@/components/SoundToggle";
+import AuthButton from "@/components/AuthButton";
 import { useState } from "react";
+import type { DiscordUser } from "@/lib/auth";
 
 const links = [
   { label: "🏠 Dashboard",    href: "/" },
@@ -25,7 +27,13 @@ const premiumLinks = [
   { label: "⚙️ Manage Sub",        href: "/premium/manage" },
 ];
 
-export default function Shell({ children }: { children: React.ReactNode }) {
+export default function Shell({
+  children,
+  user,
+}: {
+  children: React.ReactNode;
+  user?: DiscordUser | null;
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -67,6 +75,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
+          {/* Logged-in profile shortcut */}
+          {user && (
+            <SoundLink
+              href={`/profile/${user.id}`}
+              soundType="click"
+              className="mb-3 flex items-center gap-3 rounded-xl border border-[#5865F2]/30 bg-[#5865F2]/10 px-4 py-3 text-sm font-bold text-[#7289da] hover:bg-[#5865F2]/20 hover:text-white transition"
+            >
+              <span>👤</span>
+              <span className="truncate">{user.global_name || user.username}</span>
+            </SoundLink>
+          )}
+
           {/* Season status card */}
           <div className="rounded-2xl border border-yellow-600/30 bg-gradient-to-br from-orange-950/30 to-yellow-950/20 p-4">
             <div className="flex items-center justify-between">
@@ -95,13 +115,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center gap-2">
               <SoundToggle />
-              <SoundLink
-                href="/leaderboard"
-                soundType="success"
-                className="hidden rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-bold hover:from-orange-400 hover:to-red-400 transition-all sm:block"
-              >
-                Leaderboard
-              </SoundLink>
+              <AuthButton initialUser={user} />
             </div>
           </header>
 
