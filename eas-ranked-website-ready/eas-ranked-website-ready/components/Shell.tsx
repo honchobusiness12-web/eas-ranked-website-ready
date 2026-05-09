@@ -28,6 +28,24 @@ const premiumLinks = [
   { label: "⚙️ Manage Sub",        href: "/premium/manage" },
 ];
 
+const DEVELOPER_USER_ID = "733871667788644445";
+
+function isOwnerUser(userId: string): boolean {
+  // NOTE: NEXT_PUBLIC_OWNER_USER_IDS must be set in your environment for
+  // non-developer owners to see the admin section in the sidebar.
+  const ownerIds = (process.env.NEXT_PUBLIC_OWNER_USER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+  return userId === DEVELOPER_USER_ID || ownerIds.includes(userId);
+}
+
+const adminLinks = [
+  { label: "🎁 Giveaways",     href: "/admin/giveaways" },
+  { label: "🔧 Player Editor", href: "/admin/player-editor" },
+  { label: "📋 Audit Log",     href: "/admin/player-history" },
+];
+
 export default function Shell({
   children,
   user,
@@ -74,6 +92,27 @@ export default function Shell({
                 {label}
               </SoundLink>
             ))}
+
+            {/* Admin section — owner only */}
+            {user && isOwnerUser(user.id) && (
+              <>
+                <div className="pt-4 pb-1">
+                  <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-600/70">
+                    🛡️ Admin
+                  </p>
+                </div>
+                {adminLinks.map(({ label, href }) => (
+                  <SoundLink
+                    key={href}
+                    href={href}
+                    soundType="success"
+                    className="block rounded-xl px-4 py-3 text-zinc-500 hover:bg-red-950/20 hover:text-red-300 transition"
+                  >
+                    {label}
+                  </SoundLink>
+                ))}
+              </>
+            )}
           </nav>
 
           {/* Logged-in profile shortcut */}
@@ -158,6 +197,27 @@ export default function Shell({
                       {label}
                     </SoundLink>
                   ))}
+                  {/* Admin section — owner only */}
+                  {user && isOwnerUser(user.id) && (
+                    <>
+                      <div className="pt-4 pb-1">
+                        <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-600/70">
+                          🛡️ Admin
+                        </p>
+                      </div>
+                      {adminLinks.map(({ label, href }) => (
+                        <SoundLink
+                          key={href}
+                          href={href}
+                          soundType="success"
+                          className="block rounded-xl px-4 py-3 text-zinc-500 hover:bg-red-950/20 hover:text-red-300 transition"
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {label}
+                        </SoundLink>
+                      ))}
+                    </>
+                  )}
                 </nav>
               </div>
             </div>

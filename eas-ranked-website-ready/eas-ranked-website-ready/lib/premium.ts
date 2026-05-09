@@ -1,4 +1,5 @@
 import { pool } from "@/lib/db";
+import { logPlayerChange } from "@/lib/audit";
 
 // ---------------------------------------------------------------------------
 // Premium Role ID (Discord)

@@ -11,6 +11,8 @@ const PROTECTED_ROUTES = [
   "/premium/stats",
   "/redeem",
   "/admin/giveaways",
+  "/admin/player-editor",
+  "/admin/player-history",
 ];
 
 // Routes that are always public
