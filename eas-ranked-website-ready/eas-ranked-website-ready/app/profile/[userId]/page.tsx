@@ -3,23 +3,26 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import AchievementBadge from "@/components/AchievementBadge";
-import PremiumBadge from "@/components/PremiumBadge";
 import PremiumUpsell from "@/components/PremiumUpsell";
+import BadgeDisplay from "@/components/BadgeDisplay";
+import CosmeticsPreview from "@/components/CosmeticsPreview";
 import { WinLossChart, CrSparkline } from "@/components/StatsChart";
 import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression } from "@/lib/charts";
-import { isPremiumUser, getCosmetics } from "@/lib/premium";
+import { isPremiumUser, getCosmetics, getUserBadges } from "@/lib/premium";
+import { THEMES, ACHIEVEMENT_FRAMES } from "@/lib/premium-constants";
 
 export const revalidate = 30;
 
 export default async function ProfilePage(context: { params: Promise<{ userId: string }> }) {
   const { userId } = await context.params;
   const p = await getPlayerFromDB(userId);
-  const [premium, cosmetics] = await Promise.all([
+  const [premium, cosmetics, badges] = await Promise.all([
     isPremiumUser(userId),
     getCosmetics(userId),
+    getUserBadges(userId),
   ]);
 
   if (!p) {
@@ -60,6 +63,29 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   // Cosmetic accent color
   const accentColor = cosmetics?.profile_color || "#FF6B6B";
 
+  // Resolve theme gradient for hero background
+  const themeEntry = THEMES.find((t) => t.id === (cosmetics?.theme ?? "dark"));
+  const heroBg = themeEntry
+    ? `linear-gradient(135deg, ${themeEntry.preview}, #1a0e05, ${accentColor}20)`
+    : `linear-gradient(135deg, #000, #1a0e05, ${accentColor}15)`;
+
+  // Resolve achievement frame styling for avatar wrapper
+  const frameEntry = ACHIEVEMENT_FRAMES.find(
+    (f) => f.id === (cosmetics?.achievement_frame ?? "default")
+  );
+  const frameStyles: Record<string, React.CSSProperties> = {
+    default: {},
+    gold: { boxShadow: `0 0 0 3px #FFD700, 0 0 16px #FFD70060` },
+    diamond: { boxShadow: `0 0 0 3px #00D4FF, 0 0 16px #00D4FF60` },
+    fire: { boxShadow: `0 0 0 3px #FF6B00, 0 0 20px #FF6B0080` },
+    ice: { boxShadow: `0 0 0 3px #A0E8FF, 0 0 20px #A0E8FF80` },
+  };
+  const avatarFrameStyle: React.CSSProperties =
+    frameStyles[cosmetics?.achievement_frame ?? "default"] ?? {};
+
+  // Rank badge style from cosmetics
+  const rankBadgeStyle = cosmetics?.rank_badge_style ?? "default";
+
   return (
     <Shell>
       {/* Hero */}
@@ -67,25 +93,35 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
         className="rounded-3xl border p-8"
         style={{
           borderColor: `${accentColor}40`,
-          background: `linear-gradient(135deg, #000, #1a0e05, ${accentColor}15)`,
+          background: heroBg,
         }}
       >
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex flex-wrap items-center gap-6">
-            <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-24 w-24" />
+            {/* Avatar with optional achievement frame */}
+            <div
+              className="rounded-full"
+              style={{ borderRadius: "9999px", ...avatarFrameStyle }}
+              title={frameEntry ? `${frameEntry.icon} ${frameEntry.label} Frame` : undefined}
+            >
+              <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-24 w-24" />
+            </div>
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-1">
                 <h1 className="text-4xl font-black md:text-5xl">{p.name}</h1>
-                {premium && <PremiumBadge size="md" />}
               </div>
               {cosmetics?.player_title && (
                 <p className="text-sm font-bold mb-1" style={{ color: accentColor }}>
                   {cosmetics.player_title}
                 </p>
               )}
-              <p className="text-zinc-400">{p.username || "No username saved yet"}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <RankBadge cr={cr} size="lg" />
+              <p className="text-zinc-400 mb-2">{p.username || "No username saved yet"}</p>
+              {/* All badges in a row */}
+              {badges.length > 0 && (
+                <BadgeDisplay badges={badges} size="md" className="mb-3" />
+              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <RankBadge cr={cr} size="lg" badgeStyle={rankBadgeStyle} />
                 {p.blacklisted && (
                   <span className="rounded-xl border border-red-600/50 bg-red-950/30 px-3 py-1 text-xs font-bold text-red-400">
                     🚫 Blacklisted
@@ -233,6 +269,9 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               <Badge label="Blacklisted" active={p.blacklisted} danger />
             </div>
           </div>
+
+          {/* Active cosmetics (premium only) */}
+          {cosmetics && <CosmeticsPreview cosmetics={cosmetics} />}
         </div>
       </section>
 

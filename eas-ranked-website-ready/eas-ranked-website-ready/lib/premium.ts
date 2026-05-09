@@ -199,6 +199,137 @@ export async function upsertCosmetics(
 }
 
 // ---------------------------------------------------------------------------
+// Developer / Staff / Badge helpers
+// ---------------------------------------------------------------------------
+
+/** The one and only developer user ID. */
+export const DEVELOPER_USER_ID = "733871667788644445";
+
+/**
+ * Discord role IDs that grant the Staff badge.
+ * Add any additional staff / moderator role IDs here.
+ */
+export const STAFF_ROLE_IDS = [
+  "1502426990995836929", // example staff role — replace with real ID(s)
+];
+
+/**
+ * Discord role IDs that grant the Content Creator badge.
+ * Covers "Active Developer" and "Verified Bot Developer" equivalents.
+ */
+export const CONTENT_CREATOR_ROLE_IDS = [
+  "1502426990995836930", // example content-creator role — replace with real ID(s)
+];
+
+export interface UserBadge {
+  id: "developer" | "contentCreator" | "staff" | "premium";
+  label: string;
+  icon: string;
+  color: string;
+  description: string;
+}
+
+/**
+ * Returns true if the user holds a staff role in the DB player record.
+ * The player `data` JSON blob may contain a `roles` array of Discord role IDs.
+ */
+export async function isStaffUser(userId: string): Promise<boolean> {
+  // Developer is implicitly staff
+  if (userId === DEVELOPER_USER_ID) return true;
+
+  try {
+    const { pool } = await import("@/lib/db");
+    const result = await pool.query(
+      `SELECT data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    if (result.rows.length === 0) return false;
+    const roles: string[] = result.rows[0].roles ?? [];
+    return STAFF_ROLE_IDS.some((id) => roles.includes(id));
+  } catch (err) {
+    console.error(`[premium] isStaffUser(${userId}) failed:`, err);
+    return false;
+  }
+}
+
+/**
+ * Returns true if the user holds a content-creator role in the DB player record.
+ */
+export async function isContentCreator(userId: string): Promise<boolean> {
+  try {
+    const { pool } = await import("@/lib/db");
+    const result = await pool.query(
+      `SELECT data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    if (result.rows.length === 0) return false;
+    const roles: string[] = result.rows[0].roles ?? [];
+    return CONTENT_CREATOR_ROLE_IDS.some((id) => roles.includes(id));
+  } catch (err) {
+    console.error(`[premium] isContentCreator(${userId}) failed:`, err);
+    return false;
+  }
+}
+
+/**
+ * Returns the full list of badges a user has earned.
+ * Order: developer → contentCreator → staff → premium.
+ */
+export async function getUserBadges(userId: string): Promise<UserBadge[]> {
+  const [developer, contentCreator, staff, premium] = await Promise.all([
+    Promise.resolve(userId === DEVELOPER_USER_ID),
+    isContentCreator(userId),
+    isStaffUser(userId),
+    isPremiumUser(userId),
+  ]);
+
+  const badges: UserBadge[] = [];
+
+  if (developer) {
+    badges.push({
+      id: "developer",
+      label: "Developer",
+      icon: "👑",
+      color: "#FFD700",
+      description: "EAS Ranked Developer",
+    });
+  }
+
+  if (contentCreator) {
+    badges.push({
+      id: "contentCreator",
+      label: "Content Creator",
+      icon: "🎙️",
+      color: "#00D4FF",
+      description: "Verified Content Creator",
+    });
+  }
+
+  // Staff badge shown for non-developer staff members only (developer already has a badge)
+  if (staff && !developer) {
+    badges.push({
+      id: "staff",
+      label: "Staff",
+      icon: "👮",
+      color: "#00FF88",
+      description: "EAS Ranked Staff Member",
+    });
+  }
+
+  if (premium) {
+    badges.push({
+      id: "premium",
+      label: "Premium",
+      icon: "💎",
+      color: "#FF9F43",
+      description: "Premium Subscriber",
+    });
+  }
+
+  return badges;
+}
+
+// ---------------------------------------------------------------------------
 // Scrim hosting — waitlist bypass logic
 // ---------------------------------------------------------------------------
 
