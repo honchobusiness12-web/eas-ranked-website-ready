@@ -165,7 +165,7 @@ export default function AdminAnnouncementsPage() {
           <div className="text-center">
             <p className="text-5xl mb-4">🚫</p>
             <h1 className="text-2xl font-black text-red-400">Access Denied</h1>
-            <p className="mt-2 text-zinc-400">This page is restricted to EAS Arena owners.</p>
+            <p className="mt-2 text-zinc-400">This page is restricted to the EAS Arena developer.</p>
             <SoundLink
               href="/"
               soundType="click"
@@ -186,7 +186,7 @@ export default function AdminAnnouncementsPage() {
       <div className="mb-6">
         <h1 className="text-4xl font-black">📢 Announcement Panel</h1>
         <p className="mt-2 text-zinc-400">
-          Publish live announcements to the dashboard. Owner access only.
+          Publish live announcements to the dashboard. Developer access only.
         </p>
       </div>
 

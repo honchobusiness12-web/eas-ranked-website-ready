@@ -245,7 +245,7 @@ export default function CRAdminPage() {
           <div className="text-center">
             <p className="text-5xl mb-4">🚫</p>
             <h1 className="text-2xl font-black text-red-400">Access Denied</h1>
-            <p className="mt-2 text-zinc-400">This page is restricted to EAS Arena owners.</p>
+            <p className="mt-2 text-zinc-400">This page is restricted to the EAS Arena developer.</p>
             <SoundLink
               href="/"
               soundType="click"
@@ -280,7 +280,7 @@ export default function CRAdminPage() {
       <div className="mb-6">
         <h1 className="text-4xl font-black">⚙️ CR Admin Panel</h1>
         <p className="mt-2 text-zinc-400">
-          Update player Competitive Rating with full audit logging. Owner access only.
+          Update player Competitive Rating with full audit logging. Developer access only.
         </p>
       </div>
 

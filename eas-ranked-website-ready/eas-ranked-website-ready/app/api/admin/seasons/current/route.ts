@@ -24,8 +24,8 @@ export async function GET() {
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!isOwner(session.userId)) {
-    return NextResponse.json({ error: "Forbidden. Owner access required." }, { status: 403 });
+  if (!isDeveloper(session.userId)) {
+    return NextResponse.json({ error: "Forbidden. Developer access required." }, { status: 403 });
   }
 
   try {

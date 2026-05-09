@@ -411,7 +411,7 @@ export default function AdminSeasonsPage() {
           <div className="text-center">
             <p className="text-5xl mb-4">🚫</p>
             <h1 className="text-2xl font-black text-red-400">Access Denied</h1>
-            <p className="mt-2 text-zinc-400">This page is restricted to EAS Arena owners.</p>
+            <p className="mt-2 text-zinc-400">This page is restricted to the EAS Arena developer.</p>
             <SoundLink
               href="/"
               soundType="click"
@@ -464,7 +464,7 @@ export default function AdminSeasonsPage() {
       <div className="mb-6">
         <h1 className="text-4xl font-black">🏆 Season Management</h1>
         <p className="mt-2 text-zinc-400">
-          Manage ranked seasons — create, edit, archive, and track statistics. Owner access only.
+          Manage ranked seasons — create, edit, archive, and track statistics. Developer access only.
         </p>
       </div>
 

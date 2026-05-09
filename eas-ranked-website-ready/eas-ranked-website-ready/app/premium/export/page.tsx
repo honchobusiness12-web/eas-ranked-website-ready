@@ -53,6 +53,22 @@ export default function ExportPage() {
   // Whether the currently loaded stats belong to the authenticated user
   const isOwnStats = sessionUserId !== "" && userId === sessionUserId;
 
+  // Gate: must be logged in and have premium
+  if (!sessionLoading && sessionUserId && !sessionIsPremium) {
+    return (
+      <Shell>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black">📥 Export Stats</h1>
+            <p className="mt-2 text-zinc-400">Download your player stats in multiple formats.</p>
+          </div>
+          <PremiumBadge size="lg" />
+        </div>
+        <PremiumUpsell message="Export your stats as CSV, JSON, or text with Premium. Download your full performance data anytime." />
+      </Shell>
+    );
+  }
+
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
     if (!inputId.trim()) return;

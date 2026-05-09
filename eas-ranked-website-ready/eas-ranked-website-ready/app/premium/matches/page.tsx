@@ -45,6 +45,22 @@ export default function MatchHistoryPage() {
       .finally(() => setSessionLoading(false));
   }, []);
 
+  // Gate: must be logged in and have premium
+  if (!sessionLoading && sessionUserId && !sessionIsPremium) {
+    return (
+      <Shell>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black">📜 Match History</h1>
+            <p className="mt-2 text-zinc-400">Detailed match-by-match breakdown for Premium members.</p>
+          </div>
+          <PremiumBadge size="lg" />
+        </div>
+        <PremiumUpsell message="View your full match history with detailed analytics. Premium members get access to every match entry with filtering and CR tracking." />
+      </Shell>
+    );
+  }
+
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
     if (!inputId.trim()) return;
