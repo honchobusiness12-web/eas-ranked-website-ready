@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   // 6. Perform the update (single player, with audit log)
   const result = await updatePlayerCR(playerId, newCR, session.userId, reason);
 
-  if (!result.success) {
+  if (result.success === false) {
     return NextResponse.json({ error: result.error }, { status: 500 });
   }
 
