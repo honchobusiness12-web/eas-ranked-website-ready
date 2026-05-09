@@ -1,4 +1,5 @@
 import { pool } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 // ---------------------------------------------------------------------------
 // In-memory cache for premium / badge status (5-minute TTL)
@@ -144,9 +145,9 @@ export async function ensurePremiumTables(): Promise<void> {
 /**
  * Returns true if the user has premium access from ANY source:
  *  1. Developer user ID (permanent)
- *  2. Active subscription (Discord role synced on login, or Lemonsqueezy)
- *  3. Active giveaway code premium (premium_expires_at > now)
- *  4. Bot-synced Discord Premium User role (players.data->>'premium' = true)
+ *  2. Bot-synced Discord Premium User role (players.data->>'premium' = 'true') — checked first
+ *  3. Active giveaway/manual grant (premium_expires_at > now)
+ *  4. Active subscription (Lemonsqueezy or discord_role sentinel in subscriptions table)
  *
  * Results are cached in-process for 5 minutes.
  */
@@ -163,39 +164,41 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
   try {
     await ensurePremiumTables();
 
-    // Batch both queries in a single round-trip using Promise.all
-    const [subResult, giveawayResult] = await Promise.all([
-      pool.query(
-        `SELECT subscription_status FROM subscriptions WHERE user_id = $1 LIMIT 1`,
-        [userId]
-      ),
-      pool.query(
-        `
-        SELECT 1
-        FROM players
-        WHERE user_id           = $1
-          AND premium_expires_at IS NOT NULL
-          AND premium_expires_at  > NOW()
-        LIMIT 1
-        `,
-        [userId]
-      ),
-    ]);
-
-    if (
-      (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") ||
-      giveawayResult.rows.length > 0
-    ) {
-      setCachedBool(premiumCache, userId, true);
-      return true;
-    }
-
-    // Check if the Discord bot has marked this user as premium (role sync)
-    const botPremiumResult = await pool.query(
-      `SELECT (data->>'premium')::boolean AS premium FROM players WHERE user_id = $1 LIMIT 1`,
+    // Primary check: bot-synced Discord role flag stored directly in players.data
+    // This is the fastest path and does not depend on login — visible to everyone.
+    const playerResult = await pool.query(
+      `SELECT
+         (data->>'premium')::boolean AS discord_premium,
+         premium_expires_at
+       FROM players
+       WHERE user_id = $1
+       LIMIT 1`,
       [userId]
     );
-    if (botPremiumResult.rows.length > 0 && botPremiumResult.rows[0].premium === true) {
+
+    if (playerResult.rows.length > 0) {
+      const row = playerResult.rows[0];
+      // Discord role sync flag
+      if (row.discord_premium === true) {
+        console.log(`[premium] isPremiumUser(${userId}): granted via discord_role flag`);
+        setCachedBool(premiumCache, userId, true);
+        return true;
+      }
+      // Manual grant / giveaway code (premium_expires_at)
+      if (row.premium_expires_at && new Date(row.premium_expires_at) > new Date()) {
+        console.log(`[premium] isPremiumUser(${userId}): granted via premium_expires_at`);
+        setCachedBool(premiumCache, userId, true);
+        return true;
+      }
+    }
+
+    // Fallback: check subscriptions table (Lemonsqueezy or legacy discord_role sentinel)
+    const subResult = await pool.query(
+      `SELECT subscription_status FROM subscriptions WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    if (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") {
+      console.log(`[premium] isPremiumUser(${userId}): granted via subscriptions table`);
       setCachedBool(premiumCache, userId, true);
       return true;
     }
@@ -233,38 +236,53 @@ export async function getPremiumStatus(userId: string): Promise<{
   try {
     await ensurePremiumTables();
 
-    // Check Lemonsqueezy subscription
+    // Primary check: bot-synced Discord role flag in players.data
+    const playerResult = await pool.query(
+      `SELECT
+         (data->>'premium')::boolean AS discord_premium,
+         (data->>'premium_role_synced')::boolean AS role_synced,
+         data->>'premium_granted_at' AS granted_at,
+         premium_expires_at
+       FROM players
+       WHERE user_id = $1
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (playerResult.rows.length > 0) {
+      const row = playerResult.rows[0];
+      // Discord role sync — no expiry, active as long as role is held
+      if (row.discord_premium === true) {
+        return {
+          premium: true,
+          expiresAt: null,
+          source: "discord_role",
+        };
+      }
+      // Manual grant / giveaway code (premium_expires_at)
+      if (row.premium_expires_at && new Date(row.premium_expires_at) > new Date()) {
+        return {
+          premium: true,
+          expiresAt: new Date(row.premium_expires_at),
+          source: "giveaway_code",
+        };
+      }
+    }
+
+    // Fallback: check subscriptions table (Lemonsqueezy or legacy discord_role sentinel)
     const subResult = await pool.query(
-      `SELECT subscription_status, current_period_end FROM subscriptions WHERE user_id = $1 LIMIT 1`,
+      `SELECT subscription_status, current_period_end, lemonsqueezy_customer_id
+       FROM subscriptions WHERE user_id = $1 LIMIT 1`,
       [userId]
     );
     if (subResult.rows.length > 0 && subResult.rows[0].subscription_status === "active") {
+      const isDiscordRole = subResult.rows[0].lemonsqueezy_customer_id === "discord_role";
       return {
         premium: true,
         expiresAt: subResult.rows[0].current_period_end
           ? new Date(subResult.rows[0].current_period_end)
           : null,
-        source: "subscription",
-      };
-    }
-
-    // Check giveaway code premium
-    const giveawayResult = await pool.query(
-      `
-      SELECT premium_expires_at
-      FROM players
-      WHERE user_id           = $1
-        AND premium_expires_at IS NOT NULL
-        AND premium_expires_at  > NOW()
-      LIMIT 1
-      `,
-      [userId]
-    );
-    if (giveawayResult.rows.length > 0) {
-      return {
-        premium: true,
-        expiresAt: new Date(giveawayResult.rows[0].premium_expires_at),
-        source: "giveaway_code",
+        source: isDiscordRole ? "discord_role" : "subscription",
       };
     }
 
@@ -631,7 +649,7 @@ export async function getUserBadges(userId: string): Promise<UserBadge[]> {
  * The badgeId should be one of: "staff", "contentCreator", "tournamentWinner".
  * This is independent of Discord role IDs — the website checks data->'badges'
  * directly, so changes are visible immediately without a Discord sync.
- * Invalidates the in-process status cache for the user.
+ * Invalidates the in-process status cache and revalidates public pages.
  */
 export async function assignBadgeRole(userId: string, badgeId: string): Promise<void> {
   try {
@@ -650,14 +668,21 @@ export async function assignBadgeRole(userId: string, badgeId: string): Promise<
         )
       )
       WHERE user_id = $1
+      RETURNING user_id, data->'badges' AS badges
       `,
       [userId, JSON.stringify([badgeId])]
     );
     if (result.rowCount === 0) {
       throw new Error(`Player ${userId} not found in database`);
     }
+    console.log(`[premium] assignBadgeRole: assigned '${badgeId}' to user ${userId}. Badges now: ${JSON.stringify(result.rows[0]?.badges)}`);
     // Bust the status cache so the next check reflects the new badge
     invalidatePremiumStatusCache(userId);
+    // Revalidate all public pages that display badges
+    revalidatePath(`/profile/${userId}`);
+    revalidatePath("/leaderboard");
+    revalidatePath("/admin/badges");
+    revalidatePath("/");
   } catch (err) {
     console.error(`[premium] assignBadgeRole(${userId}, ${badgeId}) failed:`, err);
     throw err;
@@ -667,7 +692,7 @@ export async function assignBadgeRole(userId: string, badgeId: string): Promise<
 /**
  * Removes a badge from a user's data->'badges' array in the DB.
  * The badgeId should be one of: "staff", "contentCreator", "tournamentWinner".
- * Invalidates the in-process status cache for the user.
+ * Invalidates the in-process status cache and revalidates public pages.
  */
 export async function removeBadgeRole(userId: string, badgeId: string): Promise<void> {
   try {
@@ -685,14 +710,21 @@ export async function removeBadgeRole(userId: string, badgeId: string): Promise<
         )
       )
       WHERE user_id = $1
+      RETURNING user_id, data->'badges' AS badges
       `,
       [userId, badgeId]
     );
     if (result.rowCount === 0) {
       throw new Error(`Player ${userId} not found in database`);
     }
+    console.log(`[premium] removeBadgeRole: removed '${badgeId}' from user ${userId}. Badges now: ${JSON.stringify(result.rows[0]?.badges)}`);
     // Bust the status cache so the next check reflects the removed badge
     invalidatePremiumStatusCache(userId);
+    // Revalidate all public pages that display badges
+    revalidatePath(`/profile/${userId}`);
+    revalidatePath("/leaderboard");
+    revalidatePath("/admin/badges");
+    revalidatePath("/");
   } catch (err) {
     console.error(`[premium] removeBadgeRole(${userId}, ${badgeId}) failed:`, err);
     throw err;
@@ -706,7 +738,7 @@ export async function removeBadgeRole(userId: string, badgeId: string): Promise<
 /**
  * Manually grants premium to a user by setting premium_expires_at.
  * Defaults to 1 year from now if no expiry is provided.
- * Invalidates the in-process premium cache for the user.
+ * Invalidates the in-process premium cache and revalidates public pages.
  */
 export async function grantPremium(
   userId: string,
@@ -715,13 +747,26 @@ export async function grantPremium(
   try {
     const expiry = expiresAt ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     const result = await pool.query(
-      `UPDATE players SET premium_expires_at = $1 WHERE user_id = $2`,
+      `UPDATE players
+       SET premium_expires_at = $1,
+           data = jsonb_set(
+             COALESCE(data, '{}'),
+             '{premium}',
+             'true'::jsonb
+           )
+       WHERE user_id = $2`,
       [expiry.toISOString(), userId]
     );
     if (result.rowCount === 0) {
       throw new Error(`Player ${userId} not found in database`);
     }
+    console.log(`[premium] grantPremium: granted premium to user ${userId}, expires ${expiry.toISOString()}`);
     invalidatePremiumStatusCache(userId);
+    // Revalidate public pages so premium badge appears immediately
+    revalidatePath(`/profile/${userId}`);
+    revalidatePath("/leaderboard");
+    revalidatePath("/admin/premium");
+    revalidatePath("/");
   } catch (err) {
     console.error(`[premium] grantPremium(${userId}) failed:`, err);
     throw err;
@@ -729,20 +774,34 @@ export async function grantPremium(
 }
 
 /**
- * Revokes manually-granted premium from a user by clearing premium_expires_at.
- * Does not affect Lemonsqueezy subscriptions or Discord role premium.
- * Invalidates the in-process premium cache for the user.
+ * Revokes manually-granted premium from a user by clearing premium_expires_at
+ * and setting data->>'premium' to false.
+ * Does not affect Lemonsqueezy subscriptions.
+ * Invalidates the in-process premium cache and revalidates public pages.
  */
 export async function revokePremium(userId: string): Promise<void> {
   try {
     const result = await pool.query(
-      `UPDATE players SET premium_expires_at = NULL WHERE user_id = $1`,
+      `UPDATE players
+       SET premium_expires_at = NULL,
+           data = jsonb_set(
+             COALESCE(data, '{}'),
+             '{premium}',
+             'false'::jsonb
+           )
+       WHERE user_id = $1`,
       [userId]
     );
     if (result.rowCount === 0) {
       throw new Error(`Player ${userId} not found in database`);
     }
+    console.log(`[premium] revokePremium: revoked premium from user ${userId}`);
     invalidatePremiumStatusCache(userId);
+    // Revalidate public pages so premium badge disappears immediately
+    revalidatePath(`/profile/${userId}`);
+    revalidatePath("/leaderboard");
+    revalidatePath("/admin/premium");
+    revalidatePath("/");
   } catch (err) {
     console.error(`[premium] revokePremium(${userId}) failed:`, err);
     throw err;
