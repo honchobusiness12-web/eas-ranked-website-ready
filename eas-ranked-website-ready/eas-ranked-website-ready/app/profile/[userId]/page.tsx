@@ -13,7 +13,7 @@ import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression } from "@/lib/charts";
 import { isPremiumUser, getCosmetics, getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
-import { THEMES, ACHIEVEMENT_FRAMES } from "@/lib/premium-constants";
+import { THEMES, ACHIEVEMENT_FRAMES, BANNER_COLORS, buildGradientCSS } from "@/lib/premium-constants";
 import { getSession } from "@/lib/auth";
 
 export const revalidate = 30;
@@ -77,14 +77,36 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   const nextMin = next?.min ?? cr;
   const progressPct = next ? Math.min(100, Math.round((cr / nextMin) * 100)) : 100;
 
-  // Cosmetic accent color
+  // Cosmetic accent color — custom color always takes priority
   const accentColor = cosmetics?.profile_color || "#FF6B6B";
 
-  // Resolve theme gradient for hero background
+  // Resolve hero background with correct priority:
+  // 1. banner_color (explicit premium choice) — highest priority
+  // 2. gradient_preset (premium gradient) — overrides theme
+  // 3. theme (base palette) blended with accent — lowest priority
   const themeEntry = THEMES.find((t) => t.id === (cosmetics?.theme ?? "dark"));
-  const heroBg = themeEntry
-    ? `linear-gradient(135deg, ${themeEntry.preview}, #1a0e05, ${accentColor}20)`
-    : `linear-gradient(135deg, #000, #1a0e05, ${accentColor}15)`;
+  const bannerEntry = BANNER_COLORS.find((b) => b.id === (cosmetics?.banner_color ?? "default"));
+  const gradientCSS = buildGradientCSS(cosmetics?.gradient_preset ?? "none");
+
+  let heroBg: string;
+  if (bannerEntry && (bannerEntry.gradient || bannerEntry.color)) {
+    // Premium banner color/gradient takes highest priority
+    if (bannerEntry.gradient) {
+      heroBg = bannerEntry.gradient;
+    } else {
+      heroBg = `linear-gradient(135deg, ${bannerEntry.color}40, #0d0d14, ${accentColor}30)`;
+    }
+  } else if (gradientCSS) {
+    // Premium gradient preset overrides theme — blend with dark base for readability
+    heroBg = gradientCSS.replace(
+      /linear-gradient\(([^,]+),/,
+      `linear-gradient($1, #0d0d14,`
+    );
+  } else {
+    // Theme base + accent color — accent gets meaningful opacity (35%) so it's visible
+    const themeBg = themeEntry?.preview ?? "#05050b";
+    heroBg = `linear-gradient(135deg, ${themeBg}, #0d0d14, ${accentColor}35)`;
+  }
 
   // Resolve achievement frame styling for avatar wrapper
   const frameEntry = ACHIEVEMENT_FRAMES.find(
@@ -103,14 +125,43 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   // Rank badge style from cosmetics
   const rankBadgeStyle = cosmetics?.rank_badge_style ?? "default";
 
+  // Profile effect — applied as extra box-shadow / animation on the hero section
+  const profileEffect = cosmetics?.profile_effect ?? "none";
+  const effectStyle: React.CSSProperties = (() => {
+    switch (profileEffect) {
+      case "sparkle":
+        return { boxShadow: `0 0 0 1px ${accentColor}40, 0 0 40px ${accentColor}20` };
+      case "fire":
+        return { boxShadow: `0 0 0 1px #FF6B0060, 0 0 40px #FF6B0030, 0 0 80px #FF4500 20` };
+      case "snow":
+        return { boxShadow: `0 0 0 1px #A0E8FF40, 0 0 40px #A0E8FF20` };
+      case "lightning":
+        return { boxShadow: `0 0 0 1px ${accentColor}60, 0 0 30px ${accentColor}30` };
+      case "confetti":
+        return { boxShadow: `0 0 0 1px ${accentColor}50, 0 0 50px ${accentColor}25` };
+      default:
+        return {};
+    }
+  })();
+
+  // Theme-specific border enhancement — neon/cyberpunk themes get a stronger accent border
+  const heroBorderColor = (() => {
+    const theme = cosmetics?.theme ?? "dark";
+    if (theme === "neon" || theme === "cyberpunk") return `${accentColor}70`;
+    if (theme === "ocean") return `${accentColor}55`;
+    return `${accentColor}40`;
+  })();
+
   return (
     <Shell>
-      {/* Hero */}
+      {/* Hero — data-premium-hero ensures inline background is never overridden by Tailwind bg-* */}
       <section
-        className="rounded-3xl border p-8"
+        data-premium-hero
+        className={`rounded-3xl border p-8${profileEffect !== "none" ? ` profile-effect-${profileEffect}` : ""}`}
         style={{
-          borderColor: `${accentColor}40`,
+          borderColor: heroBorderColor,
           background: heroBg,
+          ...effectStyle,
         }}
       >
         <div className="flex flex-wrap items-center justify-between gap-6">

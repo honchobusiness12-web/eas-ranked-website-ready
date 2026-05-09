@@ -135,4 +135,50 @@ a { text-decoration: none; }
   background-clip: text;
 }
 
+/* ============================================================
+   Premium profile effect animations
+   These are applied via inline style on the hero section.
+   The keyframes are defined here so they can be referenced
+   by the profile_effect cosmetic without CSS specificity issues.
+   ============================================================ */
+
+@keyframes profile-sparkle {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 0 20px rgba(255,255,255,0.04); }
+  50%       { box-shadow: 0 0 0 1px rgba(255,255,255,0.18), 0 0 40px rgba(255,255,255,0.10); }
+}
+
+@keyframes profile-fire {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,107,0,0.4), 0 0 30px rgba(255,107,0,0.15); }
+  50%       { box-shadow: 0 0 0 1px rgba(255,107,0,0.7), 0 0 60px rgba(255,69,0,0.25); }
+}
+
+@keyframes profile-lightning {
+  0%, 90%, 100% { box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 0 20px rgba(255,255,255,0.05); }
+  92%, 96%      { box-shadow: 0 0 0 2px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.4); }
+}
+
+/* Utility classes for profile effects — applied alongside inline styles */
+.profile-effect-sparkle  { animation: profile-sparkle  3s ease-in-out infinite; }
+.profile-effect-fire     { animation: profile-fire     2s ease-in-out infinite; }
+.profile-effect-lightning { animation: profile-lightning 4s ease-in-out infinite; }
+
+/* ============================================================
+   Premium customization specificity helpers
+   Ensure premium inline styles are never overridden by
+   Tailwind utility classes or global resets.
+   ============================================================ */
+
+/* Profile hero section — premium background takes priority over any
+   Tailwind bg-* class that might be applied to the same element. */
+[data-premium-hero] {
+  background-origin: border-box;
+  background-clip: padding-box;
+}
+
+/* Rank badge with custom gradient — ensure gradient overrides default bg */
+[data-gradient-badge] {
+  background-origin: border-box;
+  border-color: transparent !important;
+}
+
 
