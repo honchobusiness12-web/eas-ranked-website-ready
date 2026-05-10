@@ -11,6 +11,7 @@ import {
 } from "@/lib/premium";
 import { fetchAllUsersWithRole } from "@/lib/discord-roles";
 import { pool } from "@/lib/db";
+import { writeAuditLog } from "@/lib/admin/audit";
 
 // ---------------------------------------------------------------------------
 // Discord API helpers
@@ -383,9 +384,26 @@ export async function POST(req: NextRequest) {
 
     await assignBadgeRole(uid, badge);
     const badges = await getUserBadges(uid);
+
+    await writeAuditLog({
+      adminId: session.userId,
+      action: "assign_badge",
+      targetUserId: uid,
+      details: { badgeId: badge, source: "api" },
+      success: true,
+    });
+
     return NextResponse.json({ success: true, userId: uid, badge, badges });
   } catch (err) {
     console.error("[api/admin/badges] POST failed:", err);
+    await writeAuditLog({
+      adminId: session.userId,
+      action: "assign_badge",
+      targetUserId: userId?.trim() ?? "unknown",
+      details: { badgeId: badge, source: "api" },
+      success: false,
+      errorMessage: err instanceof Error ? err.message : "Failed to assign badge",
+    });
     return NextResponse.json({ error: "Failed to assign badge" }, { status: 500 });
   }
 }
@@ -426,9 +444,26 @@ export async function DELETE(req: NextRequest) {
   try {
     await removeBadgeRole(userId.trim(), badge);
     const badges = await getUserBadges(userId.trim());
+
+    await writeAuditLog({
+      adminId: session.userId,
+      action: "remove_badge",
+      targetUserId: userId.trim(),
+      details: { badgeId: badge, source: "api" },
+      success: true,
+    });
+
     return NextResponse.json({ success: true, userId, badge, badges });
   } catch (err) {
     console.error("[api/admin/badges] DELETE failed:", err);
+    await writeAuditLog({
+      adminId: session.userId,
+      action: "remove_badge",
+      targetUserId: userId?.trim() ?? "unknown",
+      details: { badgeId: badge, source: "api" },
+      success: false,
+      errorMessage: err instanceof Error ? err.message : "Failed to remove badge",
+    });
     return NextResponse.json({ error: "Failed to remove badge" }, { status: 500 });
   }
 }

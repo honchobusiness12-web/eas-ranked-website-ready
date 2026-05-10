@@ -7,6 +7,7 @@ import {
   revokePremium,
 } from "@/lib/premium";
 import { pool } from "@/lib/db";
+import { writeAuditLog } from "@/lib/admin/audit";
 
 // ---------------------------------------------------------------------------
 // Developer-only guard
@@ -181,6 +182,15 @@ export async function POST(req: NextRequest) {
   try {
     await grantPremium(userId.trim(), expiry);
     const status = await getPremiumStatus(userId.trim());
+
+    await writeAuditLog({
+      adminId: session.userId,
+      action: "grant_premium",
+      targetUserId: userId.trim(),
+      details: { expiresAt: expiry?.toISOString() ?? null, source: "api" },
+      success: true,
+    });
+
     return NextResponse.json({
       success: true,
       userId,
@@ -191,6 +201,14 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to grant premium";
     console.error("[api/admin/premium] POST failed:", err);
+    await writeAuditLog({
+      adminId: session.userId,
+      action: "grant_premium",
+      targetUserId: userId?.trim() ?? "unknown",
+      details: { source: "api" },
+      success: false,
+      errorMessage: message,
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -225,6 +243,15 @@ export async function DELETE(req: NextRequest) {
   try {
     await revokePremium(userId.trim());
     const status = await getPremiumStatus(userId.trim());
+
+    await writeAuditLog({
+      adminId: session.userId,
+      action: "revoke_premium",
+      targetUserId: userId.trim(),
+      details: { source: "api" },
+      success: true,
+    });
+
     return NextResponse.json({
       success: true,
       userId,
@@ -235,6 +262,14 @@ export async function DELETE(req: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to revoke premium";
     console.error("[api/admin/premium] DELETE failed:", err);
+    await writeAuditLog({
+      adminId: session.userId,
+      action: "revoke_premium",
+      targetUserId: userId?.trim() ?? "unknown",
+      details: { source: "api" },
+      success: false,
+      errorMessage: message,
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

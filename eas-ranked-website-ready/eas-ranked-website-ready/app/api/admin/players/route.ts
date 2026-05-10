@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { DEVELOPER_USER_ID } from "@/lib/premium";
 import { pool } from "@/lib/db";
+import { writeAuditLog } from "@/lib/admin/audit";
 
 function isDeveloper(userId: string): boolean {
   return userId === DEVELOPER_USER_ID;
@@ -225,9 +226,25 @@ export async function PUT(req: NextRequest) {
       [userId.trim()]
     );
 
+    await writeAuditLog({
+      adminId: session.userId,
+      action: action === "reset" ? "reset_player" : "edit_stats",
+      targetUserId: userId.trim(),
+      details: action === "reset" ? {} : { stats },
+      success: true,
+    });
+
     return NextResponse.json({ success: true, player: result.rows[0] });
   } catch (err) {
     console.error("[api/admin/players] PUT failed:", err);
+    await writeAuditLog({
+      adminId: session.userId,
+      action: action === "reset" ? "reset_player" : "edit_stats",
+      targetUserId: userId?.trim() ?? "unknown",
+      details: action === "reset" ? {} : { stats },
+      success: false,
+      errorMessage: err instanceof Error ? err.message : "Failed to update player",
+    });
     return NextResponse.json({ error: "Failed to update player" }, { status: 500 });
   }
 }
