@@ -3,55 +3,25 @@
 import { useState, useEffect, useCallback } from "react";
 import Shell from "@/components/Shell";
 import SoundLink from "@/components/SoundLink";
+import { PlayerSearch } from "../_components/PlayerSearch";
+import { PlayerRow } from "../_components/PlayerRow";
+import { BadgeManager } from "../_components/BadgeManager";
+import { PremiumToggle } from "../_components/PremiumToggle";
+import { StatEditor } from "../_components/StatEditor";
+import { ResetTools } from "../_components/ResetTools";
+import { AuditLog } from "../_components/AuditLog";
+import { usePlayerSearch } from "../_hooks/usePlayerSearch";
+import { getPlayerDetail } from "../_actions";
+import type { PlayerDetail, PlayerRow as PlayerRowType, BadgeInfo } from "../_actions";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-interface PlayerRow {
-  user_id: string;
-  name: string;
-  username: string | null;
-  avatar_url: string | null;
-  cr: number;
-  wins: number;
-  losses: number;
-  matches: number;
-  blacklisted: boolean;
-  ranked: boolean;
+interface Toast {
+  type: "success" | "error";
+  message: string;
 }
-
-interface PlayerDetail extends PlayerRow {
-  kills: number;
-  mvp_count: number;
-  placement_matches: number;
-  registered: boolean;
-  premium_expires_at: string | null;
-}
-
-interface BadgeInfo {
-  id: string;
-  label: string;
-  icon: string;
-  color: string;
-  description: string;
-}
-
-interface EditStats {
-  cr: string;
-  wins: string;
-  losses: string;
-  kills: string;
-  matches: string;
-  mvp_count: string;
-  placement_matches: string;
-}
-
-const BADGE_OPTIONS = [
-  { id: "staff",            label: "Staff",            icon: "👮" },
-  { id: "contentCreator",   label: "Content Creator",  icon: "🎬" },
-  { id: "tournamentWinner", label: "Tournament Winner", icon: "🏆" },
-] as const;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -61,7 +31,12 @@ function WinRate({ wins, losses }: { wins: number; losses: number }) {
   const total = wins + losses;
   if (total === 0) return <span className="text-zinc-500">—</span>;
   const pct = Math.round((wins / total) * 100);
-  const color = pct >= 60 ? "text-green-400" : pct >= 45 ? "text-yellow-400" : "text-red-400";
+  const color =
+    pct >= 60
+      ? "text-green-400"
+      : pct >= 45
+      ? "text-yellow-400"
+      : "text-red-400";
   return <span className={color}>{pct}%</span>;
 }
 
@@ -70,49 +45,70 @@ function WinRate({ wins, losses }: { wins: number; losses: number }) {
 // ---------------------------------------------------------------------------
 
 export default function AdminPlayersPage() {
+  // Auth
   const [authChecked, setAuthChecked] = useState(false);
-  const [isOwner, setIsOwner]         = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [players, setPlayers]         = useState<PlayerRow[]>([]);
-  const [total, setTotal]             = useState(0);
-  const [loading, setLoading]         = useState(false);
-  const [offset, setOffset]           = useState(0);
+  // Player list
+  const [players, setPlayers] = useState<PlayerRowType[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoadingList, setIsLoadingList] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [listQuery, setListQuery] = useState("");
   const LIMIT = 20;
 
+  // Selected player
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerDetail | null>(null);
-  const [loadingDetail, setLoadingDetail]   = useState(false);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [playerBadges, setPlayerBadges] = useState<BadgeInfo[]>([]);
+  const [isPremium, setIsPremium] = useState(false);
+  const [premiumExpiresAt, setPremiumExpiresAt] = useState<string | null>(null);
 
-  const [actionMsg, setActionMsg]   = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [actioning, setActioning]   = useState(false);
-
-  // Edit stats panel
+  // UI panels
   const [showEditPanel, setShowEditPanel] = useState(false);
-  const [editStats, setEditStats]         = useState<EditStats>({ cr: "", wins: "", losses: "", kills: "", matches: "", mvp_count: "", placement_matches: "" });
-  const [editSaving, setEditSaving]       = useState(false);
+  const [showResetPanel, setShowResetPanel] = useState(false);
+  const [showAuditLog, setShowAuditLog] = useState(false);
 
-  // Reset confirmation
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [resetting, setResetting]               = useState(false);
+  // Toast
+  const [toast, setToast] = useState<Toast | null>(null);
 
-  // Badge management
-  const [playerBadges, setPlayerBadges]   = useState<BadgeInfo[]>([]);
-  const [badgesLoading, setBadgesLoading] = useState(false);
-  const [badgeActioning, setBadgeActioning] = useState<string | null>(null);
+  // Search hook
+  const search = usePlayerSearch();
 
+  // ---------------------------------------------------------------------------
   // Auth check
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     fetch("/api/admin/check")
       .then((r) => r.json())
-      .then((d) => { setIsOwner(d.isDeveloper === true); setAuthChecked(true); })
+      .then((d) => {
+        setIsOwner(d.isDeveloper === true);
+        setAuthChecked(true);
+      })
       .catch(() => setAuthChecked(true));
   }, []);
 
-  const fetchPlayers = useCallback(async (query: string, off: number) => {
-    setLoading(true);
+  // Auto-dismiss success toasts
+  useEffect(() => {
+    if (toast?.type === "success") {
+      const t = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
+
+  // ---------------------------------------------------------------------------
+  // Fetch player list
+  // ---------------------------------------------------------------------------
+
+  const fetchPlayers = useCallback(async (q: string, off: number) => {
+    setIsLoadingList(true);
     try {
-      const params = new URLSearchParams({ limit: String(LIMIT), offset: String(off) });
-      if (query.trim()) params.set("search", query.trim());
+      const params = new URLSearchParams({
+        limit: String(LIMIT),
+        offset: String(off),
+      });
+      if (q.trim()) params.set("search", q.trim());
       const res = await fetch(`/api/admin/players?${params}`);
       if (res.ok) {
         const data = await res.json();
@@ -120,7 +116,7 @@ export default function AdminPlayersPage() {
         setTotal(data.total ?? 0);
       }
     } finally {
-      setLoading(false);
+      setIsLoadingList(false);
     }
   }, []);
 
@@ -128,173 +124,68 @@ export default function AdminPlayersPage() {
     if (isOwner) fetchPlayers("", 0);
   }, [isOwner, fetchPlayers]);
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    setOffset(0);
-    fetchPlayers(searchQuery, 0);
-  }
+  // ---------------------------------------------------------------------------
+  // Select player
+  // ---------------------------------------------------------------------------
 
-  async function selectPlayer(userId: string) {
-    setLoadingDetail(true);
+  async function selectPlayer(player: PlayerRowType) {
+    setIsLoadingDetail(true);
     setSelectedPlayer(null);
-    setActionMsg(null);
     setShowEditPanel(false);
-    setShowResetConfirm(false);
+    setShowResetPanel(false);
+    setShowAuditLog(false);
+    search.close();
+
     try {
-      const [playerRes, badgesRes] = await Promise.all([
-        fetch(`/api/admin/players?userId=${encodeURIComponent(userId)}`),
-        fetch(`/api/admin/badges?userId=${encodeURIComponent(userId)}`),
+      const [detailResult, badgesRes] = await Promise.all([
+        getPlayerDetail(player.user_id),
+        fetch(`/api/admin/badges?userId=${encodeURIComponent(player.user_id)}`),
       ]);
-      if (playerRes.ok) {
-        const data = await playerRes.json();
-        const player = data.player ?? null;
-        setSelectedPlayer(player);
-        if (player) {
-          setEditStats({
-            cr:                String(player.cr),
-            wins:              String(player.wins),
-            losses:            String(player.losses),
-            kills:             String(player.kills),
-            matches:           String(player.matches),
-            mvp_count:         String(player.mvp_count),
-            placement_matches: String(player.placement_matches),
-          });
-        }
+
+      if (detailResult.success && detailResult.data) {
+        const p = detailResult.data;
+        setSelectedPlayer(p);
+        const premiumActive =
+          !!p.premium_expires_at && new Date(p.premium_expires_at) > new Date();
+        setIsPremium(premiumActive);
+        setPremiumExpiresAt(p.premium_expires_at);
       }
+
       if (badgesRes.ok) {
         const badgeData = await badgesRes.json();
         setPlayerBadges(badgeData.badges ?? []);
       }
     } finally {
-      setLoadingDetail(false);
+      setIsLoadingDetail(false);
     }
   }
 
-  async function handleEditStats(e: React.FormEvent) {
-    e.preventDefault();
-    if (!selectedPlayer) return;
-    setEditSaving(true);
-    setActionMsg(null);
-    try {
-      const stats = {
-        cr:                parseInt(editStats.cr, 10),
-        wins:              parseInt(editStats.wins, 10),
-        losses:            parseInt(editStats.losses, 10),
-        kills:             parseInt(editStats.kills, 10),
-        matches:           parseInt(editStats.matches, 10),
-        mvp_count:         parseInt(editStats.mvp_count, 10),
-        placement_matches: parseInt(editStats.placement_matches, 10),
-      };
-      const res = await fetch("/api/admin/players", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedPlayer.user_id, action: "edit", stats }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setSelectedPlayer(data.player);
-        setShowEditPanel(false);
-        setActionMsg({ type: "success", text: "✅ Player stats updated successfully." });
-        fetchPlayers(searchQuery, offset);
-      } else {
-        setActionMsg({ type: "error", text: data.error ?? "Failed to update stats." });
-      }
-    } catch {
-      setActionMsg({ type: "error", text: "An unexpected error occurred." });
-    } finally {
-      setEditSaving(false);
-    }
+  function handleSearchSelect(player: PlayerRowType) {
+    search.clear();
+    selectPlayer(player);
   }
 
-  async function handleReset(userId: string) {
-    setResetting(true);
-    setActionMsg(null);
-    try {
-      const res = await fetch("/api/admin/players", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, action: "reset" }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setSelectedPlayer(data.player);
-        setShowResetConfirm(false);
-        setEditStats({
-          cr: "0", wins: "0", losses: "0", kills: "0",
-          matches: "0", mvp_count: "0", placement_matches: "0",
-        });
-        setActionMsg({ type: "success", text: "✅ Player stats reset to zero." });
-        fetchPlayers(searchQuery, offset);
-      } else {
-        setActionMsg({ type: "error", text: data.error ?? "Failed to reset player." });
-      }
-    } catch {
-      setActionMsg({ type: "error", text: "An unexpected error occurred." });
-    } finally {
-      setResetting(false);
-    }
+  function handleListSelect(player: PlayerRowType) {
+    selectPlayer(player);
   }
 
-  async function handleBadgeAction(badge: string, action: "assign" | "remove") {
-    if (!selectedPlayer) return;
-    setBadgeActioning(badge);
-    setActionMsg(null);
-    try {
-      const res = await fetch("/api/admin/badges", {
-        method: action === "assign" ? "POST" : "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedPlayer.user_id, badge }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setPlayerBadges(data.badges ?? []);
-        const opt = BADGE_OPTIONS.find((b) => b.id === badge);
-        setActionMsg({
-          type: "success",
-          text: `✅ ${opt?.icon ?? ""} ${opt?.label ?? badge} ${action === "assign" ? "assigned" : "removed"} successfully.`,
-        });
-      } else {
-        setActionMsg({ type: "error", text: data.error ?? "Badge action failed." });
-      }
-    } catch {
-      setActionMsg({ type: "error", text: "An unexpected error occurred." });
-    } finally {
-      setBadgeActioning(null);
-    }
+  function handleToast(type: "success" | "error", message: string) {
+    setToast({ type, message });
   }
 
-  async function handleBlacklist(userId: string, blacklist: boolean) {
-    setActioning(true);
-    setActionMsg(null);
-    try {
-      const res = await fetch("/api/admin/moderation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          action: blacklist ? "blacklist" : "unblacklist",
-          reason: blacklist ? "Admin blacklist via Player Management" : "Admin unblacklist via Player Management",
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setActionMsg({ type: "success", text: `✅ Player ${blacklist ? "blacklisted" : "unblacklisted"} successfully.` });
-        // Refresh detail and list
-        await selectPlayer(userId);
-        fetchPlayers(searchQuery, offset);
-      } else {
-        setActionMsg({ type: "error", text: data.error ?? "Action failed." });
-      }
-    } catch {
-      setActionMsg({ type: "error", text: "An unexpected error occurred." });
-    } finally {
-      setActioning(false);
-    }
+  function handlePlayerChange(updated: PlayerDetail) {
+    setSelectedPlayer(updated);
+    fetchPlayers(listQuery, offset);
   }
 
-  // -------------------------------------------------------------------------
+  function handlePremiumChange(premium: boolean, expiresAt: string | null) {
+    setIsPremium(premium);
+    setPremiumExpiresAt(expiresAt);
+  }
+
+  // ---------------------------------------------------------------------------
   // Auth gate
-  // -------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   if (!authChecked) {
     return (
@@ -313,7 +204,9 @@ export default function AdminPlayersPage() {
           <div className="text-center">
             <p className="text-5xl mb-4">🚫</p>
             <h1 className="text-2xl font-black text-red-400">Access Denied</h1>
-            <p className="mt-2 text-zinc-400">This page is restricted to the EAS Arena developer.</p>
+            <p className="mt-2 text-zinc-400">
+              This page is restricted to the EAS Arena developer.
+            </p>
             <SoundLink
               href="/"
               soundType="click"
@@ -327,56 +220,113 @@ export default function AdminPlayersPage() {
     );
   }
 
-  // -------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   // Main UI
-  // -------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   return (
     <Shell>
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border-2 px-5 py-4 text-sm font-black shadow-2xl max-w-sm ${
+            toast.type === "success"
+              ? "border-green-400/60 bg-green-950/90 text-green-300"
+              : "border-red-400/60 bg-red-950/90 text-red-300"
+          }`}
+        >
+          <span className="flex-1">{toast.message}</span>
+          <button
+            onClick={() => setToast(null)}
+            className="opacity-60 hover:opacity-100 transition"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div className="mb-6">
         <h1 className="text-4xl font-black">👥 Player Management</h1>
         <p className="mt-2 text-zinc-400">
-          Search players, view stats, and manage blacklist status. Developer access only.
+          Search players, manage badges, premium, and stats. All actions are
+          audit-logged.
         </p>
+        <div className="mt-3 flex gap-2">
+          <SoundLink
+            href="/admin/audit-logs"
+            soundType="click"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-white/5 hover:text-white transition"
+          >
+            📋 View Audit Log
+          </SoundLink>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
-        {/* Left — search + table */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
+        {/* ── LEFT: Search + Table ── */}
         <div className="space-y-5">
-          {/* Search bar */}
+          {/* Quick Search */}
           <div className="rounded-2xl border border-red-700/30 bg-gradient-to-br from-red-950/20 to-black p-5">
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name or Discord ID…"
-                className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:border-red-600/60 focus:outline-none"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-5 py-2.5 font-black text-white hover:from-red-500 hover:to-rose-500 transition-all disabled:opacity-50"
-              >
-                {loading ? "…" : "Search"}
-              </button>
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => { setSearchQuery(""); setOffset(0); fetchPlayers("", 0); }}
-                  className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-zinc-400 hover:bg-white/5 transition"
-                >
-                  Clear
-                </button>
-              )}
-            </form>
-            <p className="mt-2 text-xs text-zinc-600">
-              {total.toLocaleString()} player{total !== 1 ? "s" : ""} found
+            <p className="mb-3 text-xs font-black uppercase tracking-widest text-zinc-500">
+              Quick Search
             </p>
+            <PlayerSearch
+              query={search.query}
+              results={search.results}
+              isSearching={search.isSearching}
+              isOpen={search.isOpen}
+              selectedId={selectedPlayer?.user_id}
+              onQueryChange={search.handleQueryChange}
+              onSelect={handleSearchSelect}
+              onClose={search.close}
+              onClear={search.clear}
+            />
           </div>
 
           {/* Player table */}
           <div className="rounded-2xl border border-white/10 bg-[#0d0d14] overflow-hidden">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/10">
+              <p className="text-xs font-black uppercase tracking-wider text-zinc-500">
+                All Players ({total.toLocaleString()})
+              </p>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setOffset(0);
+                  fetchPlayers(listQuery, 0);
+                }}
+                className="flex gap-2"
+              >
+                <input
+                  type="text"
+                  value={listQuery}
+                  onChange={(e) => setListQuery(e.target.value)}
+                  placeholder="Filter list…"
+                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white placeholder-zinc-600 focus:border-red-600/50 focus:outline-none w-40"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoadingList}
+                  className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
+                >
+                  {isLoadingList ? "…" : "Search"}
+                </button>
+                {listQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setListQuery("");
+                      setOffset(0);
+                      fetchPlayers("", 0);
+                    }}
+                    className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-500 hover:bg-white/5 transition"
+                  >
+                    Clear
+                  </button>
+                )}
+              </form>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -390,63 +340,32 @@ export default function AdminPlayersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {loading && players.length === 0 ? (
+                  {isLoadingList && players.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-10 text-center text-zinc-500 animate-pulse">
+                      <td
+                        colSpan={6}
+                        className="px-4 py-10 text-center text-zinc-500 animate-pulse"
+                      >
                         Loading players…
                       </td>
                     </tr>
                   ) : players.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-10 text-center text-zinc-500">
+                      <td
+                        colSpan={6}
+                        className="px-4 py-10 text-center text-zinc-500"
+                      >
                         No players found.
                       </td>
                     </tr>
                   ) : (
                     players.map((p) => (
-                      <tr
+                      <PlayerRow
                         key={p.user_id}
-                        className={`hover:bg-white/[0.03] transition ${
-                          selectedPlayer?.user_id === p.user_id ? "bg-white/[0.05]" : ""
-                        }`}
-                      >
-                        <td className="px-4 py-3">
-                          <p className="font-bold text-white">{p.name}</p>
-                          <p className="text-[10px] font-mono text-zinc-600">{p.user_id}</p>
-                        </td>
-                        <td className="px-4 py-3 text-right font-black text-orange-400">
-                          {p.cr.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-right text-zinc-400">
-                          {p.wins}/{p.losses}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <WinRate wins={p.wins} losses={p.losses} />
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {p.blacklisted ? (
-                            <span className="rounded-md bg-red-950/40 border border-red-700/40 px-2 py-0.5 text-[10px] font-black text-red-400">
-                              BANNED
-                            </span>
-                          ) : p.ranked ? (
-                            <span className="rounded-md bg-green-950/40 border border-green-700/40 px-2 py-0.5 text-[10px] font-black text-green-400">
-                              RANKED
-                            </span>
-                          ) : (
-                            <span className="rounded-md bg-zinc-900 border border-white/5 px-2 py-0.5 text-[10px] font-black text-zinc-500">
-                              UNRANKED
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => selectPlayer(p.user_id)}
-                            className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 hover:text-white transition"
-                          >
-                            View →
-                          </button>
-                        </td>
-                      </tr>
+                        player={p}
+                        isSelected={selectedPlayer?.user_id === p.user_id}
+                        onSelect={handleListSelect}
+                      />
                     ))
                   )}
                 </tbody>
@@ -457,19 +376,28 @@ export default function AdminPlayersPage() {
             {total > LIMIT && (
               <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
                 <p className="text-xs text-zinc-500">
-                  Showing {offset + 1}–{Math.min(offset + LIMIT, total)} of {total.toLocaleString()}
+                  {offset + 1}–{Math.min(offset + LIMIT, total)} of{" "}
+                  {total.toLocaleString()}
                 </p>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => { const o = Math.max(0, offset - LIMIT); setOffset(o); fetchPlayers(searchQuery, o); }}
-                    disabled={offset === 0 || loading}
+                    onClick={() => {
+                      const o = Math.max(0, offset - LIMIT);
+                      setOffset(o);
+                      fetchPlayers(listQuery, o);
+                    }}
+                    disabled={offset === 0 || isLoadingList}
                     className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-40"
                   >
                     ← Prev
                   </button>
                   <button
-                    onClick={() => { const o = offset + LIMIT; setOffset(o); fetchPlayers(searchQuery, o); }}
-                    disabled={offset + LIMIT >= total || loading}
+                    onClick={() => {
+                      const o = offset + LIMIT;
+                      setOffset(o);
+                      fetchPlayers(listQuery, o);
+                    }}
+                    disabled={offset + LIMIT >= total || isLoadingList}
                     className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-40"
                   >
                     Next →
@@ -480,30 +408,38 @@ export default function AdminPlayersPage() {
           </div>
         </div>
 
-        {/* Right — player detail panel */}
+        {/* ── RIGHT: Player Detail Panel ── */}
         <div className="space-y-4">
-          {!selectedPlayer && !loadingDetail && (
+          {!selectedPlayer && !isLoadingDetail && (
             <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-8 text-center">
               <p className="text-4xl mb-3">👤</p>
-              <p className="text-zinc-500 text-sm">Select a player to view details and actions.</p>
+              <p className="text-zinc-500 text-sm">
+                Select a player to view details and actions.
+              </p>
             </div>
           )}
 
-          {loadingDetail && (
+          {isLoadingDetail && (
             <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-8 text-center">
-              <p className="text-zinc-400 animate-pulse text-sm">Loading player…</p>
+              <p className="text-zinc-400 animate-pulse text-sm">
+                Loading player…
+              </p>
             </div>
           )}
 
-          {selectedPlayer && !loadingDetail && (
+          {selectedPlayer && !isLoadingDetail && (
             <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 space-y-5">
               {/* Header */}
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-black">{selectedPlayer.name}</h2>
-                  <p className="text-[11px] font-mono text-zinc-500 mt-0.5">{selectedPlayer.user_id}</p>
+                  <p className="text-[11px] font-mono text-zinc-500 mt-0.5">
+                    {selectedPlayer.user_id}
+                  </p>
                   {selectedPlayer.username && (
-                    <p className="text-xs text-zinc-500">@{selectedPlayer.username}</p>
+                    <p className="text-xs text-zinc-500">
+                      @{selectedPlayer.username}
+                    </p>
                   )}
                 </div>
                 {selectedPlayer.blacklisted && (
@@ -516,33 +452,73 @@ export default function AdminPlayersPage() {
               {/* Stats grid */}
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: "CR",           value: selectedPlayer.cr.toLocaleString(),                color: "text-orange-400" },
-                  { label: "Matches",      value: selectedPlayer.matches.toLocaleString(),           color: "text-white" },
-                  { label: "Wins",         value: selectedPlayer.wins.toLocaleString(),              color: "text-green-400" },
-                  { label: "Losses",       value: selectedPlayer.losses.toLocaleString(),            color: "text-red-400" },
-                  { label: "Kills",        value: selectedPlayer.kills.toLocaleString(),             color: "text-yellow-400" },
-                  { label: "MVPs",         value: selectedPlayer.mvp_count.toLocaleString(),         color: "text-purple-400" },
-                  { label: "Placements",   value: selectedPlayer.placement_matches.toLocaleString(), color: "text-blue-400" },
+                  {
+                    label: "CR",
+                    value: selectedPlayer.cr.toLocaleString(),
+                    color: "text-orange-400",
+                  },
+                  {
+                    label: "Matches",
+                    value: selectedPlayer.matches.toLocaleString(),
+                    color: "text-white",
+                  },
+                  {
+                    label: "Wins",
+                    value: selectedPlayer.wins.toLocaleString(),
+                    color: "text-green-400",
+                  },
+                  {
+                    label: "Losses",
+                    value: selectedPlayer.losses.toLocaleString(),
+                    color: "text-red-400",
+                  },
+                  {
+                    label: "Kills",
+                    value: selectedPlayer.kills.toLocaleString(),
+                    color: "text-yellow-400",
+                  },
+                  {
+                    label: "MVPs",
+                    value: selectedPlayer.mvp_count.toLocaleString(),
+                    color: "text-purple-400",
+                  },
+                  {
+                    label: "Placements",
+                    value: selectedPlayer.placement_matches.toLocaleString(),
+                    color: "text-blue-400",
+                  },
                 ].map(({ label, value, color }) => (
-                  <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
-                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{label}</p>
+                  <div
+                    key={label}
+                    className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5"
+                  >
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
+                      {label}
+                    </p>
                     <p className={`text-lg font-black ${color}`}>{value}</p>
                   </div>
                 ))}
               </div>
 
-              {/* Win rate */}
+              {/* Win rate bar */}
               <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3">
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-xs text-zinc-500">Win Rate</p>
-                  <WinRate wins={selectedPlayer.wins} losses={selectedPlayer.losses} />
+                  <WinRate
+                    wins={selectedPlayer.wins}
+                    losses={selectedPlayer.losses}
+                  />
                 </div>
                 {selectedPlayer.wins + selectedPlayer.losses > 0 && (
                   <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-green-600 to-emerald-500"
                       style={{
-                        width: `${Math.round((selectedPlayer.wins / (selectedPlayer.wins + selectedPlayer.losses)) * 100)}%`,
+                        width: `${Math.round(
+                          (selectedPlayer.wins /
+                            (selectedPlayer.wins + selectedPlayer.losses)) *
+                            100
+                        )}%`,
                       }}
                     />
                   </div>
@@ -561,150 +537,65 @@ export default function AdminPlayersPage() {
                     📋 Registered
                   </span>
                 )}
-                {selectedPlayer.premium_expires_at && new Date(selectedPlayer.premium_expires_at) > new Date() && (
+                {isPremium && (
                   <span className="rounded-lg bg-yellow-950/30 border border-yellow-700/30 px-2.5 py-1 text-xs font-bold text-yellow-400">
                     💎 Premium
                   </span>
                 )}
               </div>
 
-              {/* Action feedback */}
-              {actionMsg && (
-                <div
-                  className={`rounded-xl border px-4 py-3 text-sm font-bold ${
-                    actionMsg.type === "success"
-                      ? "border-green-700/40 bg-green-950/20 text-green-300"
-                      : "border-red-700/40 bg-red-950/20 text-red-300"
-                  }`}
-                >
-                  {actionMsg.text}
-                </div>
-              )}
+              {/* Badge Manager */}
+              <BadgeManager
+                userId={selectedPlayer.user_id}
+                badges={playerBadges}
+                onBadgesChange={setPlayerBadges}
+                onToast={handleToast}
+              />
 
-              {/* ── Edit Stats Panel ── */}
+              {/* Premium Toggle */}
+              <PremiumToggle
+                userId={selectedPlayer.user_id}
+                isPremium={isPremium}
+                premiumExpiresAt={premiumExpiresAt}
+                onPremiumChange={handlePremiumChange}
+                onToast={handleToast}
+              />
+
+              {/* Edit Stats Panel */}
               {showEditPanel && (
-                <form
-                  onSubmit={handleEditStats}
-                  className="rounded-xl border border-blue-700/30 bg-blue-950/10 p-4 space-y-3"
-                >
-                  <p className="text-xs font-black uppercase tracking-wider text-blue-400">✏️ Edit Stats</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(
-                      [
-                        { key: "cr",                label: "CR" },
-                        { key: "wins",              label: "Wins" },
-                        { key: "losses",            label: "Losses" },
-                        { key: "kills",             label: "Kills" },
-                        { key: "matches",           label: "Matches" },
-                        { key: "mvp_count",         label: "MVPs" },
-                        { key: "placement_matches", label: "Placements" },
-                      ] as { key: keyof EditStats; label: string }[]
-                    ).map(({ key, label }) => (
-                      <div key={key}>
-                        <label className="block text-[10px] text-zinc-500 mb-1">{label}</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={editStats[key]}
-                          onChange={(e) => setEditStats((prev) => ({ ...prev, [key]: e.target.value }))}
-                          className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm text-white focus:border-blue-600/60 focus:outline-none"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      type="submit"
-                      disabled={editSaving}
-                      className="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 text-xs font-black text-white hover:from-blue-500 hover:to-blue-400 transition disabled:opacity-50"
-                    >
-                      {editSaving ? "Saving…" : "💾 Save Changes"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowEditPanel(false)}
-                      className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-white/5 transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+                <StatEditor
+                  player={selectedPlayer}
+                  onPlayerChange={handlePlayerChange}
+                  onToast={handleToast}
+                  onClose={() => setShowEditPanel(false)}
+                />
               )}
 
-              {/* ── Reset Confirmation ── */}
-              {showResetConfirm && (
-                <div className="rounded-xl border border-orange-700/40 bg-orange-950/20 p-4 space-y-3">
-                  <p className="text-xs font-black uppercase tracking-wider text-orange-400">⚠️ Confirm Reset</p>
-                  <p className="text-xs text-zinc-400">
-                    This will set all stats (CR, wins, losses, kills, matches, MVPs, placements) to zero and mark the player as unranked. This cannot be undone.
+              {/* Reset Tools Panel */}
+              {showResetPanel && (
+                <ResetTools
+                  player={selectedPlayer}
+                  onPlayerChange={handlePlayerChange}
+                  onToast={handleToast}
+                  onClose={() => setShowResetPanel(false)}
+                />
+              )}
+
+              {/* Audit Log for this player */}
+              {showAuditLog && (
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600">
+                    📋 Player Audit Log
                   </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleReset(selectedPlayer.user_id)}
-                      disabled={resetting}
-                      className="flex-1 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 px-4 py-2 text-xs font-black text-white hover:from-orange-500 hover:to-red-500 transition disabled:opacity-50"
-                    >
-                      {resetting ? "Resetting…" : "🔄 Confirm Reset"}
-                    </button>
-                    <button
-                      onClick={() => setShowResetConfirm(false)}
-                      className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-white/5 transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                  <AuditLog userId={selectedPlayer.user_id} compact />
                 </div>
               )}
 
-              {/* ── Badge Management ── */}
-              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600">🏅 Badges</p>
-                  {badgesLoading && <span className="text-[10px] text-zinc-500 animate-pulse">Loading…</span>}
-                </div>
-                {playerBadges.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {playerBadges.map((b) => (
-                      <span
-                        key={b.id}
-                        className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-bold text-zinc-300"
-                      >
-                        {b.icon} {b.label}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-zinc-600">No badges assigned.</p>
-                )}
-                <div className="grid grid-cols-1 gap-1.5">
-                  {BADGE_OPTIONS.map((opt) => {
-                    const hasBadge = playerBadges.some((b) => b.id === opt.id);
-                    const isActioning = badgeActioning === opt.id;
-                    return (
-                      <div key={opt.id} className="flex items-center justify-between gap-2">
-                        <span className="text-xs text-zinc-400">
-                          {opt.icon} {opt.label}
-                        </span>
-                        <button
-                          onClick={() => handleBadgeAction(opt.id, hasBadge ? "remove" : "assign")}
-                          disabled={isActioning}
-                          className={`rounded-lg px-3 py-1 text-[11px] font-black transition disabled:opacity-50 ${
-                            hasBadge
-                              ? "border border-red-700/40 bg-red-950/20 text-red-300 hover:bg-red-950/40"
-                              : "border border-green-700/40 bg-green-950/20 text-green-300 hover:bg-green-950/40"
-                          }`}
-                        >
-                          {isActioning ? "…" : hasBadge ? "Remove" : "Assign"}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Actions */}
+              {/* Quick Actions */}
               <div className="space-y-2 pt-1">
-                <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600">Quick Actions</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600">
+                  Quick Actions
+                </p>
                 <div className="flex flex-wrap gap-2">
                   <SoundLink
                     href={`/profile/${selectedPlayer.user_id}`}
@@ -714,44 +605,42 @@ export default function AdminPlayersPage() {
                     👤 View Profile
                   </SoundLink>
                   <button
-                    onClick={() => { setShowEditPanel((v) => !v); setShowResetConfirm(false); }}
-                    className="rounded-xl border border-blue-700/30 bg-blue-950/10 px-4 py-2 text-xs font-bold text-blue-300 hover:bg-blue-950/20 transition"
+                    onClick={() => {
+                      setShowEditPanel((v) => !v);
+                      setShowResetPanel(false);
+                    }}
+                    className={`rounded-xl border px-4 py-2 text-xs font-bold transition ${
+                      showEditPanel
+                        ? "border-blue-600/60 bg-blue-950/30 text-blue-300"
+                        : "border-blue-700/30 bg-blue-950/10 text-blue-300 hover:bg-blue-950/20"
+                    }`}
                   >
                     ✏️ Edit Stats
                   </button>
                   <button
-                    onClick={() => { setShowResetConfirm((v) => !v); setShowEditPanel(false); }}
-                    className="rounded-xl border border-orange-700/30 bg-orange-950/10 px-4 py-2 text-xs font-bold text-orange-300 hover:bg-orange-950/20 transition"
+                    onClick={() => {
+                      setShowResetPanel((v) => !v);
+                      setShowEditPanel(false);
+                    }}
+                    className={`rounded-xl border px-4 py-2 text-xs font-bold transition ${
+                      showResetPanel
+                        ? "border-orange-600/60 bg-orange-950/30 text-orange-300"
+                        : "border-orange-700/30 bg-orange-950/10 text-orange-300 hover:bg-orange-950/20"
+                    }`}
                   >
-                    🔄 Reset Player
+                    🔄 Reset Stats
                   </button>
-                  <SoundLink
-                    href={`/admin/cr?player=${selectedPlayer.user_id}`}
-                    soundType="click"
-                    className="rounded-xl border border-orange-700/30 bg-orange-950/10 px-4 py-2 text-xs font-bold text-orange-300 hover:bg-orange-950/20 transition"
+                  <button
+                    onClick={() => setShowAuditLog((v) => !v)}
+                    className={`rounded-xl border px-4 py-2 text-xs font-bold transition ${
+                      showAuditLog
+                        ? "border-zinc-500/60 bg-zinc-800/50 text-zinc-300"
+                        : "border-white/10 text-zinc-400 hover:bg-white/5"
+                    }`}
                   >
-                    ⚙️ Edit CR
-                  </SoundLink>
+                    📋 Audit Log
+                  </button>
                 </div>
-
-                {/* Blacklist toggle */}
-                {selectedPlayer.blacklisted ? (
-                  <button
-                    onClick={() => handleBlacklist(selectedPlayer.user_id, false)}
-                    disabled={actioning}
-                    className="w-full rounded-xl border border-green-700/40 bg-green-950/20 px-4 py-2.5 text-sm font-black text-green-300 hover:bg-green-950/40 transition disabled:opacity-50"
-                  >
-                    {actioning ? "Processing…" : "✅ Unblacklist Player"}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleBlacklist(selectedPlayer.user_id, true)}
-                    disabled={actioning}
-                    className="w-full rounded-xl border border-red-700/40 bg-red-950/20 px-4 py-2.5 text-sm font-black text-red-300 hover:bg-red-950/40 transition disabled:opacity-50"
-                  >
-                    {actioning ? "Processing…" : "🚫 Blacklist Player"}
-                  </button>
-                )}
               </div>
             </div>
           )}

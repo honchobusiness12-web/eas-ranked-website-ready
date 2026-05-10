@@ -43,6 +43,7 @@ const adminLinks = [
   { label: "📋 Leaderboard Mgmt", href: "/admin/leaderboard" },
   { label: "📊 Analytics",        href: "/admin/analytics" },
   { label: "🛡️ Moderation",       href: "/admin/moderation" },
+  { label: "📋 Audit Log",        href: "/admin/audit-logs" },
 ];
 
 interface ShellSeason {
