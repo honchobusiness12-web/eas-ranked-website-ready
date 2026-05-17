@@ -32,33 +32,32 @@ export default function Pagination({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
       {totalItems !== undefined && itemsPerPage !== undefined && (
-        <p className="text-sm text-zinc-500">
-          Showing {Math.min((page - 1) * itemsPerPage + 1, totalItems)}–
-          {Math.min(page * itemsPerPage, totalItems)} of {totalItems}
+        <p className="text-xs text-zinc-600">
+          {Math.min((page - 1) * itemsPerPage + 1, totalItems)}–{Math.min(page * itemsPerPage, totalItems)} of {totalItems.toLocaleString()}
         </p>
       )}
       <div className="flex items-center gap-1 ml-auto">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold disabled:opacity-30 hover:bg-orange-950/40 hover:border-orange-600 transition"
+          className="rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-zinc-400 disabled:opacity-30 hover:bg-white/[0.08] hover:text-white transition-colors"
         >
           ← Prev
         </button>
 
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={`ellipsis-${i}`} className="px-2 text-zinc-600">…</span>
+            <span key={`ellipsis-${i}`} className="px-1.5 text-zinc-700 text-xs">…</span>
           ) : (
             <button
               key={p}
               onClick={() => onPageChange(p as number)}
-              className={`rounded-lg border px-3 py-1.5 text-sm font-bold transition ${
+              className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${
                 p === page
-                  ? "border-orange-500 bg-gradient-to-r from-orange-500 to-red-500 text-white"
-                  : "border-white/10 bg-white/5 text-zinc-400 hover:bg-orange-950/40 hover:border-orange-600"
+                  ? "border-orange-500/50 bg-orange-500/20 text-orange-300"
+                  : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:bg-white/[0.08] hover:text-zinc-300"
               }`}
             >
               {p}
@@ -69,7 +68,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page === totalPages}
-          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold disabled:opacity-30 hover:bg-orange-950/40 hover:border-orange-600 transition"
+          className="rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-zinc-400 disabled:opacity-30 hover:bg-white/[0.08] hover:text-white transition-colors"
         >
           Next →
         </button>

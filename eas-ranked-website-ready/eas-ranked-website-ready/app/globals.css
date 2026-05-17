@@ -1,34 +1,46 @@
 @import "tailwindcss";
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
 html, body {
   margin: 0;
   min-height: 100%;
   background: #05050b;
-  color: white;
+  color: #f4f4f5;
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Arial, sans-serif;
+  line-height: 1.5;
 }
 
-a { text-decoration: none; }
+a { text-decoration: none; color: inherit; }
 
-::-webkit-scrollbar { width: 10px; }
+img { display: block; max-width: 100%; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #05050b; }
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #FF6B6B, #FF9F43);
   border-radius: 999px;
 }
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff8585, #ffb55a);
+}
 
 /* ============================================================
-   Summer Color Palette Variables
+   Design Tokens
    ============================================================ */
 
 :root {
+  /* Brand colors */
   --summer-coral:    #FF6B6B;
   --summer-orange:   #FF9F43;
   --summer-yellow:   #FFD93D;
@@ -36,6 +48,35 @@ a { text-decoration: none; }
   --summer-blue:     #0099FF;
   --summer-lime:     #00FF88;
   --summer-bg-warm:  #0e0905;
+
+  /* Spacing scale (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Surface colors */
+  --surface-0: #05050b;
+  --surface-1: #08080f;
+  --surface-2: #0d0d18;
+  --surface-3: #111120;
+
+  /* Border */
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.16);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
 }
 
 /* ============================================================
@@ -181,4 +222,170 @@ a { text-decoration: none; }
   border-color: transparent !important;
 }
 
+/* ============================================================
+   Global utility classes
+   ============================================================ */
 
+/* Card surface */
+.card {
+  background: var(--surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+}
+
+.card-hover {
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.card-hover:hover {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid #FF9F43;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for interactive elements */
+button, a {
+  transition-property: background-color, border-color, color, opacity, box-shadow, transform;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Truncate text */
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Stat value typography */
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* Section heading */
+.section-heading {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+/* Divider */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-default);
+  margin: 0;
+}
+
+/* Badge pill */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Table row hover */
+.table-row-hover {
+  transition: background 0.1s ease;
+}
+.table-row-hover:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* Input base */
+.input-base {
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: #f4f4f5;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease;
+  width: 100%;
+}
+.input-base:focus {
+  outline: none;
+  border-color: rgba(255, 159, 67, 0.6);
+}
+.input-base::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+
+/* Button variants */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.875rem;
+  background: linear-gradient(135deg, #FF6B35, #FF4500);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.875rem;
+  background: transparent;
+  color: #a1a1aa;
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border-strong);
+  color: #f4f4f5;
+}
+
+/* ============================================================
+   Improved shimmer animation
+   ============================================================ */
+
+@keyframes shimmer-improved {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer-improved 1.8s infinite linear;
+  border-radius: var(--radius-md);
+}
