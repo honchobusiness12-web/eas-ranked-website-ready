@@ -40,9 +40,9 @@ export default function ComparePage() {
 
   return (
     <Shell>
-      <div className="mb-6">
-        <h1 className="text-4xl font-black">⚔️ Player Comparison</h1>
-        <p className="mt-2 text-zinc-400">Select two players to compare their stats head-to-head.</p>
+      <div className="mb-4">
+        <h1 className="text-2xl font-black">⚔️ Player Comparison</h1>
+        <p className="mt-0.5 text-xs text-zinc-500">Select two players to compare stats head-to-head.</p>
       </div>
 
       {loading ? (
@@ -50,16 +50,16 @@ export default function ComparePage() {
       ) : (
         <>
           {/* Player selectors */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-8">
-            <div className="rounded-2xl border border-orange-700/40 bg-orange-950/10 p-5">
-              <p className="mb-3 text-sm font-bold text-orange-300">Player A</p>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 mb-4">
+            <div className="rounded-xl border border-orange-700/30 bg-orange-950/10 p-4">
+              <p className="mb-2.5 text-xs font-bold text-orange-300 uppercase tracking-wider">Player A</p>
               <PlayerSearch
                 players={players}
                 onSelect={setPlayerA}
                 placeholder="Search for Player A…"
               />
               {playerA && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-zinc-400">
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
                   <span className="text-green-400">✓</span>
                   <span className="font-bold text-white">{playerA.name}</span>
                   <span>selected</span>
@@ -67,15 +67,15 @@ export default function ComparePage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-blue-700/40 bg-blue-950/10 p-5">
-              <p className="mb-3 text-sm font-bold text-blue-300">Player B</p>
+            <div className="rounded-xl border border-blue-700/30 bg-blue-950/10 p-4">
+              <p className="mb-2.5 text-xs font-bold text-blue-300 uppercase tracking-wider">Player B</p>
               <PlayerSearch
                 players={players}
                 onSelect={setPlayerB}
                 placeholder="Search for Player B…"
               />
               {playerB && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-zinc-400">
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
                   <span className="text-green-400">✓</span>
                   <span className="font-bold text-white">{playerB.name}</span>
                   <span>selected</span>
@@ -87,25 +87,24 @@ export default function ComparePage() {
           {/* Comparison result */}
           {playerA && playerB ? (
             playerA.user_id === playerB.user_id ? (
-              <div className="rounded-2xl border border-yellow-700/40 bg-yellow-950/20 p-6 text-center">
-                <p className="text-yellow-300 font-bold">⚠️ Please select two different players to compare.</p>
+              <div className="rounded-xl border border-yellow-700/30 bg-yellow-950/15 p-4 text-center">
+                <p className="text-sm text-yellow-300 font-bold">⚠️ Please select two different players to compare.</p>
               </div>
             ) : (
               <PlayerComparison playerA={playerA} playerB={playerB} />
             )
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-12 text-center">
-              <p className="text-5xl mb-4">⚔️</p>
-              <p className="text-xl font-black text-zinc-400">Select two players above to begin comparison</p>
-              <p className="mt-2 text-sm text-zinc-600">Search by name or username</p>
+            <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d14] p-10 text-center">
+              <p className="text-4xl mb-3">⚔️</p>
+              <p className="text-base font-black text-zinc-400">Select two players above to begin</p>
+              <p className="mt-1 text-xs text-zinc-600">Search by name or username</p>
             </div>
           )}
 
-          {/* Premium upsell */}
-          <div className="mt-6">
+          <div className="mt-4">
             <PremiumUpsell
               compact
-              message="Save comparisons and view your comparison history with Premium."
+              message="Save comparisons and view comparison history with Premium."
             />
           </div>
         </>
