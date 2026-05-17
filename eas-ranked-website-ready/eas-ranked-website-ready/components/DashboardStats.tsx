@@ -34,21 +34,28 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
 
   return (
     <div className="space-y-4">
-      {/* ── Rank Distribution ── */}
-      <div className="rounded-2xl border border-white/[0.06] p-5 backdrop-blur-sm" style={{ background: "rgba(11,11,31,0.8)" }}>
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-500/15 text-sm">📊</div>
-          <h3 className="text-sm font-black tracking-tight">Rank Distribution</h3>
+      {/* ── Rank Distribution — full width ── */}
+      <div className="rounded-2xl border border-white/[0.06] p-6 backdrop-blur-sm" style={{ background: "rgba(9,9,25,0.85)" }}>
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-500/15 text-base">📊</div>
+          <div>
+            <h3 className="text-sm font-black tracking-tight">Rank Distribution</h3>
+            <p className="text-[10px] text-zinc-600">{ranked.length} ranked players</p>
+          </div>
         </div>
         <RankDistributionChart buckets={buckets} totalPlayers={ranked.length} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* ── Leaderboard sub-tables — 3-column grid ── */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* Top CR */}
-        <div className="rounded-2xl border border-white/[0.06] p-4 backdrop-blur-sm" style={{ background: "rgba(11,11,31,0.8)" }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-500/15 text-xs">🏆</div>
-            <h3 className="text-sm font-black tracking-tight">Top CR</h3>
+        <div className="rounded-2xl border border-white/[0.06] p-5 backdrop-blur-sm" style={{ background: "rgba(9,9,25,0.85)" }}>
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/15 text-sm">🏆</div>
+            <div>
+              <h3 className="text-sm font-black tracking-tight">Top CR</h3>
+              <p className="text-[10px] text-zinc-600">Highest rated</p>
+            </div>
           </div>
           <div className="space-y-0.5">
             {topPlayers.map((p, i) => (
@@ -56,7 +63,7 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
                 key={p.user_id}
                 href={`/profile/${p.user_id}`}
                 soundType="click"
-                className="group flex items-center gap-2.5 rounded-xl px-2 py-2 transition-all duration-200 hover:bg-purple-500/[0.05]"
+                className="group flex items-center gap-2.5 rounded-xl px-2 py-2.5 transition-all duration-200 hover:bg-purple-500/[0.06]"
               >
                 <span className="w-5 text-xs font-black text-zinc-700">#{i + 1}</span>
                 <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-7 w-7" />
@@ -68,10 +75,13 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
         </div>
 
         {/* Top MVPs */}
-        <div className="rounded-2xl border border-white/[0.06] p-4 backdrop-blur-sm" style={{ background: "rgba(11,11,31,0.8)" }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-yellow-500/15 text-xs">🌟</div>
-            <h3 className="text-sm font-black tracking-tight">Top MVPs</h3>
+        <div className="rounded-2xl border border-white/[0.06] p-5 backdrop-blur-sm" style={{ background: "rgba(9,9,25,0.85)" }}>
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-yellow-500/15 text-sm">🌟</div>
+            <div>
+              <h3 className="text-sm font-black tracking-tight">Top MVPs</h3>
+              <p className="text-[10px] text-zinc-600">Most valuable</p>
+            </div>
           </div>
           <div className="space-y-0.5">
             {topMvps.length === 0 ? (
@@ -82,7 +92,7 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
                   key={p.user_id}
                   href={`/profile/${p.user_id}`}
                   soundType="click"
-                  className="group flex items-center gap-2.5 rounded-xl px-2 py-2 transition-all duration-200 hover:bg-yellow-500/[0.05]"
+                  className="group flex items-center gap-2.5 rounded-xl px-2 py-2.5 transition-all duration-200 hover:bg-yellow-500/[0.06]"
                 >
                   <span className="w-5 text-xs font-black text-zinc-700">#{i + 1}</span>
                   <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-7 w-7" />
@@ -95,13 +105,15 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
         </div>
 
         {/* Top Win Rates */}
-        <div className="rounded-2xl border border-white/[0.06] p-4 backdrop-blur-sm" style={{ background: "rgba(11,11,31,0.8)" }}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-green-500/15 text-xs">📈</div>
-              <h3 className="text-sm font-black tracking-tight">Best Win Rate</h3>
+        <div className="rounded-2xl border border-white/[0.06] p-5 backdrop-blur-sm" style={{ background: "rgba(9,9,25,0.85)" }}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/15 text-sm">📈</div>
+              <div>
+                <h3 className="text-sm font-black tracking-tight">Best Win Rate</h3>
+                <p className="text-[10px] text-zinc-600">Min. 10 matches</p>
+              </div>
             </div>
-            <span className="text-[10px] text-zinc-700 font-medium">Min. 10 matches</span>
           </div>
           <div className="space-y-0.5">
             {topWinRates.length === 0 ? (
@@ -112,7 +124,7 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
                   key={p.user_id}
                   href={`/profile/${p.user_id}`}
                   soundType="click"
-                  className="group flex items-center gap-2.5 rounded-xl px-2 py-2 transition-all duration-200 hover:bg-green-500/[0.05]"
+                  className="group flex items-center gap-2.5 rounded-xl px-2 py-2.5 transition-all duration-200 hover:bg-green-500/[0.06]"
                 >
                   <span className="w-5 text-xs font-black text-zinc-700">#{i + 1}</span>
                   <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-7 w-7" />

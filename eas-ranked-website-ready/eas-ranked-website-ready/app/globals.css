@@ -583,3 +583,52 @@ button, a {
 .page-enter {
   animation: fade-in 0.4s ease-out both;
 }
+
+/* ============================================================
+   Full-width layout helpers
+   ============================================================ */
+
+/* Ensure the main content area always fills available width */
+.shell-content {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Sidebar transition */
+.sidebar-transition {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevent content overflow in grid cells */
+.grid > * {
+  min-width: 0;
+}
+
+/* Better select styling for dark theme */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px !important;
+  cursor: pointer;
+}
+
+select option {
+  background: #0b0b1f;
+  color: #f1f1f8;
+}
+
+/* Improved table row transitions */
+.table-row {
+  transition: background 0.15s ease;
+}
+
+/* Card surface consistency */
+.surface {
+  background: rgba(9, 9, 25, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
