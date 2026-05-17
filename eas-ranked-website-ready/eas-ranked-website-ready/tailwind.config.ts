@@ -24,6 +24,14 @@ const config: Config = {
           indigo:  "#6366F1",
           pink:    "#EC4899",
           cyan:    "#06B6D4",
+          gold:    "#FFD700",
+        },
+        eas: {
+          bg:      "#0a0a14",
+          navy:    "#0f0f1f",
+          purple:  "#7C3AED",
+          gold:    "#FFD700",
+          electric:"#00D4FF",
         },
       },
       spacing: {
