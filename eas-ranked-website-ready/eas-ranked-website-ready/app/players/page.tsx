@@ -57,8 +57,11 @@ export default function PlayersPage() {
       {/* ── Header ── */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">👥 Players</h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/15 text-lg">👥</div>
+            <h1 className="text-2xl font-black tracking-tight">Players</h1>
+          </div>
+          <p className="mt-0.5 text-sm text-zinc-500 pl-12">
             {loading ? "Loading…" : `${filtered.length.toLocaleString()} players`}
           </p>
         </div>
@@ -73,7 +76,7 @@ export default function PlayersPage() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search by name or username…"
-            className="rounded-lg border border-white/[0.07] bg-white/[0.04] py-2 pl-9 pr-4 text-sm text-white placeholder-zinc-600 outline-none focus:border-orange-500/50 focus:bg-white/[0.06] transition-colors w-56"
+            className="rounded-xl border border-white/[0.07] bg-white/[0.04] py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-600 outline-none transition-all duration-200 focus:border-purple-500/40 focus:bg-white/[0.06] focus:ring-1 focus:ring-purple-500/20 w-56 backdrop-blur-sm"
           />
         </div>
         <div className="flex gap-1.5">
@@ -81,10 +84,10 @@ export default function PlayersPage() {
             <button
               key={f}
               onClick={() => handleFilterChange(f)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-bold capitalize transition-colors ${
+              className={`rounded-xl border px-3 py-1.5 text-xs font-bold capitalize transition-all duration-200 ${
                 filter === f
-                  ? "border-orange-500/50 bg-orange-500/20 text-orange-300"
-                  : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:border-white/[0.15] hover:text-zinc-300"
+                  ? "border-purple-500/40 bg-purple-500/15 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+                  : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:border-white/[0.12] hover:text-zinc-300"
               }`}
             >
               {f}
@@ -96,7 +99,7 @@ export default function PlayersPage() {
       {loading ? (
         <SkeletonCardsGrid count={9} />
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] py-16 text-center">
+        <div className="rounded-2xl border border-white/[0.06] py-16 text-center backdrop-blur-sm" style={{ background: "rgba(11,11,31,0.8)" }}>
           <p className="text-3xl mb-3">🔍</p>
           <p className="text-base font-black text-zinc-400">No players found</p>
           <p className="mt-1 text-xs text-zinc-600">Try adjusting your search or filter</p>
@@ -115,18 +118,22 @@ export default function PlayersPage() {
                   href={`/profile/${p.user_id}`}
                   key={p.user_id}
                   soundType="click"
-                  className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-4 hover:border-white/[0.14] hover:bg-[#111120] transition-colors"
+                  className="group relative overflow-hidden rounded-2xl border border-white/[0.06] p-4 backdrop-blur-sm transition-all duration-200 hover:border-purple-500/20 hover:scale-[1.01] hover:-translate-y-0.5"
+                  style={{ background: "rgba(11,11,31,0.8)" }}
                 >
-                  <div className="flex items-center gap-3">
+                  {/* Hover glow */}
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: "radial-gradient(ellipse at top left, rgba(168,85,247,0.06), transparent 60%)" }} />
+
+                  <div className="relative flex items-center gap-3">
                     <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-10 w-10" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate">{p.name}</p>
+                      <p className="text-sm font-bold truncate group-hover:text-white transition-colors">{p.name}</p>
                       <p className="text-xs text-zinc-600 truncate">{p.username || "—"}</p>
                     </div>
                     {p.ranked && <RankBadge cr={Number(p.cr || 0)} size="sm" showLabel={false} />}
                   </div>
 
-                  <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                  <div className="relative mt-3 grid grid-cols-4 gap-2 text-center">
                     <Mini label="CR" value={(p.cr || 0).toLocaleString()} highlight />
                     <Mini label="Wins" value={p.wins || 0} />
                     <Mini label="Kills" value={(p.kills || 0).toLocaleString()} />
@@ -134,7 +141,7 @@ export default function PlayersPage() {
                   </div>
 
                   {/* Achievement preview */}
-                  <div className="mt-3 flex items-center justify-between">
+                  <div className="relative mt-3 flex items-center justify-between">
                     <div className="flex gap-0.5">
                       {achievements
                         .filter((a) => a.unlocked)
@@ -148,7 +155,7 @@ export default function PlayersPage() {
                         <span className="text-[10px] text-zinc-700">No achievements yet</span>
                       )}
                     </div>
-                    <span className="text-[10px] text-zinc-600">
+                    <span className="text-[10px] text-zinc-600 font-medium">
                       {unlockedCount}/{achievements.length} 🏅
                     </span>
                   </div>
@@ -172,9 +179,9 @@ export default function PlayersPage() {
 
 function Mini({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) {
   return (
-    <div className="rounded-lg bg-white/[0.04] px-2 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">{label}</p>
-      <p className={`text-xs font-black mt-0.5 ${highlight ? "text-orange-400" : "text-white"}`}>{value}</p>
+    <div className="rounded-xl border border-white/[0.05] bg-white/[0.03] px-2 py-2 transition-colors group-hover:border-white/[0.08]">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">{label}</p>
+      <p className={`text-xs font-black mt-0.5 ${highlight ? "text-purple-400" : "text-zinc-300"}`}>{value}</p>
     </div>
   );
 }

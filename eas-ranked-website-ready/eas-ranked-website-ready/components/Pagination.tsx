@@ -34,7 +34,7 @@ export default function Pagination({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
       {totalItems !== undefined && itemsPerPage !== undefined && (
-        <p className="text-xs text-zinc-600">
+        <p className="text-xs text-zinc-600 font-medium">
           {Math.min((page - 1) * itemsPerPage + 1, totalItems)}–{Math.min(page * itemsPerPage, totalItems)} of {totalItems.toLocaleString()}
         </p>
       )}
@@ -42,7 +42,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          className="rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-zinc-400 disabled:opacity-30 hover:bg-white/[0.08] hover:text-white transition-colors"
+          className="rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-zinc-400 transition-all duration-200 disabled:opacity-25 hover:border-white/[0.12] hover:bg-white/[0.08] hover:text-white"
         >
           ← Prev
         </button>
@@ -54,10 +54,10 @@ export default function Pagination({
             <button
               key={p}
               onClick={() => onPageChange(p as number)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${
+              className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-200 ${
                 p === page
-                  ? "border-orange-500/50 bg-orange-500/20 text-orange-300"
-                  : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:bg-white/[0.08] hover:text-zinc-300"
+                  ? "border-purple-500/40 bg-purple-500/15 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+                  : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:border-white/[0.12] hover:bg-white/[0.08] hover:text-zinc-300"
               }`}
             >
               {p}
@@ -68,7 +68,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page === totalPages}
-          className="rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-zinc-400 disabled:opacity-30 hover:bg-white/[0.08] hover:text-white transition-colors"
+          className="rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-zinc-400 transition-all duration-200 disabled:opacity-25 hover:border-white/[0.12] hover:bg-white/[0.08] hover:text-white"
         >
           Next →
         </button>

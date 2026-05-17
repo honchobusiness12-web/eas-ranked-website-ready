@@ -109,14 +109,17 @@ export default function LeaderboardPage() {
       {/* ── Header ── */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">🏆 Leaderboard</h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/15 text-lg">🏆</div>
+            <h1 className="text-2xl font-black tracking-tight">Leaderboard</h1>
+          </div>
+          <p className="mt-0.5 text-sm text-zinc-500 pl-12">
             {loading ? "Loading…" : `${sorted.length.toLocaleString()} players`}
           </p>
         </div>
         <button
           onClick={() => { setLoading(true); window.location.reload(); }}
-          className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
+          className="rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2 text-sm font-bold text-zinc-400 transition-all duration-200 hover:border-white/[0.12] hover:bg-white/[0.08] hover:text-white"
         >
           🔄 Refresh
         </button>
@@ -132,10 +135,10 @@ export default function LeaderboardPage() {
 
         <button
           onClick={() => setShowPremiumFilters((v) => !v)}
-          className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+          className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all duration-200 ${
             showPremiumFilters
-              ? "border-yellow-500/50 bg-yellow-950/20 text-yellow-300"
-              : "border-white/10 bg-white/5 text-zinc-400 hover:border-yellow-600/40 hover:text-yellow-300"
+              ? "border-yellow-500/30 bg-yellow-500/[0.10] text-yellow-300"
+              : "border-white/[0.07] bg-white/[0.04] text-zinc-400 hover:border-yellow-500/25 hover:text-yellow-300"
           }`}
         >
           💎 Filters {showPremiumFilters ? "▲" : "▼"}
@@ -146,10 +149,10 @@ export default function LeaderboardPage() {
             <button
               key={key}
               onClick={() => handleSort(key)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${
+              className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-200 ${
                 sortKey === key
-                  ? "border-orange-500/60 bg-orange-500/20 text-orange-300"
-                  : "border-white/10 bg-white/5 text-zinc-500 hover:border-white/20 hover:text-zinc-300"
+                  ? "border-purple-500/40 bg-purple-500/15 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+                  : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:border-white/[0.12] hover:text-zinc-300"
               }`}
             >
               {key === "cr" ? "CR" : key === "mvp_count" ? "MVPs" : key.charAt(0).toUpperCase() + key.slice(1)}
@@ -161,14 +164,14 @@ export default function LeaderboardPage() {
 
       {/* ── Premium filter panel ── */}
       {showPremiumFilters && (
-        <div className="mb-4 rounded-xl border border-yellow-700/20 bg-yellow-950/10 p-4">
+        <div className="mb-4 rounded-xl border border-yellow-500/15 bg-yellow-500/[0.05] p-4 backdrop-blur-sm">
           <div className="flex flex-wrap items-end gap-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Rank Tier</p>
               <select
                 value={rankFilter}
                 onChange={(e) => { setRankFilter(e.target.value); setPage(1); }}
-                className="rounded-lg border border-white/10 bg-[#0d0d18] px-3 py-2 text-sm text-white focus:border-yellow-600/60 focus:outline-none"
+                className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white transition-all duration-200 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
               >
                 <option value="all">All Ranks</option>
                 <option value="rookie">R1 Rookie</option>
@@ -188,7 +191,7 @@ export default function LeaderboardPage() {
               <select
                 value={winRateFilter}
                 onChange={(e) => { setWinRateFilter(e.target.value); setPage(1); }}
-                className="rounded-lg border border-white/10 bg-[#0d0d18] px-3 py-2 text-sm text-white focus:border-yellow-600/60 focus:outline-none"
+                className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white transition-all duration-200 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
               >
                 <option value="all">All Win Rates</option>
                 <option value="60plus">60%+ Win Rate</option>
@@ -199,7 +202,7 @@ export default function LeaderboardPage() {
             {(rankFilter !== "all" || winRateFilter !== "all") && (
               <button
                 onClick={() => { setRankFilter("all"); setWinRateFilter("all"); setPage(1); }}
-                className="rounded-lg border border-red-700/40 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-950/20 transition-colors"
+                className="rounded-xl border border-red-500/25 bg-red-500/[0.07] px-3 py-2 text-xs font-bold text-red-400 transition-all duration-200 hover:bg-red-500/[0.12] hover:text-red-300"
               >
                 Clear
               </button>
@@ -213,26 +216,27 @@ export default function LeaderboardPage() {
         <SkeletonTable rows={10} />
       ) : (
         <>
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-white/[0.06] backdrop-blur-sm" style={{ background: "rgba(11,11,31,0.8)" }}>
             {/* Column headers */}
-            <div className="hidden md:grid grid-cols-[52px_1fr_150px_90px_110px_70px] items-center border-b border-white/[0.07] px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-zinc-600">
+            <div className="hidden md:grid grid-cols-[52px_1fr_150px_90px_110px_70px] items-center border-b border-white/[0.06] px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-zinc-700" style={{ background: "linear-gradient(90deg, rgba(124,58,237,0.04), transparent)" }}>
               <span>#</span>
               <span>Player</span>
               <span>Rank</span>
-              <button onClick={() => handleSort("cr")} className="text-left hover:text-orange-400 transition-colors">
+              <button onClick={() => handleSort("cr")} className="text-left transition-colors hover:text-purple-400">
                 CR{sortIcon("cr")}
               </button>
-              <button onClick={() => handleSort("wins")} className="text-left hover:text-orange-400 transition-colors">
+              <button onClick={() => handleSort("wins")} className="text-left transition-colors hover:text-purple-400">
                 W / L{sortIcon("wins")}
               </button>
-              <button onClick={() => handleSort("kills")} className="text-left hover:text-orange-400 transition-colors">
+              <button onClick={() => handleSort("kills")} className="text-left transition-colors hover:text-purple-400">
                 Kills{sortIcon("kills")}
               </button>
             </div>
 
             {sorted.length === 0 ? (
               <div className="px-5 py-12 text-center">
-                <p className="text-zinc-500 text-sm">No players match your search.</p>
+                <p className="text-3xl mb-3">🔍</p>
+                <p className="text-zinc-500 text-sm font-semibold">No players match your search.</p>
               </div>
             ) : (
               paginated.map((p: any, i: number) => {
@@ -244,15 +248,23 @@ export default function LeaderboardPage() {
                     href={`/profile/${p.user_id}`}
                     key={p.user_id}
                     soundType="click"
-                    className="grid grid-cols-[44px_1fr] md:grid-cols-[52px_1fr_150px_90px_110px_70px] items-center border-b border-white/[0.05] px-5 py-3 hover:bg-white/[0.04] transition-colors last:border-0"
+                    className="group grid grid-cols-[44px_1fr] md:grid-cols-[52px_1fr_150px_90px_110px_70px] items-center border-b border-white/[0.04] px-5 py-3.5 transition-all duration-200 hover:bg-purple-500/[0.04] last:border-0"
                   >
-                    <span className="text-xs font-black text-zinc-600">
-                      {globalIndex === 0 ? "🥇" : globalIndex === 1 ? "🥈" : globalIndex === 2 ? "🥉" : `#${globalIndex + 1}`}
+                    <span className="text-xs font-black">
+                      {globalIndex === 0 ? (
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-yellow-500/15 text-sm">🥇</span>
+                      ) : globalIndex === 1 ? (
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-zinc-400/10 text-sm">🥈</span>
+                      ) : globalIndex === 2 ? (
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-orange-700/15 text-sm">🥉</span>
+                      ) : (
+                        <span className="text-zinc-700">#{globalIndex + 1}</span>
+                      )}
                     </span>
                     <div className="flex items-center gap-3 min-w-0">
                       <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-9 w-9" />
                       <div className="min-w-0">
-                        <p className="text-sm font-bold truncate">{p.name}</p>
+                        <p className="text-sm font-bold truncate group-hover:text-white transition-colors">{p.name}</p>
                         <p className="text-xs text-zinc-600 truncate">{p.username || "—"}</p>
                       </div>
                     </div>
@@ -260,16 +272,15 @@ export default function LeaderboardPage() {
                       <RankBadge cr={Number(p.cr || 0)} size="sm" />
                     </div>
                     <div className="hidden md:flex items-center gap-1.5">
-                      <span className="text-sm font-black text-orange-400">{(p.cr || 0).toLocaleString()}</span>
-                      <TrendingIndicator delta={0} />
+                      <span className="text-sm font-black text-purple-300 group-hover:text-purple-200 transition-colors">{(p.cr || 0).toLocaleString()}</span>
                     </div>
                     <div className="hidden md:block text-xs">
                       <span className="text-green-400 font-bold">{p.wins || 0}W</span>
                       <span className="text-zinc-700 mx-1">/</span>
                       <span className="text-red-400">{p.losses || 0}L</span>
-                      <span className="ml-1 text-zinc-600">({winRate}%)</span>
+                      <span className="ml-1.5 rounded-md bg-white/[0.04] px-1.5 py-0.5 text-zinc-500">{winRate}%</span>
                     </div>
-                    <span className="hidden md:block text-xs font-bold text-zinc-400">{(p.kills || 0).toLocaleString()}</span>
+                    <span className="hidden md:block text-xs font-bold text-zinc-500 group-hover:text-zinc-400 transition-colors">{(p.kills || 0).toLocaleString()}</span>
                   </SoundLink>
                 );
               })

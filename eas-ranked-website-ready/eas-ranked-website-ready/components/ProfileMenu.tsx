@@ -83,7 +83,7 @@ export default function ProfileMenu() {
     <div ref={containerRef} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-lg border border-white/[0.07] bg-white/[0.04] px-2.5 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/[0.08] hover:text-white transition-colors"
+        className="flex items-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-2.5 py-1.5 text-xs font-bold text-zinc-400 transition-all duration-200 hover:border-white/[0.12] hover:bg-white/[0.08] hover:text-white"
         aria-label="Search player profiles"
       >
         <span>🔍</span>
@@ -91,15 +91,15 @@ export default function ProfileMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-64 rounded-xl border border-white/[0.07] bg-[#0d0d18] shadow-2xl z-50 overflow-hidden">
-          <div className="p-2.5 border-b border-white/[0.07]">
+        <div className="absolute right-0 top-full mt-1.5 w-64 rounded-xl border border-white/[0.07] shadow-depth-xl z-50 overflow-hidden animate-scale-in" style={{ background: "rgba(11,11,31,0.97)", backdropFilter: "blur(20px)" }}>
+          <div className="p-2.5 border-b border-white/[0.06]">
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or username…"
-              className="w-full rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-orange-500/50 focus:outline-none transition-colors"
+              className="w-full rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-2 text-xs text-white placeholder-zinc-600 transition-all duration-200 focus:border-purple-500/40 focus:bg-white/[0.06] focus:outline-none focus:ring-1 focus:ring-purple-500/20"
             />
           </div>
 
@@ -114,16 +114,16 @@ export default function ProfileMenu() {
 
             {!loading && !query.trim() && (
               <div className="p-1.5">
-                <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600">Quick links</p>
+                <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-700">Quick links</p>
                 <button
                   onClick={() => { setOpen(false); router.push("/leaderboard"); }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-400 hover:bg-white/[0.05] hover:text-white transition-colors text-left"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-400 transition-all duration-200 hover:bg-white/[0.05] hover:text-white text-left"
                 >
                   🏆 Leaderboard
                 </button>
                 <button
                   onClick={() => { setOpen(false); router.push("/players"); }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-400 hover:bg-white/[0.05] hover:text-white transition-colors text-left"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-400 transition-all duration-200 hover:bg-white/[0.05] hover:text-white text-left"
                 >
                   👥 All Players
                 </button>
@@ -134,28 +134,28 @@ export default function ProfileMenu() {
               <button
                 key={player.user_id}
                 onClick={() => handleSelect(player.user_id)}
-                className="flex w-full items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.05] transition-colors text-left border-t border-white/[0.04] first:border-t-0"
+                className="group flex w-full items-center gap-2.5 px-3 py-2.5 transition-all duration-200 hover:bg-purple-500/[0.05] text-left border-t border-white/[0.04] first:border-t-0"
               >
                 {player.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={player.avatar_url}
                     alt={player.name}
-                    className="h-7 w-7 rounded-full shrink-0"
+                    className="h-7 w-7 rounded-full shrink-0 ring-1 ring-white/10"
                     loading="lazy"
                   />
                 ) : (
-                  <div className="h-7 w-7 rounded-full bg-white/10 flex items-center justify-center text-xs shrink-0">
+                  <div className="h-7 w-7 rounded-full bg-white/[0.08] flex items-center justify-center text-xs shrink-0">
                     👤
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">{player.name}</p>
+                  <p className="text-xs font-semibold text-white truncate group-hover:text-purple-200 transition-colors">{player.name}</p>
                   {player.username && (
                     <p className="text-[10px] text-zinc-600 truncate">@{player.username}</p>
                   )}
                 </div>
-                <span className="text-xs font-black text-orange-400 shrink-0">{Number(player.cr).toLocaleString()}</span>
+                <span className="text-xs font-black text-purple-400 shrink-0">{Number(player.cr).toLocaleString()}</span>
               </button>
             ))}
           </div>

@@ -16,11 +16,11 @@ export default function PremiumBadge({ size = "md", className = "" }: PremiumBad
 
   return (
     <span
-      className={`inline-flex items-center rounded-lg font-black tracking-wide ${sizeClasses} ${className}`}
+      className={`inline-flex items-center rounded-xl font-black tracking-wide transition-all duration-200 hover:scale-[1.03] ${sizeClasses} ${className}`}
       style={{
         background: "linear-gradient(135deg, #FFD700, #FF9F43, #FF6B6B)",
         color: "#fff",
-        boxShadow: "0 0 10px rgba(255, 215, 0, 0.35)",
+        boxShadow: "0 0 14px rgba(255,215,0,0.4), 0 0 30px rgba(255,159,67,0.15)",
         textShadow: "0 1px 2px rgba(0,0,0,0.4)",
       }}
       title="Premium Member"
