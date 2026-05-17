@@ -54,36 +54,36 @@ export default function PlayersPage() {
 
   return (
     <Shell>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-black">👥 Players</h1>
-          <p className="mt-2 text-zinc-400">
+          <h1 className="text-2xl font-black">👥 Players</h1>
+          <p className="mt-0.5 text-xs text-zinc-500">
             {loading ? "Loading…" : `${filtered.length} players`}
           </p>
         </div>
       </div>
 
       {/* Search + filters */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">🔍</span>
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search by name or username…"
-            className="rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition w-64"
+            placeholder="Search players…"
+            className="rounded-lg border border-white/10 bg-white/5 py-2 pl-8 pr-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/40 transition w-52"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {(["all", "ranked", "placement", "unregistered"] as FilterRank[]).map((f) => (
             <button
               key={f}
               onClick={() => handleFilterChange(f)}
-              className={`rounded-xl border px-3 py-1.5 text-xs font-bold capitalize transition ${
+              className={`rounded-lg border px-2.5 py-1 text-xs font-bold capitalize transition-colors ${
                 filter === f
                   ? "border-orange-500 bg-gradient-to-r from-orange-500 to-red-500 text-white"
-                  : "border-white/10 bg-white/5 text-zinc-400 hover:border-orange-600 hover:text-white"
+                  : "border-white/10 bg-white/5 text-zinc-500 hover:border-orange-600/60 hover:text-white"
               }`}
             >
               {f}
@@ -102,7 +102,7 @@ export default function PlayersPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {paginated.map((p: any) => {
               const achievements = getAchievements(p);
               const unlockedCount = getUnlockedCount(p);
@@ -114,18 +114,18 @@ export default function PlayersPage() {
                   href={`/profile/${p.user_id}`}
                   key={p.user_id}
                   soundType="click"
-                  className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 hover:border-orange-600 transition group"
+                  className="rounded-xl border border-white/[0.07] bg-[#0d0d14] p-4 hover:border-orange-600/50 hover:bg-white/[0.02] transition-colors group"
                 >
-                  <div className="flex items-center gap-4">
-                    <PlayerAvatar name={p.name} avatar={p.avatar_url} />
+                  <div className="flex items-center gap-3">
+                    <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-10 w-10" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-lg font-black truncate">{p.name}</p>
-                      <p className="text-xs text-zinc-500 truncate">{p.username || "No username saved"}</p>
+                      <p className="text-sm font-black truncate leading-tight">{p.name}</p>
+                      <p className="text-[11px] text-zinc-600 truncate">{p.username || "—"}</p>
                     </div>
                     {p.ranked && <RankBadge cr={Number(p.cr || 0)} size="sm" showLabel={false} />}
                   </div>
 
-                  <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+                  <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">
                     <Mini label="CR" value={p.cr || 0} highlight />
                     <Mini label="Wins" value={p.wins || 0} />
                     <Mini label="Kills" value={p.kills || 0} />
@@ -133,21 +133,21 @@ export default function PlayersPage() {
                   </div>
 
                   {/* Achievement preview */}
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex gap-1">
+                  <div className="mt-2.5 flex items-center justify-between">
+                    <div className="flex gap-0.5">
                       {achievements
                         .filter((a) => a.unlocked)
                         .slice(0, 5)
                         .map((a) => (
-                          <span key={a.id} title={a.name} className="text-base">
+                          <span key={a.id} title={a.name} className="text-sm">
                             {a.icon}
                           </span>
                         ))}
                       {unlockedCount === 0 && (
-                        <span className="text-xs text-zinc-600">No achievements yet</span>
+                        <span className="text-[11px] text-zinc-700">No achievements</span>
                       )}
                     </div>
-                    <span className="text-xs text-zinc-600">
+                    <span className="text-[11px] text-zinc-700">
                       {unlockedCount}/{achievements.length} 🏅
                     </span>
                   </div>
@@ -171,9 +171,9 @@ export default function PlayersPage() {
 
 function Mini({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) {
   return (
-    <div className="rounded-xl bg-white/5 p-2">
-      <p className="text-xs text-zinc-500">{label}</p>
-      <p className={`font-black text-sm ${highlight ? "text-orange-400" : ""}`}>{value}</p>
+    <div className="rounded-lg bg-white/[0.04] px-1.5 py-1.5">
+      <p className="text-[10px] text-zinc-600 leading-none">{label}</p>
+      <p className={`mt-0.5 font-black text-xs leading-none ${highlight ? "text-orange-400" : "text-zinc-300"}`}>{value}</p>
     </div>
   );
 }

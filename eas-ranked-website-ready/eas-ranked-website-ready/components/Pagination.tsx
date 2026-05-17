@@ -32,33 +32,35 @@ export default function Pagination({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
       {totalItems !== undefined && itemsPerPage !== undefined && (
-        <p className="text-sm text-zinc-500">
-          Showing {Math.min((page - 1) * itemsPerPage + 1, totalItems)}–
-          {Math.min(page * itemsPerPage, totalItems)} of {totalItems}
+        <p className="text-xs text-zinc-600">
+          {Math.min((page - 1) * itemsPerPage + 1, totalItems)}–{Math.min(page * itemsPerPage, totalItems)} of {totalItems}
         </p>
       )}
       <div className="flex items-center gap-1 ml-auto">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold disabled:opacity-30 hover:bg-orange-950/40 hover:border-orange-600 transition"
+          className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-bold disabled:opacity-30 hover:bg-orange-950/30 hover:border-orange-600/60 transition-colors"
+          aria-label="Previous page"
         >
           ← Prev
         </button>
 
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={`ellipsis-${i}`} className="px-2 text-zinc-600">…</span>
+            <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-zinc-700">…</span>
           ) : (
             <button
               key={p}
               onClick={() => onPageChange(p as number)}
-              className={`rounded-lg border px-3 py-1.5 text-sm font-bold transition ${
+              aria-label={`Page ${p}`}
+              aria-current={p === page ? "page" : undefined}
+              className={`rounded-lg border px-2.5 py-1 text-xs font-bold transition-colors ${
                 p === page
                   ? "border-orange-500 bg-gradient-to-r from-orange-500 to-red-500 text-white"
-                  : "border-white/10 bg-white/5 text-zinc-400 hover:bg-orange-950/40 hover:border-orange-600"
+                  : "border-white/10 bg-white/5 text-zinc-500 hover:bg-orange-950/30 hover:border-orange-600/60 hover:text-white"
               }`}
             >
               {p}
@@ -69,7 +71,8 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page === totalPages}
-          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold disabled:opacity-30 hover:bg-orange-950/40 hover:border-orange-600 transition"
+          className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-bold disabled:opacity-30 hover:bg-orange-950/30 hover:border-orange-600/60 transition-colors"
+          aria-label="Next page"
         >
           Next →
         </button>

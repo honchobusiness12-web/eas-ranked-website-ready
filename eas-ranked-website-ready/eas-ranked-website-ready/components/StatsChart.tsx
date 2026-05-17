@@ -22,35 +22,35 @@ export function WinLossChart({ wins, losses, matches }: WinLossChartProps) {
   const winArc = (winRate / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-3">
       <div className="relative">
-        <svg width="120" height="120" viewBox="0 0 120 120">
+        <svg width="100" height="100" viewBox="0 0 120 120">
           {/* Background ring */}
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#27272a" strokeWidth="14" />
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#27272a" strokeWidth="12" />
           {/* Win arc */}
           <circle
             cx={cx} cy={cy} r={r}
             fill="none"
             stroke="#f97316"
-            strokeWidth="14"
+            strokeWidth="12"
             strokeDasharray={`${winArc} ${circumference - winArc}`}
             strokeLinecap="round"
             transform={`rotate(-90 ${cx} ${cy})`}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-black text-orange-400">{winRate}%</span>
-          <span className="text-xs text-zinc-500">Win Rate</span>
+          <span className="text-xl font-black text-orange-400">{winRate}%</span>
+          <span className="text-[10px] text-zinc-600">Win Rate</span>
         </div>
       </div>
-      <div className="flex gap-6 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-orange-500 inline-block" />
-          <span className="text-zinc-300">{wins} Wins</span>
+      <div className="flex gap-4 text-xs">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-orange-500 inline-block shrink-0" />
+          <span className="text-zinc-400">{wins}W</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-zinc-700 inline-block" />
-          <span className="text-zinc-300">{losses} Losses</span>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-zinc-700 inline-block shrink-0" />
+          <span className="text-zinc-400">{losses}L</span>
         </div>
       </div>
     </div>
@@ -144,21 +144,21 @@ export function RankDistributionChart({ buckets, totalPlayers }: RankDistributio
   const maxCount = Math.max(...buckets.map((b) => b.count));
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {buckets.map((bucket) => {
         const pct = totalPlayers ? Math.round((bucket.count / totalPlayers) * 100) : 0;
         const barWidth = maxCount ? Math.round((bucket.count / maxCount) * 100) : 0;
         return (
-          <div key={bucket.tier} className="flex items-center gap-3 text-sm">
-            <span className="w-32 shrink-0 text-xs text-zinc-400 truncate">{bucket.tier}</span>
-            <div className="flex-1 h-5 rounded-full bg-zinc-800 overflow-hidden">
+          <div key={bucket.tier} className="flex items-center gap-2.5">
+            <span className="w-28 shrink-0 text-[11px] text-zinc-500 truncate">{bucket.tier}</span>
+            <div className="flex-1 h-3.5 rounded-full bg-zinc-800/80 overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${barWidth}%`, backgroundColor: bucket.color }}
               />
             </div>
-            <span className="w-16 text-right text-xs text-zinc-400">
-              {bucket.count} <span className="text-zinc-600">({pct}%)</span>
+            <span className="w-14 text-right text-[11px] text-zinc-500">
+              {bucket.count} <span className="text-zinc-700">({pct}%)</span>
             </span>
           </div>
         );

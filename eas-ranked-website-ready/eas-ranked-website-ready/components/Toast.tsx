@@ -37,15 +37,17 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur animate-slide-in ${TYPE_STYLES[toast.type]}`}
-      style={{ minWidth: 260, maxWidth: 380 }}
+      className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 shadow-2xl backdrop-blur-md animate-slide-in ${TYPE_STYLES[toast.type]}`}
+      style={{ minWidth: 240, maxWidth: 340 }}
+      role="alert"
+      aria-live="polite"
     >
-      <span className="text-lg">{TYPE_ICONS[toast.type]}</span>
-      <p className="flex-1 text-sm font-medium">{toast.message}</p>
+      <span className="text-base shrink-0">{TYPE_ICONS[toast.type]}</span>
+      <p className="flex-1 text-xs font-medium leading-snug">{toast.message}</p>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="ml-2 text-xs opacity-60 hover:opacity-100 transition"
-        aria-label="Dismiss"
+        className="ml-1 flex h-5 w-5 items-center justify-center rounded text-[10px] opacity-50 hover:opacity-100 transition-opacity"
+        aria-label="Dismiss notification"
       >
         ✕
       </button>

@@ -33,52 +33,52 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
     .slice(0, 5);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Rank Distribution */}
-      <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
-        <h3 className="mb-5 text-xl font-black">📊 Rank Distribution</h3>
+      <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d14] p-4">
+        <h3 className="mb-3 text-sm font-black">📊 Rank Distribution</h3>
         <RankDistributionChart buckets={buckets} totalPlayers={ranked.length} />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Top CR */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
-          <h3 className="mb-4 text-lg font-black">🏆 Top CR</h3>
-          <div className="space-y-3">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d14] p-4">
+          <h3 className="mb-3 text-sm font-black">🏆 Top CR</h3>
+          <div className="space-y-1">
             {topPlayers.map((p, i) => (
               <SoundLink
                 key={p.user_id}
                 href={`/profile/${p.user_id}`}
                 soundType="click"
-                className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5 transition"
+                className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/[0.04] transition-colors"
               >
-                <span className="w-5 text-sm font-black text-zinc-500">#{i + 1}</span>
-                <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
-                <span className="flex-1 text-sm font-bold truncate">{p.name}</span>
-                <span className="text-sm font-black text-orange-400">{p.cr}</span>
+                <span className="w-4 text-xs font-black text-zinc-600">#{i + 1}</span>
+                <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-7 w-7" />
+                <span className="flex-1 text-xs font-bold truncate">{p.name}</span>
+                <span className="text-xs font-black text-orange-400">{p.cr}</span>
               </SoundLink>
             ))}
           </div>
         </div>
 
         {/* Top MVPs */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
-          <h3 className="mb-4 text-lg font-black">🌟 Top MVPs</h3>
-          <div className="space-y-3">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d14] p-4">
+          <h3 className="mb-3 text-sm font-black">🌟 Top MVPs</h3>
+          <div className="space-y-1">
             {topMvps.length === 0 ? (
-              <p className="text-sm text-zinc-500">No MVP data yet.</p>
+              <p className="text-xs text-zinc-600 px-2">No MVP data yet.</p>
             ) : (
               topMvps.map((p, i) => (
                 <SoundLink
                   key={p.user_id}
                   href={`/profile/${p.user_id}`}
                   soundType="click"
-                  className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5 transition"
+                  className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/[0.04] transition-colors"
                 >
-                  <span className="w-5 text-sm font-black text-zinc-500">#{i + 1}</span>
-                  <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
-                  <span className="flex-1 text-sm font-bold truncate">{p.name}</span>
-                  <span className="text-sm font-black text-yellow-400">{p.mvp_count} MVP</span>
+                  <span className="w-4 text-xs font-black text-zinc-600">#{i + 1}</span>
+                  <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-7 w-7" />
+                  <span className="flex-1 text-xs font-bold truncate">{p.name}</span>
+                  <span className="text-xs font-black text-yellow-400">{p.mvp_count} MVP</span>
                 </SoundLink>
               ))
             )}
@@ -86,24 +86,23 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
         </div>
 
         {/* Top Win Rates */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
-          <h3 className="mb-4 text-lg font-black">📈 Best Win Rate</h3>
-          <p className="mb-3 text-xs text-zinc-600">Min. 10 matches</p>
-          <div className="space-y-3">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d14] p-4">
+          <h3 className="mb-3 text-sm font-black">📈 Best Win Rate <span className="text-[10px] font-normal text-zinc-600">(min. 10 matches)</span></h3>
+          <div className="space-y-1">
             {topWinRates.length === 0 ? (
-              <p className="text-sm text-zinc-500">Not enough match data.</p>
+              <p className="text-xs text-zinc-600 px-2">Not enough match data.</p>
             ) : (
               topWinRates.map((p, i) => (
                 <SoundLink
                   key={p.user_id}
                   href={`/profile/${p.user_id}`}
                   soundType="click"
-                  className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5 transition"
+                  className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/[0.04] transition-colors"
                 >
-                  <span className="w-5 text-sm font-black text-zinc-500">#{i + 1}</span>
-                  <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
-                  <span className="flex-1 text-sm font-bold truncate">{p.name}</span>
-                  <span className="text-sm font-black text-green-400">{p.winRate}%</span>
+                  <span className="w-4 text-xs font-black text-zinc-600">#{i + 1}</span>
+                  <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-7 w-7" />
+                  <span className="flex-1 text-xs font-bold truncate">{p.name}</span>
+                  <span className="text-xs font-black text-green-400">{p.winRate}%</span>
                 </SoundLink>
               ))
             )}

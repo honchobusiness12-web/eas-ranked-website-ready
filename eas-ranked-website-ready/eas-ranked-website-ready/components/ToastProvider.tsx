@@ -31,7 +31,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
     <ToastContext.Provider value={{ addToast }}>
       {children}
       {/* Toast stack — fixed bottom-right */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end pointer-events-none">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-1.5 items-end pointer-events-none">
         {toasts.map((t) => (
           <div key={t.id} className="pointer-events-auto">
             <Toast toast={t} onDismiss={dismiss} />
