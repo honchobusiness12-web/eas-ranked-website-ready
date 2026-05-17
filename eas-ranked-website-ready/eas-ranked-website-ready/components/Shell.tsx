@@ -16,20 +16,7 @@ const links = [
   { label: "📋 Placements",        href: "/placements" },
   { label: "🏷️ Ranks",             href: "/ranks" },
   { label: "📖 How Ranked Works",  href: "/guide" },
-  { label: "🤖 Bot Commands",      href: "/premium/commands" },
   { label: "🎁 Redeem Code",       href: "/redeem" },
-  { label: "💎 Get Premium",       href: "/premium/subscribe" },
-];
-
-const premiumLinks = [
-  { label: "📊 Advanced Stats",    href: "/premium/stats" },
-  { label: "🎨 Cosmetics",         href: "/premium/cosmetics" },
-  { label: "🌈 Customize Colors",  href: "/cosmetics/colors" },
-  { label: "⚔️ Comparisons",       href: "/premium/comparisons" },
-  { label: "📥 Export Stats",      href: "/premium/export" },
-  { label: "📜 Match History",     href: "/premium/matches" },
-  { label: "🎯 Progress Tracker",  href: "/premium/tracker" },
-  { label: "⚙️ Manage Sub",        href: "/premium/manage" },
 ];
 
 const adminLinks = [
@@ -193,37 +180,6 @@ export default function Shell({
               );
             })}
 
-            {/* Premium section */}
-            {!sidebarCollapsed ? (
-              <div className="pt-4 pb-1.5 px-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="h-px flex-1 bg-gradient-to-r from-yellow-500/30 to-transparent" />
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-yellow-500/60">Premium</p>
-                  <div className="h-px flex-1 bg-gradient-to-l from-yellow-500/30 to-transparent" />
-                </div>
-              </div>
-            ) : (
-              <div className="pt-3 pb-1 flex justify-center">
-                <div className="h-px w-8 bg-yellow-500/30" />
-              </div>
-            )}
-            {premiumLinks.map(({ label, href }) => {
-              const emoji = label.split(" ")[0];
-              const text = label.slice(label.indexOf(" ") + 1);
-              return (
-                <SoundLink
-                  key={href}
-                  href={href}
-                  soundType="success"
-                  className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-zinc-600 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300 ${sidebarCollapsed ? "justify-center" : ""}`}
-                  title={sidebarCollapsed ? label : undefined}
-                >
-                  <span className="shrink-0 text-base leading-none">{emoji}</span>
-                  {!sidebarCollapsed && <span className="truncate text-[13px]">{text}</span>}
-                </SoundLink>
-              );
-            })}
-
             {/* Admin section */}
             {isOwner && (
               <>
@@ -372,21 +328,6 @@ export default function Shell({
                       </SoundLink>
                     </>
                   )}
-
-                  <div className="pt-4 pb-1.5 px-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-500/70">Premium</p>
-                  </div>
-                  {premiumLinks.map(({ label, href }) => (
-                    <SoundLink
-                      key={href}
-                      href={href}
-                      soundType="success"
-                      className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-500 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {label}
-                    </SoundLink>
-                  ))}
 
                   {isOwner && (
                     <>

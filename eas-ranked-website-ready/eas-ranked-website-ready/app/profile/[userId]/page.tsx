@@ -3,7 +3,6 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import AchievementBadge from "@/components/AchievementBadge";
-import PremiumUpsell from "@/components/PremiumUpsell";
 import BadgeDisplay from "@/components/BadgeDisplay";
 import CosmeticsPreview from "@/components/CosmeticsPreview";
 import CopyButton from "@/components/CopyButton";
@@ -154,7 +153,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
   return (
     <Shell>
-      {/* Hero — data-premium-hero ensures inline background is never overridden by Tailwind bg-* */}
+      {/* Hero — data-premium-hero ensures inline background is never overridden by Tailwind bg-* classes */}
       <section
         data-premium-hero
         className={`rounded-2xl border p-6 md:p-8${profileEffect !== "none" ? ` profile-effect-${profileEffect}` : ""}`}
@@ -205,30 +204,13 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             <SoundLink
               href={`/compare?a=${p.user_id}`}
               soundType="success"
-              className="rounded-lg border border-orange-600/40 px-3 py-2 text-xs font-bold text-orange-300 hover:bg-orange-950/30 transition-colors text-center"
+              className="rounded-lg border border-purple-600/40 px-3 py-2 text-xs font-bold text-purple-300 hover:bg-purple-950/30 transition-colors text-center"
             >
               ⚔️ Compare
-            </SoundLink>
-            <SoundLink
-              href={`/premium/stats?userId=${p.user_id}`}
-              soundType="click"
-              className="rounded-lg border border-yellow-600/30 px-3 py-2 text-xs font-bold text-yellow-400 hover:bg-yellow-950/15 transition-colors text-center"
-            >
-              📊 Advanced Stats
             </SoundLink>
           </div>
         </div>
       </section>
-
-      {/* Premium upsell for non-premium profiles */}
-      {!premium && (
-        <div className="mt-3">
-          <PremiumUpsell
-            compact
-            message="Upgrade to Premium to unlock advanced stats, custom cosmetics, and a premium badge on this profile."
-          />
-        </div>
-      )}
 
       {/* Admin Panel quick access — owner only, shown on their own profile */}
       {viewerIsOwner && isOwnProfile && (
@@ -373,7 +355,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             </div>
           </div>
 
-          {/* Active cosmetics (premium only) */}
+          {/* Active cosmetics */}
           {cosmetics && <CosmeticsPreview cosmetics={cosmetics} />}
         </div>
       </section>
