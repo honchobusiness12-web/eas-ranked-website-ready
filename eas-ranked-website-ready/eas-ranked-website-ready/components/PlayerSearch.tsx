@@ -82,25 +82,21 @@ export default function PlayerSearch({
   }
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-xs">
+    <div ref={containerRef} className="relative w-full max-w-sm">
       <div className="relative">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">🔍</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">🔍</span>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-8 pr-8 text-sm text-white placeholder-zinc-600 outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/30 transition-colors"
-          aria-label="Search players"
-          aria-autocomplete="list"
-          aria-expanded={open}
+          className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition"
         />
         {query && (
           <button
             onClick={() => { setQuery(""); setOpen(false); }}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors text-xs"
-            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition"
           >
             ✕
           </button>
@@ -108,24 +104,20 @@ export default function PlayerSearch({
       </div>
 
       {open && (
-        <div
-          className="absolute left-0 right-0 top-full z-30 mt-1 rounded-xl border border-white/[0.08] bg-[#0d0d14] shadow-2xl overflow-hidden"
-          role="listbox"
-        >
+        <div className="absolute left-0 right-0 top-full z-30 mt-1 rounded-xl border border-white/10 bg-[#0d0d14] shadow-2xl overflow-hidden">
           {results.map((player) => (
             <button
               key={player.user_id}
               onClick={() => handleSelect(player)}
-              className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left hover:bg-white/[0.05] transition-colors border-b border-white/[0.04] last:border-0"
-              role="option"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition border-b border-white/5 last:border-0"
             >
-              <PlayerAvatar name={player.name} avatar={player.avatar_url} size="h-7 w-7" />
+              <PlayerAvatar name={player.name} avatar={player.avatar_url} size="h-8 w-8" />
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-xs truncate leading-tight">{player.name}</p>
-                <p className="text-[10px] text-zinc-600 truncate">{player.username || "—"}</p>
+                <p className="font-bold text-sm truncate">{player.name}</p>
+                <p className="text-xs text-zinc-500 truncate">{player.username || "No username"}</p>
               </div>
               <RankBadge cr={Number(player.cr || 0)} size="sm" showLabel={false} />
-              <span className="text-xs font-black text-orange-400">{player.cr}</span>
+              <span className="text-sm font-black text-orange-400">{player.cr}</span>
             </button>
           ))}
         </div>

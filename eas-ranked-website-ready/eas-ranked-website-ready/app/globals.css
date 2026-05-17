@@ -1,71 +1,28 @@
 @import "tailwindcss";
 
-*, *::before, *::after { box-sizing: border-box; }
+* { box-sizing: border-box; }
 
-html {
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
+html { scroll-behavior: smooth; }
 
 html, body {
   margin: 0;
-  padding: 0;
   min-height: 100%;
   background: #05050b;
-  color: #ffffff;
-  line-height: 1.5;
+  color: white;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  margin: 0;
-  line-height: 1.2;
-  font-weight: 900;
-}
+a { text-decoration: none; }
 
-p { margin: 0; }
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-  font-family: inherit;
-}
-
-img { display: block; }
-
-/* ============================================================
-   Focus styles — accessible keyboard navigation
-   ============================================================ */
-
-:focus-visible {
-  outline: 2px solid #FF9F43;
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-
-/* ============================================================
-   Scrollbar
-   ============================================================ */
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: #05050b; }
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #FF6B6B, #FF9F43);
   border-radius: 999px;
 }
-::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #ff8080, #ffb060); }
 
 /* ============================================================
    Summer Color Palette Variables

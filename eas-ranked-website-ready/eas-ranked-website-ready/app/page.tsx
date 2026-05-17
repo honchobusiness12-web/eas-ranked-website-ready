@@ -43,109 +43,108 @@ export default async function HomePage() {
       <AnnouncementBanner />
 
       {/* Hero */}
-      <section className="summer-hero-gradient rounded-2xl border border-orange-700/25 p-6 md:p-8 overflow-hidden relative">
-        <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-yellow-500/8 blur-3xl animate-sun-pulse" />
-        <div className="relative flex items-center justify-between gap-6">
-          <div className="min-w-0">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-orange-400">☀️ Live Ranked System</p>
-            <h1 className="text-3xl font-black leading-tight md:text-5xl">
+      <section className="summer-hero-gradient rounded-3xl border border-orange-700/30 p-8 shadow-2xl overflow-hidden relative">
+        {/* Decorative sun glow */}
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-yellow-500/10 blur-3xl animate-sun-pulse" />
+        <div className="pointer-events-none absolute right-32 bottom-0 h-40 w-40 rounded-full bg-orange-500/10 blur-2xl animate-sun-pulse" style={{ animationDelay: "1.5s" }} />
+        <div className="relative flex items-center justify-between gap-8">
+          <div>
+            <p className="mb-3 text-sm font-bold uppercase tracking-[0.3em] text-orange-300">☀️ Live Ranked System</p>
+            <h1 className="max-w-3xl text-4xl font-black leading-tight md:text-6xl">
               Climb the ranks.<br />Own the arena.
             </h1>
-            <p className="mt-3 max-w-xl text-sm text-zinc-400 leading-relaxed">
-              Track CR, ranks, placements, MVPs, and live competitive activity.
+            <p className="mt-4 max-w-2xl text-zinc-300">
+              Track CR, ranks, placements, MVPs, player profiles, and live competitive activity powered by PostgreSQL.
             </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <SoundLink href="/leaderboard" soundType="success" className="rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-bold hover:from-orange-400 hover:to-red-400 transition-all shadow-lg shadow-orange-900/30">
+            <div className="mt-8 flex flex-wrap gap-3">
+              <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-5 py-3 font-bold hover:from-orange-400 hover:to-red-400 transition-all shadow-lg shadow-orange-900/40">
                 🏆 Leaderboard
               </SoundLink>
-              <SoundLink href="/compare" soundType="success" className="rounded-lg border border-teal-500/35 bg-teal-950/25 px-4 py-2 text-sm font-bold hover:bg-teal-900/35 hover:border-teal-400/50 transition-all">
-                ⚔️ Compare
+              <SoundLink href="/compare" soundType="success" className="rounded-xl border border-teal-500/40 bg-teal-950/30 px-5 py-3 font-bold hover:bg-teal-900/40 hover:border-teal-400/60 transition-all">
+                ⚔️ Compare Players
               </SoundLink>
-              <SoundLink href="/players" soundType="success" className="rounded-lg border border-yellow-600/35 bg-yellow-950/15 px-4 py-2 text-sm font-bold hover:bg-yellow-900/25 hover:border-yellow-500/50 transition-all">
-                👥 Players
+              <SoundLink href="/players" soundType="success" className="rounded-xl border border-yellow-600/40 bg-yellow-950/20 px-5 py-3 font-bold hover:bg-yellow-900/30 hover:border-yellow-500/60 transition-all">
+                👥 All Players
               </SoundLink>
-              <SoundLink href="/ranks" soundType="success" className="rounded-lg border border-orange-700/35 bg-orange-950/15 px-4 py-2 text-sm font-bold hover:bg-orange-900/25 hover:border-orange-500/50 transition-all">
-                🏷️ Ranks
+              <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-orange-700/40 bg-orange-950/20 px-5 py-3 font-bold hover:bg-orange-900/30 hover:border-orange-500/60 transition-all">
+                🏷️ Rank Guide
               </SoundLink>
             </div>
           </div>
-          <div className="hidden text-7xl lg:block animate-sun-pulse shrink-0">☀️</div>
+          <div className="hidden text-9xl lg:block animate-sun-pulse">☀️</div>
         </div>
       </section>
 
       {/* Quick stats */}
-      <section className="mt-4 grid grid-cols-3 gap-3 lg:grid-cols-6">
-        <Stat title="Players" value={totalPlayers} note="Live" color="coral" />
-        <Stat title="Ranked" value={rankedPlayers} note="Placed" color="lime" />
-        <Stat title="Placements" value={placementPlayers} note="In progress" color="yellow" />
-        <Stat title="Avg CR" value={avgCr} note="All players" color="teal" />
-        <Stat title="Matches" value={totalMatches} note="All time" color="orange" />
-        <Stat title="Top Kills" value={topKills} note="Record" color="coral" />
+      <section className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <Stat title="Total Players" value={totalPlayers} note="Live database" color="coral" />
+        <Stat title="Ranked" value={rankedPlayers} note="Fully ranked" color="lime" />
+        <Stat title="Placements" value={placementPlayers} note="7 matches to rank" color="yellow" />
+        <Stat title="Avg CR" value={avgCr} note="Across all players" color="teal" />
+        <Stat title="Total Matches" value={totalMatches} note="All time" color="orange" />
+        <Stat title="Top Kills" value={topKills} note="Single player record" color="coral" />
       </section>
 
-      {/* Top players + sidebar */}
-      <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
-        {/* Top players table */}
-        <div className="rounded-2xl border border-orange-700/15 bg-[#0d0d14] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3.5">
-            <h2 className="text-lg font-black">🏆 Top Players</h2>
+      {/* Top players + activity */}
+      <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="rounded-2xl border border-orange-700/20 bg-[#0d0d14]">
+          <div className="flex items-center justify-between border-b border-orange-700/20 p-6">
+            <h2 className="text-2xl font-black">🏆 Top Players</h2>
             <SoundLink
               href="/leaderboard"
               soundType="success"
-              className="rounded-lg border border-orange-600/40 px-3 py-1.5 text-xs font-bold text-orange-300 hover:bg-orange-950/30 transition-colors"
+              className="rounded-xl border border-orange-600/50 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/40 transition-all"
             >
               Full Board →
             </SoundLink>
           </div>
 
           {players.length === 0 ? (
-            <p className="p-5 text-sm text-zinc-400">No players found. Check DATABASE_URL in Railway.</p>
+            <p className="p-6 text-zinc-400">No players found. Check DATABASE_URL in Railway.</p>
           ) : (
             players.slice(0, 10).map((p: any, index: number) => (
               <SoundLink
                 href={`/profile/${p.user_id}`}
                 key={p.user_id}
                 soundType="click"
-                className="grid grid-cols-[44px_1fr_auto_80px] items-center border-b border-white/[0.05] px-5 py-3 hover:bg-white/[0.04] transition-colors last:border-0"
+                className="grid grid-cols-[50px_1fr_auto_90px] items-center border-b border-white/10 px-6 py-4 hover:bg-white/5 transition"
               >
-                <span className="text-base font-black">
-                  {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : <span className="text-sm text-zinc-500">#{index + 1}</span>}
+                <span className="text-xl font-black">
+                  {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`}
                 </span>
-                <div className="flex items-center gap-3 min-w-0">
-                  <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-9 w-9" />
+                <div className="flex items-center gap-4 min-w-0">
+                  <PlayerAvatar name={p.name} avatar={p.avatar_url} />
                   <div className="min-w-0">
-                    <p className="font-bold text-sm truncate leading-tight">{p.name || "Unknown Player"}</p>
-                    <p className="text-xs text-zinc-600 truncate">{p.username || "—"}</p>
+                    <p className="font-black truncate">{p.name || "Unknown Player"}</p>
+                    <p className="text-xs text-zinc-500 truncate">{p.username || "No username saved yet"}</p>
                   </div>
                 </div>
                 <RankBadge cr={Number(p.cr || 0)} size="sm" />
-                <span className="text-right text-base font-black text-orange-400">{p.cr || 0}</span>
+                <span className="text-right text-xl font-black text-orange-400">{p.cr || 0}</span>
               </SoundLink>
             ))
           )}
         </div>
 
-        {/* Right sidebar */}
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* Season card */}
           <SeasonCard season={currentSeason} />
 
           {/* Recent activity */}
-          <div className="rounded-2xl border border-teal-700/15 bg-[#0d0d14] overflow-hidden">
-            <div className="border-b border-white/[0.06] px-4 py-3">
-              <h3 className="text-sm font-black">⚡ Recent Activity</h3>
-            </div>
-            <div className="p-2">
+          <div className="rounded-2xl border border-teal-700/20 bg-[#0d0d14] p-6">
+            <h3 className="text-xl font-black">⚡ Recent Activity</h3>
+            <div className="mt-5 space-y-3">
               {players.slice(0, 6).map((p: any) => (
                 <SoundLink
                   href={`/profile/${p.user_id}`}
                   key={p.user_id}
                   soundType="click"
-                  className="flex items-center gap-2.5 rounded-lg px-2 py-2 hover:bg-white/[0.04] transition-colors"
+                  className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/5 transition"
                 >
-                  <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
+                  <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-9 w-9" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-xs truncate leading-tight">{p.name || "Unknown Player"}</p>
-                    <p className="text-[11px] text-zinc-600">{p.cr || 0} CR · {p.wins || 0}W</p>
+                    <p className="font-bold text-sm truncate">{p.name || "Unknown Player"}</p>
+                    <p className="text-xs text-zinc-500">{p.cr || 0} CR · {p.wins || 0}W</p>
                   </div>
                   <RankBadge cr={Number(p.cr || 0)} size="sm" showLabel={false} />
                 </SoundLink>
@@ -156,13 +155,13 @@ export default async function HomePage() {
       </section>
 
       {/* Dashboard stats section */}
-      <section className="mt-4">
-        <h2 className="mb-3 text-lg font-black">📊 Arena Statistics</h2>
+      <section className="mt-6">
+        <h2 className="mb-4 text-2xl font-black">📊 Arena Statistics</h2>
         <DashboardStats players={players as any} />
       </section>
 
       {/* Premium upsell */}
-      <section className="mt-4">
+      <section className="mt-6">
         <PremiumUpsell />
       </section>
     </Shell>
@@ -176,15 +175,22 @@ export default async function HomePage() {
 function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null }) {
   if (!season) {
     return (
-      <div className="rounded-2xl border border-yellow-600/30 bg-gradient-to-br from-orange-950/25 to-yellow-950/15 p-4 relative overflow-hidden">
+      <div className="rounded-2xl border border-yellow-600/40 bg-gradient-to-br from-orange-950/30 to-yellow-950/20 p-6 relative overflow-hidden">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-500/10 blur-2xl" />
         <div className="relative">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-black">🏆 Ranked Season</h3>
-            <span className="rounded-md bg-zinc-700 px-2 py-0.5 text-[10px] font-black tracking-wider text-white">
-              OFF
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-black">🏆 Ranked Season</h3>
+            <span className="rounded-lg bg-gradient-to-r from-zinc-700 to-zinc-600 px-3 py-1 text-xs font-black tracking-wider text-white shadow-md">
+              OFF SEASON
             </span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500">No active season. Stay tuned.</p>
+          <div className="mt-4 rounded-xl border border-yellow-700/30 bg-yellow-950/20 px-4 py-3">
+            <p className="text-sm font-bold text-yellow-300">⏸ No Active Season</p>
+            <p className="mt-1 text-xs text-zinc-400">
+              No ranked season is currently running. Stay tuned for the next season announcement.
+            </p>
+          </div>
+          <p className="mt-4 text-xs text-zinc-500">🌊 Next season coming soon</p>
         </div>
       </div>
     );
@@ -219,24 +225,25 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
   }
 
   return (
-    <div className="rounded-2xl border border-yellow-600/30 bg-gradient-to-br from-orange-950/25 to-yellow-950/15 p-4 relative overflow-hidden">
+    <div className="rounded-2xl border border-yellow-600/40 bg-gradient-to-br from-orange-950/30 to-yellow-950/20 p-6 relative overflow-hidden">
+      <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-500/10 blur-2xl" />
       <div className="relative">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-black truncate">{season.name}</h3>
-          <span className={`shrink-0 rounded-md bg-gradient-to-r ${cfg.badge} px-2 py-0.5 text-[10px] font-black tracking-wider text-white`}>
+          <h3 className="text-xl font-black truncate">{season.name}</h3>
+          <span className={`shrink-0 rounded-lg bg-gradient-to-r ${cfg.badge} px-3 py-1 text-xs font-black tracking-wider text-white shadow-md`}>
             {cfg.label}
           </span>
         </div>
         {season.description && (
-          <p className="mt-1 text-xs text-zinc-500 line-clamp-1">{season.description}</p>
+          <p className="mt-1 text-sm text-zinc-400 line-clamp-2">{season.description}</p>
         )}
         {season.start_date && season.end_date && (
-          <div className="mt-2.5">
-            <div className="flex items-center justify-between text-[11px] text-zinc-600 mb-1">
-              <span>{progressPct}%</span>
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
+              <span>{progressPct}% complete</span>
               {daysNote && <span>{daysNote}</span>}
             </div>
-            <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
+            <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-orange-500 to-yellow-500"
                 style={{ width: `${progressPct}%` }}
@@ -244,9 +251,24 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
             </div>
           </div>
         )}
-        <div className={`mt-3 rounded-lg border px-3 py-2 ${cfg.noteBg}`}>
-          <p className={`text-xs font-bold ${cfg.note}`}>{cfg.icon} Season {cfg.label.charAt(0) + cfg.label.slice(1).toLowerCase()}</p>
+        <div className={`mt-4 rounded-xl border px-4 py-3 ${cfg.noteBg}`}>
+          <p className={`text-sm font-bold ${cfg.note}`}>{cfg.icon} Season {cfg.label.charAt(0) + cfg.label.slice(1).toLowerCase()}</p>
+          {season.status === "active" && (
+            <p className="mt-1 text-xs text-zinc-400">The ranked season is live. Compete and climb the leaderboard!</p>
+          )}
+          {season.status === "paused" && (
+            <p className="mt-1 text-xs text-zinc-400">The ranked season is temporarily paused. Stay tuned for updates.</p>
+          )}
+          {season.status === "ended" && (
+            <p className="mt-1 text-xs text-zinc-400">This season has concluded. Check the leaderboard for final standings.</p>
+          )}
+          {season.status === "upcoming" && (
+            <p className="mt-1 text-xs text-zinc-400">A new season is on the horizon. Get ready to compete!</p>
+          )}
         </div>
+        {daysNote && season.status === "active" && (
+          <p className="mt-3 text-xs text-zinc-500">{daysNote}</p>
+        )}
       </div>
     </div>
   );
@@ -280,10 +302,10 @@ function Stat({
   };
   const s = styles[color] ?? styles.coral;
   return (
-    <div className={`rounded-xl border ${s.border} ${s.glow} bg-[#0d0d14] p-3.5`}>
-      <p className="text-[11px] text-zinc-500 leading-none">{title}</p>
-      <p className="mt-1.5 text-xl font-black leading-none">{value.toLocaleString()}</p>
-      <p className={`mt-1 text-[11px] font-semibold ${s.note}`}>{note}</p>
+    <div className={`rounded-2xl border ${s.border} ${s.glow} bg-[#0d0d14] p-5`}>
+      <p className="text-xs text-zinc-400">{title}</p>
+      <p className="mt-2 text-2xl font-black">{value.toLocaleString()}</p>
+      <p className={`mt-1 text-xs font-semibold ${s.note}`}>{note}</p>
     </div>
   );
 }
