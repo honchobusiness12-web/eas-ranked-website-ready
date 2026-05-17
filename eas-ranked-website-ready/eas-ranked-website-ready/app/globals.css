@@ -632,3 +632,101 @@ select option {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
+
+/* ============================================================
+   Reusable component helpers
+   ============================================================ */
+
+/* PageHeader icon accent */
+.icon-accent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  font-size: 1.25rem;
+}
+
+/* Badge pill variants — used by Badge.tsx */
+.badge-purple { border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.15); color: #c4b5fd; }
+.badge-gold   { border-color: rgba(255,215,0,0.4);  background: rgba(255,215,0,0.15);  color: #fde68a; }
+.badge-blue   { border-color: rgba(79,142,247,0.3); background: rgba(79,142,247,0.15); color: #93c5fd; }
+.badge-green  { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.15); color: #86efac; }
+.badge-red    { border-color: rgba(248,113,113,0.3);background: rgba(248,113,113,0.15);color: #fca5a5; }
+
+/* Input focus ring — consistent across all inputs */
+.input-focus:focus {
+  outline: none;
+  border-color: rgba(168,85,247,0.5);
+  box-shadow: 0 0 0 3px rgba(168,85,247,0.1);
+}
+
+/* DataTable header gradient */
+.table-header-purple { background: linear-gradient(90deg, rgba(124,58,237,0.07), transparent); }
+.table-header-blue   { background: linear-gradient(90deg, rgba(79,142,247,0.07), transparent); }
+.table-header-gold   { background: linear-gradient(90deg, rgba(255,215,0,0.07), transparent); }
+
+/* Placement progress pip */
+.placement-pip {
+  height: 10px;
+  width: 10px;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+.placement-pip-done    { background: #f97316; }
+.placement-pip-pending { background: rgba(255,255,255,0.06); }
+
+/* Stat card top accent line */
+.stat-accent-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+.group:hover .stat-accent-line { opacity: 1; }
+
+/* Empty state container */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem;
+  text-align: center;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(9,9,25,0.85);
+  backdrop-filter: blur(12px);
+}
+
+/* Error state container */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  border-radius: 1rem;
+  border: 1px solid rgba(248,113,113,0.3);
+  background: rgba(127,29,29,0.1);
+}
+
+/* Improved mobile tap targets */
+@media (max-width: 768px) {
+  button, a {
+    min-height: 36px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
