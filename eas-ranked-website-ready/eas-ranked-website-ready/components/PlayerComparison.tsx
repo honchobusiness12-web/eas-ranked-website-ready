@@ -41,49 +41,49 @@ export default function PlayerComparison({ playerA, playerB }: PlayerComparisonP
   const winRateB = matchesB ? Math.round((winsB / matchesB) * 100) : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header — side by side */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+    <div className="space-y-4">
+      {/* ── Header — side by side ── */}
+      <div className="grid grid-cols-[1fr_48px_1fr] items-center gap-3">
         {/* Player A */}
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-orange-700/40 bg-orange-950/20 p-5">
-          <PlayerAvatar name={playerA.name} avatar={playerA.avatar_url} size="h-16 w-16" />
+        <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-orange-700/20 bg-orange-950/10 p-4">
+          <PlayerAvatar name={playerA.name} avatar={playerA.avatar_url} size="h-14 w-14" />
           <div className="text-center">
-            <p className="text-lg font-black">{playerA.name}</p>
-            <p className="text-xs text-zinc-500">{playerA.username || "—"}</p>
+            <p className="text-sm font-black">{playerA.name}</p>
+            <p className="text-xs text-zinc-600">{playerA.username || "—"}</p>
           </div>
-          <RankBadge cr={crA} size="md" />
-          <p className="text-3xl font-black text-orange-400">{crA} CR</p>
+          <RankBadge cr={crA} size="sm" />
+          <p className="text-xl font-black text-orange-400">{crA.toLocaleString()} CR</p>
         </div>
 
-        <div className="text-2xl font-black text-zinc-600">VS</div>
+        <div className="text-center text-sm font-black text-zinc-600">VS</div>
 
         {/* Player B */}
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-orange-700/40 bg-orange-950/20 p-5">
-          <PlayerAvatar name={playerB.name} avatar={playerB.avatar_url} size="h-16 w-16" />
+        <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-blue-700/20 bg-blue-950/10 p-4">
+          <PlayerAvatar name={playerB.name} avatar={playerB.avatar_url} size="h-14 w-14" />
           <div className="text-center">
-            <p className="text-lg font-black">{playerB.name}</p>
-            <p className="text-xs text-zinc-500">{playerB.username || "—"}</p>
+            <p className="text-sm font-black">{playerB.name}</p>
+            <p className="text-xs text-zinc-600">{playerB.username || "—"}</p>
           </div>
-          <RankBadge cr={crB} size="md" />
-          <p className="text-3xl font-black text-orange-400">{crB} CR</p>
+          <RankBadge cr={crB} size="sm" />
+          <p className="text-xl font-black text-blue-400">{crB.toLocaleString()} CR</p>
         </div>
       </div>
 
-      {/* Win/Loss charts */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
-          <p className="mb-4 text-sm font-bold text-zinc-400 text-center">{playerA.name}</p>
+      {/* ── Win/Loss charts ── */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-4">
+          <p className="mb-3 text-xs font-bold text-zinc-500 text-center truncate">{playerA.name}</p>
           <WinLossChart wins={winsA} losses={lossesA} matches={matchesA} />
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
-          <p className="mb-4 text-sm font-bold text-zinc-400 text-center">{playerB.name}</p>
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-4">
+          <p className="mb-3 text-xs font-bold text-zinc-500 text-center truncate">{playerB.name}</p>
           <WinLossChart wins={winsB} losses={lossesB} matches={matchesB} />
         </div>
       </div>
 
-      {/* Comparison bars */}
-      <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6 space-y-5">
-        <h3 className="text-lg font-black">📊 Head-to-Head Stats</h3>
+      {/* ── Comparison bars ── */}
+      <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5 space-y-4">
+        <h3 className="text-sm font-black">📊 Head-to-Head Stats</h3>
         <CompareLegend nameA={playerA.name} nameB={playerB.name} />
         <CompareBar label="CR" valueA={crA} valueB={crB} nameA={playerA.name} nameB={playerB.name} />
         <CompareBar label="Wins" valueA={winsA} valueB={winsB} nameA={playerA.name} nameB={playerB.name} />
@@ -100,10 +100,10 @@ export default function PlayerComparison({ playerA, playerB }: PlayerComparisonP
         />
       </div>
 
-      {/* Quick verdict */}
-      <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5">
-        <h3 className="mb-4 text-lg font-black">🏆 Verdict</h3>
-        <div className="grid grid-cols-3 gap-3 text-center text-sm">
+      {/* ── Quick verdict ── */}
+      <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-4">
+        <h3 className="mb-3 text-sm font-black">🏆 Verdict</h3>
+        <div className="grid grid-cols-3 gap-2 text-center">
           <VerdictCell
             label="Higher CR"
             winner={crA > crB ? playerA.name : crB > crA ? playerB.name : "Tied"}
@@ -117,7 +117,7 @@ export default function PlayerComparison({ playerA, playerB }: PlayerComparisonP
             nameA={playerA.name}
           />
           <VerdictCell
-            label="Better Win Rate"
+            label="Best Win Rate"
             winner={winRateA > winRateB ? playerA.name : winRateB > winRateA ? playerB.name : "Tied"}
             tied={winRateA === winRateB}
             nameA={playerA.name}
@@ -141,14 +141,14 @@ function VerdictCell({
 }) {
   const isA = !tied && winner === nameA;
   const colorClass = tied
-    ? "text-zinc-400"
+    ? "text-zinc-500"
     : isA
     ? "text-orange-400"
-    : "text-yellow-400";
+    : "text-blue-400";
   return (
-    <div className="rounded-xl bg-white/5 p-3">
-      <p className="text-xs text-zinc-500">{label}</p>
-      <p className={`mt-1 font-black ${colorClass}`}>{winner}</p>
+    <div className="rounded-lg bg-white/[0.04] p-3">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-600 mb-1">{label}</p>
+      <p className={`text-xs font-black truncate ${colorClass}`}>{winner}</p>
     </div>
   );
 }

@@ -82,33 +82,29 @@ export default function AnnouncementBanner() {
   if (visible.length === 0) return null;
 
   return (
-    <div className="space-y-2 mb-6 animate-fade-in">
+    <div className="space-y-2 mb-4 animate-fade-in">
       {visible.map((ann) => {
         const meta = ANNOUNCEMENT_COLORS.find((c) => c.id === ann.color);
         return (
           <div
             key={ann.id}
-            className={`rounded-2xl border p-4 ${meta?.bg ?? "bg-blue-950/30"} ${meta?.border ?? "border-blue-700/50"}`}
+            className={`rounded-xl border p-3.5 ${meta?.bg ?? "bg-blue-950/20"} ${meta?.border ?? "border-blue-700/30"}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span
-                    className={`text-xs font-black uppercase tracking-wider ${meta?.text ?? "text-blue-300"}`}
-                  >
-                    📢 From Developer
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${meta?.text ?? "text-blue-300"}`}>
+                    📢 Announcement
                   </span>
-                  {ann.sound_enabled && (
-                    <span className="text-xs text-yellow-400">🔔</span>
-                  )}
-                  <span className="text-xs text-zinc-500">{timeAgo(ann.created_at)}</span>
+                  {ann.sound_enabled && <span className="text-xs text-yellow-400">🔔</span>}
+                  <span className="text-[10px] text-zinc-600">{timeAgo(ann.created_at)}</span>
                 </div>
-                <p className="font-black text-white">{ann.title}</p>
-                <p className="mt-1 text-sm text-zinc-300 whitespace-pre-wrap">{ann.message}</p>
+                <p className="text-sm font-bold text-white">{ann.title}</p>
+                <p className="mt-0.5 text-xs text-zinc-400 whitespace-pre-wrap">{ann.message}</p>
               </div>
               <button
                 onClick={() => handleDismiss(ann.id)}
-                className="shrink-0 rounded-lg border border-white/10 px-2.5 py-1 text-xs font-bold text-zinc-400 hover:bg-white/10 transition"
+                className="shrink-0 rounded-md border border-white/[0.07] px-2 py-1 text-[10px] font-bold text-zinc-500 hover:bg-white/[0.08] hover:text-zinc-300 transition-colors"
                 aria-label="Dismiss announcement"
               >
                 ✕
