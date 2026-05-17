@@ -10,7 +10,6 @@ import TrendingIndicator from "@/components/TrendingIndicator";
 import Pagination from "@/components/Pagination";
 import PlayerSearch from "@/components/PlayerSearch";
 import { SkeletonTable } from "@/components/LoadingSkeleton";
-import PremiumUpsell from "@/components/PremiumUpsell";
 
 type SortKey = "cr" | "wins" | "kills" | "mvp_count" | "matches";
 const ITEMS_PER_PAGE = 25;
@@ -24,7 +23,6 @@ export default function LeaderboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [rankFilter, setRankFilter] = useState<string>("all");
   const [winRateFilter, setWinRateFilter] = useState<string>("all");
-  const [showPremiumFilters, setShowPremiumFilters] = useState(false);
 
   useEffect(() => {
     fetch("/api/leaderboard")
@@ -36,7 +34,7 @@ export default function LeaderboardPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Filter by search + premium filters
+  // Filter by search + filters
   const filtered = useMemo(() => {
     let result = players;
     if (searchQuery) {
@@ -157,65 +155,52 @@ export default function LeaderboardPage() {
             ))}
           </div>
 
-          {/* Premium filters toggle */}
-          <button
-            onClick={() => setShowPremiumFilters((v) => !v)}
-            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-200 ${
-              showPremiumFilters
-                ? "border-yellow-500/30 bg-yellow-500/[0.10] text-yellow-300"
-                : "border-white/[0.07] bg-white/[0.04] text-zinc-400 hover:border-yellow-500/25 hover:text-yellow-300"
-            }`}
-          >
-            💎 Filters {showPremiumFilters ? "▲" : "▼"}
-          </button>
         </div>
 
-        {/* Premium filter panel */}
-        {showPremiumFilters && (
-          <div className="mt-4 pt-4 border-t border-white/[0.05] flex flex-wrap items-end gap-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-1.5">Rank Tier</p>
-              <select
-                value={rankFilter}
-                onChange={(e) => { setRankFilter(e.target.value); setPage(1); }}
-                className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white transition-all duration-200 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
-              >
-                <option value="all">All Ranks</option>
-                <option value="rookie">R1 Rookie</option>
-                <option value="amateur">R2 Amateur</option>
-                <option value="pro">R3 Pro</option>
-                <option value="elite">R4 Elite</option>
-                <option value="allstar">R5 All-Star</option>
-                <option value="superstar">R6 SuperStar</option>
-                <option value="remorseless">R7 Remorseless</option>
-                <option value="legend">R8 Legend</option>
-                <option value="unreal">R9 Unreal</option>
-                <option value="hof">R10 Hall Of Fame</option>
-              </select>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-1.5">Win Rate</p>
-              <select
-                value={winRateFilter}
-                onChange={(e) => { setWinRateFilter(e.target.value); setPage(1); }}
-                className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white transition-all duration-200 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
-              >
-                <option value="all">All Win Rates</option>
-                <option value="60plus">60%+ Win Rate</option>
-                <option value="50to60">50–60% Win Rate</option>
-                <option value="below50">Below 50%</option>
-              </select>
-            </div>
-            {(rankFilter !== "all" || winRateFilter !== "all") && (
-              <button
-                onClick={() => { setRankFilter("all"); setWinRateFilter("all"); setPage(1); }}
-                className="rounded-xl border border-red-500/25 bg-red-500/[0.07] px-3 py-2 text-xs font-bold text-red-400 transition-all duration-200 hover:bg-red-500/[0.12] hover:text-red-300"
-              >
-                ✕ Clear filters
-              </button>
-            )}
+        {/* Filter panel */}
+        <div className="mt-4 pt-4 border-t border-white/[0.05] flex flex-wrap items-end gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-1.5">Rank Tier</p>
+            <select
+              value={rankFilter}
+              onChange={(e) => { setRankFilter(e.target.value); setPage(1); }}
+              className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white transition-all duration-200 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
+            >
+              <option value="all">All Ranks</option>
+              <option value="rookie">R1 Rookie</option>
+              <option value="amateur">R2 Amateur</option>
+              <option value="pro">R3 Pro</option>
+              <option value="elite">R4 Elite</option>
+              <option value="allstar">R5 All-Star</option>
+              <option value="superstar">R6 SuperStar</option>
+              <option value="remorseless">R7 Remorseless</option>
+              <option value="legend">R8 Legend</option>
+              <option value="unreal">R9 Unreal</option>
+              <option value="hof">R10 Hall Of Fame</option>
+            </select>
           </div>
-        )}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-1.5">Win Rate</p>
+            <select
+              value={winRateFilter}
+              onChange={(e) => { setWinRateFilter(e.target.value); setPage(1); }}
+              className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white transition-all duration-200 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
+            >
+              <option value="all">All Win Rates</option>
+              <option value="60plus">60%+ Win Rate</option>
+              <option value="50to60">50–60% Win Rate</option>
+              <option value="below50">Below 50%</option>
+            </select>
+          </div>
+          {(rankFilter !== "all" || winRateFilter !== "all") && (
+            <button
+              onClick={() => { setRankFilter("all"); setWinRateFilter("all"); setPage(1); }}
+              className="rounded-xl border border-red-500/25 bg-red-500/[0.07] px-3 py-2 text-xs font-bold text-red-400 transition-all duration-200 hover:bg-red-500/[0.12] hover:text-red-300"
+            >
+              ✕ Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Table ── */}
@@ -302,13 +287,6 @@ export default function LeaderboardPage() {
             itemsPerPage={ITEMS_PER_PAGE}
             totalItems={sorted.length}
           />
-
-          <div className="mt-5">
-            <PremiumUpsell
-              compact
-              message="Premium members get custom rank/win-rate filters, advanced analytics, and comparison history."
-            />
-          </div>
         </>
       )}
     </Shell>

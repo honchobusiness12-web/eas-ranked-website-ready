@@ -3,7 +3,6 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import DashboardStats from "@/components/DashboardStats";
-import PremiumUpsell from "@/components/PremiumUpsell";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { syncPlayersFromDB } from "@/lib/cache";
 import { getCurrentSeason, type Season } from "@/lib/seasons";
@@ -61,9 +60,9 @@ export default async function HomePage() {
                 <p className="text-xs font-bold uppercase tracking-widest text-purple-300">Live Ranked System</p>
               </div>
               <h1 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl xl:text-7xl">
-                <span className="hero-text-gradient">Climb the ranks.</span>
+                <span className="hero-text-gradient">Elevate All-Stars</span>
                 <br />
-                <span className="text-white/85">Own the arena.</span>
+                <span className="text-white/85">Ranked League.</span>
               </h1>
               <p className="mt-5 max-w-2xl text-sm text-zinc-400 leading-relaxed md:text-base lg:text-lg">
                 Track CR, ranks, placements, MVPs, and live competitive activity — all powered by real-time data.
@@ -96,7 +95,7 @@ export default async function HomePage() {
                 <div className="absolute -inset-px rounded-3xl border border-purple-400/15" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-black summer-text-gradient uppercase tracking-widest">EAS Arena</p>
+                <p className="text-sm font-black summer-text-gradient uppercase tracking-widest">EAS Ranked</p>
                 <p className="text-[11px] text-zinc-600 mt-0.5">Competitive Ranked</p>
               </div>
             </div>
@@ -234,10 +233,6 @@ export default async function HomePage() {
         <DashboardStats players={players as any} />
       </section>
 
-      {/* ── Premium upsell — full width, eye-catching ── */}
-      <section className="mt-5">
-        <PremiumUpsell />
-      </section>
     </Shell>
   );
 }

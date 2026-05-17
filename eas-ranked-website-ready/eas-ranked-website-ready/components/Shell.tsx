@@ -16,20 +16,7 @@ const links = [
   { label: "📋 Placements",        href: "/placements" },
   { label: "🏷️ Ranks",             href: "/ranks" },
   { label: "📖 How Ranked Works",  href: "/guide" },
-  { label: "🤖 Bot Commands",      href: "/premium/commands" },
   { label: "🎁 Redeem Code",       href: "/redeem" },
-  { label: "💎 Get Premium",       href: "/premium/subscribe" },
-];
-
-const premiumLinks = [
-  { label: "📊 Advanced Stats",    href: "/premium/stats" },
-  { label: "🎨 Cosmetics",         href: "/premium/cosmetics" },
-  { label: "🌈 Customize Colors",  href: "/cosmetics/colors" },
-  { label: "⚔️ Comparisons",       href: "/premium/comparisons" },
-  { label: "📥 Export Stats",      href: "/premium/export" },
-  { label: "📜 Match History",     href: "/premium/matches" },
-  { label: "🎯 Progress Tracker",  href: "/premium/tracker" },
-  { label: "⚙️ Manage Sub",        href: "/premium/manage" },
 ];
 
 const adminLinks = [
@@ -39,7 +26,6 @@ const adminLinks = [
   { label: "🏆 Seasons",          href: "/admin/seasons" },
   { label: "🏅 Badge Manager",    href: "/admin/badges" },
   { label: "👥 Player Management",href: "/admin/players" },
-  { label: "💎 Premium Manager",  href: "/admin/premium" },
   { label: "📋 Leaderboard Mgmt", href: "/admin/leaderboard" },
   { label: "📊 Analytics",        href: "/admin/analytics" },
   { label: "🛡️ Moderation",       href: "/admin/moderation" },
@@ -143,7 +129,7 @@ export default function Shell({
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-black tracking-tight text-white/90 group-hover:text-white transition-colors leading-none">
-                    EAS <span className="summer-text-gradient">ARENA</span>
+                    EAS <span className="summer-text-gradient">RANKED</span>
                   </p>
                   <p className="text-[9px] text-zinc-600 font-medium tracking-widest uppercase leading-none mt-0.5">Ranked Dashboard</p>
                 </div>
@@ -185,37 +171,6 @@ export default function Shell({
                   href={href}
                   soundType="success"
                   className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-zinc-500 transition-all duration-200 hover:bg-white/[0.06] hover:text-zinc-200 ${sidebarCollapsed ? "justify-center" : ""}`}
-                  title={sidebarCollapsed ? label : undefined}
-                >
-                  <span className="shrink-0 text-base leading-none">{emoji}</span>
-                  {!sidebarCollapsed && <span className="truncate text-[13px]">{text}</span>}
-                </SoundLink>
-              );
-            })}
-
-            {/* Premium section */}
-            {!sidebarCollapsed ? (
-              <div className="pt-4 pb-1.5 px-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="h-px flex-1 bg-gradient-to-r from-yellow-500/30 to-transparent" />
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-yellow-500/60">Premium</p>
-                  <div className="h-px flex-1 bg-gradient-to-l from-yellow-500/30 to-transparent" />
-                </div>
-              </div>
-            ) : (
-              <div className="pt-3 pb-1 flex justify-center">
-                <div className="h-px w-8 bg-yellow-500/30" />
-              </div>
-            )}
-            {premiumLinks.map(({ label, href }) => {
-              const emoji = label.split(" ")[0];
-              const text = label.slice(label.indexOf(" ") + 1);
-              return (
-                <SoundLink
-                  key={href}
-                  href={href}
-                  soundType="success"
-                  className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-zinc-600 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300 ${sidebarCollapsed ? "justify-center" : ""}`}
                   title={sidebarCollapsed ? label : undefined}
                 >
                   <span className="shrink-0 text-base leading-none">{emoji}</span>
@@ -313,7 +268,7 @@ export default function Shell({
             <div className="flex-1 min-w-0 flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
-                <p className="text-[11px] font-bold uppercase tracking-widest text-purple-400/70">EAS Arena</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-purple-400/70">EAS Ranked</p>
               </div>
               <div className="hidden md:block h-4 w-px bg-white/[0.08]" />
               <p className="text-sm font-black tracking-tight text-white/80">Ranked Dashboard</p>
@@ -337,7 +292,7 @@ export default function Shell({
               >
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
                   <SoundLink href="/" soundType="click" className="text-xl font-black" onClick={() => setMobileOpen(false)}>
-                    EAS <span className="summer-text-gradient">ARENA</span>
+                    EAS <span className="summer-text-gradient">RANKED</span>
                   </SoundLink>
                   <button onClick={() => setMobileOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:text-white">
                     ✕
@@ -373,21 +328,6 @@ export default function Shell({
                     </>
                   )}
 
-                  <div className="pt-4 pb-1.5 px-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-500/70">Premium</p>
-                  </div>
-                  {premiumLinks.map(({ label, href }) => (
-                    <SoundLink
-                      key={href}
-                      href={href}
-                      soundType="success"
-                      className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-500 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {label}
-                    </SoundLink>
-                  ))}
-
                   {isOwner && (
                     <>
                       <div className="pt-4 pb-1.5 px-3">
@@ -419,7 +359,7 @@ export default function Shell({
           <footer className="border-t border-white/[0.04] px-8 py-6 mt-4">
             <div className="flex flex-col items-center gap-1 text-center">
               <p className="text-sm font-black">
-                <span className="summer-text-gradient">EAS Arena</span>
+                <span className="summer-text-gradient">EAS Ranked</span>
               </p>
               <p className="text-[11px] text-zinc-700">© 2026 Elevate All-Stars · All rights reserved</p>
             </div>

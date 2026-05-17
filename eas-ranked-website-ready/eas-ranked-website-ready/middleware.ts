@@ -6,13 +6,6 @@ export const runtime = "nodejs";
 
 // Routes that require authentication
 const PROTECTED_ROUTES = [
-  "/premium/cosmetics",
-  "/premium/export",
-  "/premium/matches",
-  "/premium/tracker",
-  "/premium/manage",
-  "/premium/comparisons",
-  "/premium/stats",
   "/redeem",
   "/admin/giveaways",
   "/admin/cr",
@@ -32,8 +25,6 @@ const PUBLIC_ROUTES = [
   "/guide",
   "/auth/login",
   "/auth/callback",
-  "/premium/subscribe",
-  "/premium/commands",
   "/giveaway/redeem",
 ];
 

@@ -3,7 +3,6 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import AchievementBadge from "@/components/AchievementBadge";
-import PremiumUpsell from "@/components/PremiumUpsell";
 import BadgeDisplay from "@/components/BadgeDisplay";
 import CosmeticsPreview from "@/components/CosmeticsPreview";
 import CopyButton from "@/components/CopyButton";
@@ -12,7 +11,7 @@ import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression } from "@/lib/charts";
-import { isPremiumUser, getCosmetics, getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
+import { getCosmetics, getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
 import { THEMES, ACHIEVEMENT_FRAMES, BANNER_COLORS, buildGradientCSS } from "@/lib/premium-constants";
 import { getSession } from "@/lib/auth";
 
@@ -36,8 +35,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   // Is the viewer looking at their own profile?
   const isOwnProfile = viewerUserId !== null && viewerUserId === userId;
 
-  const [premium, cosmetics, badges] = await Promise.all([
-    isPremiumUser(userId),
+  const [cosmetics, badges] = await Promise.all([
     getCosmetics(userId),
     getUserBadges(userId),
   ]);
@@ -209,26 +207,9 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             >
               ⚔️ Compare
             </SoundLink>
-            <SoundLink
-              href={`/premium/stats?userId=${p.user_id}`}
-              soundType="click"
-              className="rounded-lg border border-yellow-600/30 px-3 py-2 text-xs font-bold text-yellow-400 hover:bg-yellow-950/15 transition-colors text-center"
-            >
-              📊 Advanced Stats
-            </SoundLink>
           </div>
         </div>
       </section>
-
-      {/* Premium upsell for non-premium profiles */}
-      {!premium && (
-        <div className="mt-3">
-          <PremiumUpsell
-            compact
-            message="Upgrade to Premium to unlock advanced stats, custom cosmetics, and a premium badge on this profile."
-          />
-        </div>
-      )}
 
       {/* Admin Panel quick access — owner only, shown on their own profile */}
       {viewerIsOwner && isOwnProfile && (

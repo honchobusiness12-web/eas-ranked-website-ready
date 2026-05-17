@@ -9,11 +9,11 @@ export default function GuidePage() {
       {/* Hero */}
       <section className="rounded-3xl border border-orange-700/40 bg-gradient-to-r from-black via-[#1a0e05] to-orange-950 p-8 shadow-2xl">
         <p className="mb-2 text-sm font-bold uppercase tracking-[0.3em] text-orange-300">
-          EAS Arena
+          EAS Ranked
         </p>
         <h1 className="text-4xl font-black md:text-5xl">📖 How Ranked Works</h1>
         <p className="mt-3 max-w-2xl text-zinc-300">
-          Everything you need to know about the EAS competitive ranking system — from your first placement match to Hall of Fame.
+          Everything you need to know about the EAS Ranked competitive system — from your first placement match to Hall of Fame.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-orange-600/60 bg-orange-950/30 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/60 transition">
@@ -54,7 +54,7 @@ export default function GuidePage() {
           color="purple"
         >
           <p className="text-zinc-300 leading-relaxed">
-            Ranked mode is EAS Arena's competitive ladder — a structured system where every match you play directly impacts your standing in the league. Unlike casual play, ranked matches carry real stakes: wins push you up the ladder, losses pull you down, and your final position at the end of a season reflects your true skill level.
+            Ranked mode is EAS Ranked's competitive ladder — a structured system where every match you play directly impacts your standing in the league. Unlike casual play, ranked matches carry real stakes: wins push you up the ladder, losses pull you down, and your final position at the end of a season reflects your true skill level.
           </p>
           <p className="mt-3 text-zinc-300 leading-relaxed">
             The ranked system uses <strong className="text-white">Competitive Rating (CR)</strong> as its core metric. Every player starts at 0 CR after completing placements, and your CR rises or falls based on match outcomes, opponent strength, and performance. Your CR determines your rank tier, which ranges from <strong className="text-white">R1 Rookie</strong> all the way up to <strong className="text-white">R10 Hall of Fame</strong>.

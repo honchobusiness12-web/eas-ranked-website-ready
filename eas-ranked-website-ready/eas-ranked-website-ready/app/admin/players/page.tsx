@@ -561,11 +561,7 @@ export default function AdminPlayersPage() {
                     📋 Registered
                   </span>
                 )}
-                {selectedPlayer.premium_expires_at && new Date(selectedPlayer.premium_expires_at) > new Date() && (
-                  <span className="rounded-lg bg-yellow-950/30 border border-yellow-700/30 px-2.5 py-1 text-xs font-bold text-yellow-400">
-                    💎 Premium
-                  </span>
-                )}
+
               </div>
 
               {/* Action feedback */}

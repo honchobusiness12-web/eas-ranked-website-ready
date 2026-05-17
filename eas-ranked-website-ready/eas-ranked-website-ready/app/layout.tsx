@@ -3,8 +3,8 @@ import SoundProvider from "@/components/SoundProvider";
 import ToastProvider from "@/components/ToastProvider";
 
 export const metadata = {
-  title: "EAS Arena Dashboard",
-  description: "EAS Ranked Dashboard powered by PostgreSQL",
+  title: "EAS Ranked",
+  description: "Elevate All-Stars Ranked League — Track CR, ranks, placements, and competitive stats.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
