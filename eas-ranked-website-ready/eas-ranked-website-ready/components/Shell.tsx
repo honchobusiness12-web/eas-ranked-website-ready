@@ -57,20 +57,20 @@ function SeasonStatusWidget({ season }: { season: ShellSeason | null }) {
     return (
       <>
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold text-zinc-400">🏆 Season</p>
-          <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500">OFF</span>
+          <p className="text-xs font-bold text-zinc-500">🏆 Season</p>
+          <span className="rounded-full border border-zinc-700/50 bg-zinc-800/60 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600">OFF</span>
         </div>
-        <p className="mt-1 text-[10px] text-zinc-600">No active season</p>
+        <p className="mt-1 text-[10px] text-zinc-700">No active season</p>
       </>
     );
   }
 
   const statusBadge = {
-    active:   { label: "LIVE",     cls: "bg-green-600" },
-    paused:   { label: "PAUSED",   cls: "bg-yellow-600" },
-    ended:    { label: "ENDED",    cls: "bg-red-700" },
-    upcoming: { label: "SOON",     cls: "bg-blue-600" },
-  }[season.status] ?? { label: "OFF", cls: "bg-zinc-700" };
+    active:   { label: "LIVE",   cls: "border-green-500/30 bg-green-500/15 text-green-300" },
+    paused:   { label: "PAUSED", cls: "border-yellow-500/30 bg-yellow-500/15 text-yellow-300" },
+    ended:    { label: "ENDED",  cls: "border-red-500/30 bg-red-500/15 text-red-300" },
+    upcoming: { label: "SOON",   cls: "border-blue-500/30 bg-blue-500/15 text-blue-300" },
+  }[season.status] ?? { label: "OFF", cls: "border-zinc-700/50 bg-zinc-800/60 text-zinc-500" };
 
   let daysNote = "";
   if (season.end_date && season.status === "active") {
@@ -82,11 +82,11 @@ function SeasonStatusWidget({ season }: { season: ShellSeason | null }) {
     <>
       <div className="flex items-center justify-between gap-1">
         <p className="text-xs font-semibold text-zinc-400 truncate">{season.name}</p>
-        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold text-white ${statusBadge.cls}`}>
+        <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-bold ${statusBadge.cls}`}>
           {statusBadge.label}
         </span>
       </div>
-      {daysNote && <p className="mt-0.5 text-[10px] text-orange-400/80">⏳ {daysNote}</p>}
+      {daysNote && <p className="mt-0.5 text-[10px] text-purple-400/80">⏳ {daysNote}</p>}
       {!daysNote && season.status === "paused" && <p className="mt-0.5 text-[10px] text-yellow-400/70">⏸ Paused</p>}
       {!daysNote && season.status === "upcoming" && <p className="mt-0.5 text-[10px] text-blue-400/70">🔵 Coming soon</p>}
       {!daysNote && season.status === "ended" && <p className="mt-0.5 text-[10px] text-red-400/70">🔴 Ended</p>}
@@ -123,15 +123,17 @@ export default function Shell({
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#05050b] text-white">
+    <main className="min-h-screen text-white" style={{ background: "#04040e" }}>
       <div className="flex">
         {/* ── Sidebar — desktop ── */}
-        <aside className="fixed left-0 top-0 hidden h-screen w-60 flex-col border-r border-white/[0.07] bg-[#07070f] md:flex">
+        <aside className="fixed left-0 top-0 hidden h-screen w-60 flex-col border-r border-white/[0.05] md:flex" style={{ background: "rgba(7,7,26,0.95)", backdropFilter: "blur(20px)" }}>
           {/* Logo */}
-          <div className="px-5 py-5 border-b border-white/[0.07]">
-            <SoundLink href="/" soundType="click" className="block text-xl font-black tracking-tight">
-              EAS <span className="summer-text-gradient">ARENA</span>
+          <div className="px-5 py-5 border-b border-white/[0.05]">
+            <SoundLink href="/" soundType="click" className="group block">
+              <span className="text-xl font-black tracking-tight text-white/90 group-hover:text-white transition-colors">EAS </span>
+              <span className="text-xl font-black tracking-tight summer-text-gradient">ARENA</span>
             </SoundLink>
+            <p className="mt-0.5 text-[10px] text-zinc-600 font-medium tracking-wider uppercase">Ranked Dashboard</p>
           </div>
 
           {/* Nav */}
@@ -141,7 +143,7 @@ export default function Shell({
                 key={href}
                 href={href}
                 soundType="success"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-400 hover:bg-white/[0.06] hover:text-white transition-colors"
+                className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-500 transition-all duration-200 hover:bg-white/[0.05] hover:text-zinc-200"
               >
                 {label}
               </SoundLink>
@@ -149,16 +151,18 @@ export default function Shell({
 
             {/* Premium section */}
             <div className="pt-4 pb-1.5 px-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-600/60">
-                Premium
-              </p>
+              <div className="flex items-center gap-1.5">
+                <div className="h-px flex-1 bg-gradient-to-r from-yellow-500/30 to-transparent" />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-500/70">Premium</p>
+                <div className="h-px flex-1 bg-gradient-to-l from-yellow-500/30 to-transparent" />
+              </div>
             </div>
             {premiumLinks.map(({ label, href }) => (
               <SoundLink
                 key={href}
                 href={href}
                 soundType="success"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-500 hover:bg-yellow-950/20 hover:text-yellow-300 transition-colors"
+                className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-600 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300"
               >
                 {label}
               </SoundLink>
@@ -168,16 +172,18 @@ export default function Shell({
             {isOwner && (
               <>
                 <div className="pt-4 pb-1.5 px-3">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-red-600/60">
-                    Admin
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-px flex-1 bg-gradient-to-r from-red-500/30 to-transparent" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-500/70">Admin</p>
+                    <div className="h-px flex-1 bg-gradient-to-l from-red-500/30 to-transparent" />
+                  </div>
                 </div>
                 {adminLinks.map(({ label, href }) => (
                   <SoundLink
                     key={href}
                     href={href}
                     soundType="success"
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-500 hover:bg-red-950/20 hover:text-red-300 transition-colors"
+                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-600 transition-all duration-200 hover:bg-red-500/[0.07] hover:text-red-300"
                   >
                     {label}
                   </SoundLink>
@@ -187,17 +193,17 @@ export default function Shell({
           </nav>
 
           {/* Bottom section */}
-          <div className="border-t border-white/[0.07] px-3 py-3 space-y-2">
+          <div className="border-t border-white/[0.05] px-3 py-3 space-y-2">
             {/* Logged-in profile shortcut */}
             {user && (
               <SoundLink
                 href={`/profile/${user.id}`}
                 soundType="click"
-                className="flex items-center gap-2.5 rounded-lg border border-[#5865F2]/25 bg-[#5865F2]/10 px-3 py-2.5 text-sm font-semibold text-[#7289da] hover:bg-[#5865F2]/20 hover:text-white transition-colors"
+                className="flex items-center gap-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.07] px-3 py-2.5 text-sm font-semibold text-indigo-300 transition-all duration-200 hover:border-indigo-400/30 hover:bg-indigo-500/[0.12] hover:text-white"
               >
                 <span className="text-base">👤</span>
                 <span className="truncate text-sm">{user.global_name || user.username}</span>
-                <CopyButton text={user.id} size="xs" className="ml-auto shrink-0 opacity-50 hover:opacity-100" />
+                <CopyButton text={user.id} size="xs" className="ml-auto shrink-0 opacity-40 hover:opacity-100" />
               </SoundLink>
             )}
 
@@ -205,7 +211,7 @@ export default function Shell({
             <SoundLink
               href={isOwner ? "/admin/seasons" : "/"}
               soundType="click"
-              className="block rounded-lg border border-yellow-600/20 bg-yellow-950/10 px-3 py-2.5 hover:border-yellow-500/40 hover:bg-yellow-950/20 transition-colors"
+              className="block rounded-xl border border-purple-500/15 bg-purple-500/[0.06] px-3 py-2.5 transition-all duration-200 hover:border-purple-400/25 hover:bg-purple-500/[0.10]"
             >
               <SeasonStatusWidget season={season} />
             </SoundLink>
@@ -214,10 +220,10 @@ export default function Shell({
 
         <section className="w-full md:ml-60">
           {/* ── Top header ── */}
-          <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-white/[0.07] bg-[#05050b]/90 px-4 backdrop-blur-md md:px-6">
+          <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-white/[0.05] px-4 backdrop-blur-xl md:px-6" style={{ background: "rgba(4,4,14,0.85)" }}>
             {/* Mobile menu button */}
             <button
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-sm md:hidden"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-sm transition-all duration-200 hover:bg-white/[0.08] md:hidden"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Toggle menu"
             >
@@ -225,8 +231,8 @@ export default function Shell({
             </button>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-orange-400/80">Elevate All-Stars</p>
-              <p className="text-sm font-black leading-tight">Ranked Dashboard</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-purple-400/70">Elevate All-Stars</p>
+              <p className="text-sm font-black leading-tight tracking-tight">Ranked Dashboard</p>
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -239,11 +245,13 @@ export default function Shell({
           {/* ── Mobile nav drawer ── */}
           {mobileOpen && (
             <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMobileOpen(false)}>
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
               <div
-                className="absolute left-0 top-0 h-full w-60 border-r border-white/[0.07] bg-[#07070f] flex flex-col"
+                className="absolute left-0 top-0 h-full w-60 border-r border-white/[0.05] flex flex-col"
+                style={{ background: "rgba(7,7,26,0.98)", backdropFilter: "blur(20px)" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="px-5 py-4 border-b border-white/[0.07]">
+                <div className="px-5 py-4 border-b border-white/[0.05]">
                   <SoundLink href="/" soundType="click" className="block text-xl font-black" onClick={() => setMobileOpen(false)}>
                     EAS <span className="summer-text-gradient">ARENA</span>
                   </SoundLink>
@@ -255,7 +263,7 @@ export default function Shell({
                       key={href}
                       href={href}
                       soundType="success"
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-400 hover:bg-white/[0.06] hover:text-white transition-colors"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-500 transition-all duration-200 hover:bg-white/[0.05] hover:text-zinc-200"
                       onClick={() => setMobileOpen(false)}
                     >
                       {label}
@@ -265,12 +273,12 @@ export default function Shell({
                   {user && (
                     <>
                       <div className="pt-4 pb-1.5 px-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-blue-600/60">Profile</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-500/70">Profile</p>
                       </div>
                       <SoundLink
                         href={`/profile/${user.id}`}
                         soundType="click"
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-400 hover:bg-blue-950/20 hover:text-blue-300 transition-colors"
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-500 transition-all duration-200 hover:bg-indigo-500/[0.07] hover:text-indigo-300"
                         onClick={() => setMobileOpen(false)}
                       >
                         👤 My Profile
@@ -279,14 +287,14 @@ export default function Shell({
                   )}
 
                   <div className="pt-4 pb-1.5 px-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-600/60">Premium</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-500/70">Premium</p>
                   </div>
                   {premiumLinks.map(({ label, href }) => (
                     <SoundLink
                       key={href}
                       href={href}
                       soundType="success"
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-500 hover:bg-yellow-950/20 hover:text-yellow-300 transition-colors"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-600 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300"
                       onClick={() => setMobileOpen(false)}
                     >
                       {label}
@@ -296,14 +304,14 @@ export default function Shell({
                   {isOwner && (
                     <>
                       <div className="pt-4 pb-1.5 px-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-red-600/60">Admin</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-red-500/70">Admin</p>
                       </div>
                       {adminLinks.map(({ label, href }) => (
                         <SoundLink
                           key={href}
                           href={href}
                           soundType="success"
-                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-500 hover:bg-red-950/20 hover:text-red-300 transition-colors"
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-600 transition-all duration-200 hover:bg-red-500/[0.07] hover:text-red-300"
                           onClick={() => setMobileOpen(false)}
                         >
                           {label}
@@ -319,8 +327,9 @@ export default function Shell({
           {/* ── Page content ── */}
           <div className="px-4 py-6 md:px-6 md:py-8 animate-fade-in max-w-[1400px]">{children}</div>
 
-          <footer className="mx-4 mt-8 border-t border-white/[0.07] py-5 text-center text-xs text-zinc-600 md:mx-6">
-            © 2026 EAS Arena · All rights reserved
+          <footer className="mx-4 mt-8 border-t border-white/[0.05] py-5 text-center text-xs text-zinc-700 md:mx-6">
+            <span className="summer-text-gradient font-bold">EAS Arena</span>
+            <span className="text-zinc-700"> · © 2026 · All rights reserved</span>
           </footer>
         </section>
       </div>
