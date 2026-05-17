@@ -3,7 +3,6 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import DashboardStats from "@/components/DashboardStats";
-import PremiumUpsell from "@/components/PremiumUpsell";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { syncPlayersFromDB } from "@/lib/cache";
 import { getCurrentSeason, type Season } from "@/lib/seasons";
@@ -234,10 +233,6 @@ export default async function HomePage() {
         <DashboardStats players={players as any} />
       </section>
 
-      {/* ── Premium upsell — full width, eye-catching ── */}
-      <section className="mt-5">
-        <PremiumUpsell />
-      </section>
     </Shell>
   );
 }

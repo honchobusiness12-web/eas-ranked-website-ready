@@ -7,15 +7,10 @@ import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import { GRADIENT_PRESETS, USERNAME_COLORS } from "@/lib/cosmetic-constants";
 
-interface SavedCosmetics {
-  badge_gradient: string | null;
-  username_color: string | null;
-}
 
 export default function ColorsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [isPremium, setIsPremium] = useState(false);
   const [userId, setUserId] = useState("");
 
   const [selectedGradient, setSelectedGradient] = useState<string | null>(null);
@@ -41,15 +36,8 @@ export default function ColorsPage() {
         const uid: string = meData.user.id;
         setUserId(uid);
 
-        const [statusRes, cosRes] = await Promise.all([
-          fetch(`/api/premium/status?userId=${uid}`),
-          fetch(`/api/cosmetics/${uid}`, { cache: "no-store" }),
-        ]);
-
-        const statusData = await statusRes.json();
+        const cosRes = await fetch(`/api/cosmetics/${uid}`, { cache: "no-store" });
         const cosData = await cosRes.json();
-
-        setIsPremium(statusData.premium ?? false);
 
         if (cosData.cosmetics) {
           setSelectedGradient(cosData.cosmetics.badge_gradient ?? null);
@@ -124,15 +112,15 @@ export default function ColorsPage() {
         <div>
           <h1 className="text-4xl font-black">🎨 Color Customization</h1>
           <p className="mt-2 text-zinc-400">
-            Personalize your rank badge gradient and username color. Premium members only.
+            Personalize your rank badge gradient and username color.
           </p>
         </div>
         <SoundLink
-          href="/premium/cosmetics"
+          href="/"
           soundType="click"
           className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-zinc-400 hover:bg-white/5 transition"
         >
-          ← All Cosmetics
+          ← Dashboard
         </SoundLink>
       </div>
 
@@ -145,23 +133,7 @@ export default function ColorsPage() {
         </p>
       </div>
 
-      {!isPremium && (
-        <div className="rounded-2xl border border-yellow-700/40 bg-gradient-to-br from-yellow-950/30 to-black p-8 text-center mb-6">
-          <span className="text-5xl">💎</span>
-          <h2 className="mt-4 text-2xl font-black text-yellow-300">Premium Required</h2>
-          <p className="mt-2 text-zinc-400">Color customization is exclusive to Premium members.</p>
-          <SoundLink
-            href="/premium/subscribe"
-            soundType="success"
-            className="mt-5 inline-block rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 py-3 font-black text-white hover:from-yellow-400 hover:to-orange-400 transition-all"
-          >
-            Upgrade to Premium →
-          </SoundLink>
-        </div>
-      )}
-
-      {isPremium && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-6">
             {/* ── Gradient Section ── */}
             <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6">
@@ -357,7 +329,6 @@ export default function ColorsPage() {
             </div>
           </div>
         </div>
-      )}
     </Shell>
   );
 }

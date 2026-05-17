@@ -15,15 +15,15 @@ export default function GiveawayRedeemInfoPage() {
         </div>
 
         {/* Redeem CTA */}
-        <div className="rounded-2xl border border-yellow-700/40 bg-gradient-to-br from-yellow-950/30 to-black p-6 mb-8 text-center">
-          <p className="text-xl font-black text-yellow-300 mb-2">Have a code already?</p>
+        <div className="rounded-2xl border border-purple-700/40 bg-gradient-to-br from-purple-950/30 to-black p-6 mb-8 text-center">
+          <p className="text-xl font-black text-purple-300 mb-2">Have a code already?</p>
           <p className="text-sm text-zinc-400 mb-5">
-            Head straight to the redemption page to activate your Premium access.
+            Head straight to the redemption page to activate your reward.
           </p>
           <SoundLink
             href="/redeem"
             soundType="success"
-            className="inline-block rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 py-3 font-black text-white hover:from-yellow-400 hover:to-orange-400 transition-all shadow-lg shadow-yellow-900/30"
+            className="inline-block rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 font-black text-white hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-900/30"
           >
             🎁 Redeem Your Code →
           </SoundLink>
@@ -63,7 +63,7 @@ export default function GiveawayRedeemInfoPage() {
               </div>
               <p className="text-sm text-zinc-400">
                 Participate in EAS Arena tournaments and community events. Winners and top performers
-                often receive Premium codes as prizes.
+                often receive giveaway codes as prizes.
               </p>
             </div>
 
@@ -95,7 +95,7 @@ export default function GiveawayRedeemInfoPage() {
                 step: 2,
                 icon: "🎁",
                 title: "Go to the Redeem page",
-                desc: "Navigate to the Redeem Code page using the sidebar link or the button above. You can also find it under the 💎 Premium section.",
+                desc: "Navigate to the Redeem Code page using the sidebar link or the button above.",
               },
               {
                 step: 3,
@@ -107,13 +107,13 @@ export default function GiveawayRedeemInfoPage() {
                 step: 4,
                 icon: "✅",
                 title: "Click Redeem",
-                desc: "Hit the Redeem Code button. If the code is valid, your Premium access will be activated immediately.",
+                desc: "Hit the Redeem Code button. If the code is valid, your reward will be activated immediately.",
               },
               {
                 step: 5,
-                icon: "💎",
-                title: "Enjoy Premium!",
-                desc: "Your Premium features are now unlocked. Visit the Cosmetics page to customize your profile, or explore advanced stats and match history.",
+                icon: "🎉",
+                title: "Enjoy your reward!",
+                desc: "Your code has been redeemed. Check your profile and the leaderboard to see your updated status.",
               },
             ].map(({ step, icon, title, desc }) => (
               <div key={step} className="flex gap-4 border-b border-white/5 last:border-0 p-5">
@@ -142,8 +142,8 @@ export default function GiveawayRedeemInfoPage() {
                 a: "No. Each code can only be redeemed once per account. If you try to redeem the same code again, you'll see an 'already redeemed' error.",
               },
               {
-                q: "What happens if I already have Premium?",
-                a: "Your Premium duration will be extended (stacked). For example, if you have 10 days left and redeem a 30-day code, you'll end up with 40 days of Premium.",
+                q: "Can I stack codes?",
+                a: "If you redeem multiple codes, the durations are stacked. For example, if you have 10 days left and redeem a 30-day code, you'll end up with 40 days.",
               },
               {
                 q: "Do codes expire?",
@@ -154,12 +154,12 @@ export default function GiveawayRedeemInfoPage() {
                 a: "Double-check that you've entered the code correctly. Codes are case-insensitive, but make sure there are no extra spaces. If the problem persists, the code may have expired or reached its maximum uses.",
               },
               {
-                q: "What does Premium unlock?",
-                a: "Premium unlocks advanced stats, full match history, player comparisons, CSV/JSON exports, the progress tracker, cosmetic customization (badge gradients, username colors, themes), and exclusive bot commands.",
+                q: "What do codes unlock?",
+                a: "Codes grant access to cosmetic customization features including badge gradients, username colors, and themes.",
               },
               {
-                q: "How do I check my Premium status?",
-                a: "Visit the Redeem page — it shows your current Premium status and expiry date at the top. You can also check your profile page.",
+                q: "How do I check my code status?",
+                a: "Visit the Redeem page — it shows your current status. You can also check your profile page.",
               },
             ].map(({ q, a }) => (
               <details
@@ -180,21 +180,21 @@ export default function GiveawayRedeemInfoPage() {
 
         {/* Footer links */}
         <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-6 text-center">
-          <p className="font-black mb-4">Want permanent Premium without a code?</p>
+          <p className="font-black mb-4">Explore EAS Arena</p>
           <div className="flex flex-wrap justify-center gap-3">
             <SoundLink
-              href="/premium/subscribe"
+              href="/leaderboard"
               soundType="success"
-              className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-2.5 font-black text-white hover:from-yellow-400 hover:to-orange-400 transition-all"
+              className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-2.5 font-black text-white hover:from-purple-500 hover:to-blue-500 transition-all"
             >
-              💎 Subscribe for $4.99/mo →
+              🏆 View Leaderboard →
             </SoundLink>
             <SoundLink
-              href="/premium/commands"
+              href="/guide"
               soundType="click"
               className="rounded-xl border border-white/10 px-6 py-2.5 font-bold text-zinc-300 hover:bg-white/5 transition"
             >
-              🤖 View Bot Commands
+              📖 How Ranked Works
             </SoundLink>
           </div>
         </div>
