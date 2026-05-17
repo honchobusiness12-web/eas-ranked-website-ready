@@ -102,12 +102,12 @@ export default function Shell({
   user?: DiscordUser | null;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [season, setSeason] = useState<ShellSeason | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    // Admin nav is developer-only — probe the CR logs endpoint (403 = not developer)
     fetch("/api/admin/cr/logs?limit=1")
       .then((r) => { if (r.ok) setIsOwner(true); })
       .catch(() => {});
@@ -122,105 +122,184 @@ export default function Shell({
       .catch(() => {});
   }, []);
 
+  const sidebarW = sidebarCollapsed ? "w-[68px]" : "w-64";
+  const contentML = sidebarCollapsed ? "md:ml-[68px]" : "md:ml-64";
+
   return (
     <main className="min-h-screen text-white" style={{ background: "#04040e" }}>
       <div className="flex">
+
         {/* ── Sidebar — desktop ── */}
-        <aside className="fixed left-0 top-0 hidden h-screen w-60 flex-col border-r border-white/[0.05] md:flex" style={{ background: "rgba(7,7,26,0.95)", backdropFilter: "blur(20px)" }}>
-          {/* Logo */}
-          <div className="px-5 py-5 border-b border-white/[0.05]">
-            <SoundLink href="/" soundType="click" className="group block">
-              <span className="text-xl font-black tracking-tight text-white/90 group-hover:text-white transition-colors">EAS </span>
-              <span className="text-xl font-black tracking-tight summer-text-gradient">ARENA</span>
-            </SoundLink>
-            <p className="mt-0.5 text-[10px] text-zinc-600 font-medium tracking-wider uppercase">Ranked Dashboard</p>
+        <aside
+          className={`fixed left-0 top-0 hidden h-screen flex-col border-r border-white/[0.05] md:flex transition-all duration-300 ${sidebarW} z-40`}
+          style={{ background: "rgba(6,6,20,0.97)", backdropFilter: "blur(24px)" }}
+        >
+          {/* Logo + collapse toggle */}
+          <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.05]">
+            {!sidebarCollapsed && (
+              <SoundLink href="/" soundType="click" className="group flex items-center gap-2 min-w-0">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-base" style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(79,142,247,0.2))", border: "1px solid rgba(168,85,247,0.25)" }}>
+                  🏆
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-black tracking-tight text-white/90 group-hover:text-white transition-colors leading-none">
+                    EAS <span className="summer-text-gradient">ARENA</span>
+                  </p>
+                  <p className="text-[9px] text-zinc-600 font-medium tracking-widest uppercase leading-none mt-0.5">Ranked Dashboard</p>
+                </div>
+              </SoundLink>
+            )}
+            {sidebarCollapsed && (
+              <SoundLink href="/" soundType="click" className="mx-auto flex h-8 w-8 items-center justify-center rounded-xl text-base" style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(79,142,247,0.2))", border: "1px solid rgba(168,85,247,0.25)" }}>
+                🏆
+              </SoundLink>
+            )}
+            {!sidebarCollapsed && (
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.03] text-zinc-600 transition-all duration-200 hover:bg-white/[0.07] hover:text-zinc-300"
+                title="Collapse sidebar"
+              >
+                ‹
+              </button>
+            )}
+            {sidebarCollapsed && (
+              <button
+                onClick={() => setSidebarCollapsed(false)}
+                className="absolute -right-3 top-[72px] flex h-6 w-6 items-center justify-center rounded-full border border-white/[0.10] bg-zinc-900 text-zinc-400 shadow-lg transition-all duration-200 hover:text-white"
+                title="Expand sidebar"
+              >
+                ›
+              </button>
+            )}
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 text-sm">
-            {links.map(({ label, href }) => (
-              <SoundLink
-                key={href}
-                href={href}
-                soundType="success"
-                className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-500 transition-all duration-200 hover:bg-white/[0.05] hover:text-zinc-200"
-              >
-                {label}
-              </SoundLink>
-            ))}
+          <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5 text-sm">
+            {links.map(({ label, href }) => {
+              const emoji = label.split(" ")[0];
+              const text = label.slice(label.indexOf(" ") + 1);
+              return (
+                <SoundLink
+                  key={href}
+                  href={href}
+                  soundType="success"
+                  className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-zinc-500 transition-all duration-200 hover:bg-white/[0.06] hover:text-zinc-200 ${sidebarCollapsed ? "justify-center" : ""}`}
+                  title={sidebarCollapsed ? label : undefined}
+                >
+                  <span className="shrink-0 text-base leading-none">{emoji}</span>
+                  {!sidebarCollapsed && <span className="truncate text-[13px]">{text}</span>}
+                </SoundLink>
+              );
+            })}
 
             {/* Premium section */}
-            <div className="pt-4 pb-1.5 px-3">
-              <div className="flex items-center gap-1.5">
-                <div className="h-px flex-1 bg-gradient-to-r from-yellow-500/30 to-transparent" />
-                <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-500/70">Premium</p>
-                <div className="h-px flex-1 bg-gradient-to-l from-yellow-500/30 to-transparent" />
+            {!sidebarCollapsed ? (
+              <div className="pt-4 pb-1.5 px-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="h-px flex-1 bg-gradient-to-r from-yellow-500/30 to-transparent" />
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-yellow-500/60">Premium</p>
+                  <div className="h-px flex-1 bg-gradient-to-l from-yellow-500/30 to-transparent" />
+                </div>
               </div>
-            </div>
-            {premiumLinks.map(({ label, href }) => (
-              <SoundLink
-                key={href}
-                href={href}
-                soundType="success"
-                className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-600 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300"
-              >
-                {label}
-              </SoundLink>
-            ))}
+            ) : (
+              <div className="pt-3 pb-1 flex justify-center">
+                <div className="h-px w-8 bg-yellow-500/30" />
+              </div>
+            )}
+            {premiumLinks.map(({ label, href }) => {
+              const emoji = label.split(" ")[0];
+              const text = label.slice(label.indexOf(" ") + 1);
+              return (
+                <SoundLink
+                  key={href}
+                  href={href}
+                  soundType="success"
+                  className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-zinc-600 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300 ${sidebarCollapsed ? "justify-center" : ""}`}
+                  title={sidebarCollapsed ? label : undefined}
+                >
+                  <span className="shrink-0 text-base leading-none">{emoji}</span>
+                  {!sidebarCollapsed && <span className="truncate text-[13px]">{text}</span>}
+                </SoundLink>
+              );
+            })}
 
-            {/* Admin section — owner only */}
+            {/* Admin section */}
             {isOwner && (
               <>
-                <div className="pt-4 pb-1.5 px-3">
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-px flex-1 bg-gradient-to-r from-red-500/30 to-transparent" />
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-500/70">Admin</p>
-                    <div className="h-px flex-1 bg-gradient-to-l from-red-500/30 to-transparent" />
+                {!sidebarCollapsed ? (
+                  <div className="pt-4 pb-1.5 px-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-px flex-1 bg-gradient-to-r from-red-500/30 to-transparent" />
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-red-500/60">Admin</p>
+                      <div className="h-px flex-1 bg-gradient-to-l from-red-500/30 to-transparent" />
+                    </div>
                   </div>
-                </div>
-                {adminLinks.map(({ label, href }) => (
-                  <SoundLink
-                    key={href}
-                    href={href}
-                    soundType="success"
-                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-600 transition-all duration-200 hover:bg-red-500/[0.07] hover:text-red-300"
-                  >
-                    {label}
-                  </SoundLink>
-                ))}
+                ) : (
+                  <div className="pt-3 pb-1 flex justify-center">
+                    <div className="h-px w-8 bg-red-500/30" />
+                  </div>
+                )}
+                {adminLinks.map(({ label, href }) => {
+                  const emoji = label.split(" ")[0];
+                  const text = label.slice(label.indexOf(" ") + 1);
+                  return (
+                    <SoundLink
+                      key={href}
+                      href={href}
+                      soundType="success"
+                      className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-zinc-600 transition-all duration-200 hover:bg-red-500/[0.07] hover:text-red-300 ${sidebarCollapsed ? "justify-center" : ""}`}
+                      title={sidebarCollapsed ? label : undefined}
+                    >
+                      <span className="shrink-0 text-base leading-none">{emoji}</span>
+                      {!sidebarCollapsed && <span className="truncate text-[13px]">{text}</span>}
+                    </SoundLink>
+                  );
+                })}
               </>
             )}
           </nav>
 
           {/* Bottom section */}
-          <div className="border-t border-white/[0.05] px-3 py-3 space-y-2">
-            {/* Logged-in profile shortcut */}
-            {user && (
+          {!sidebarCollapsed && (
+            <div className="border-t border-white/[0.05] px-3 py-3 space-y-2">
+              {user && (
+                <SoundLink
+                  href={`/profile/${user.id}`}
+                  soundType="click"
+                  className="flex items-center gap-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.07] px-3 py-2.5 text-sm font-semibold text-indigo-300 transition-all duration-200 hover:border-indigo-400/30 hover:bg-indigo-500/[0.12] hover:text-white"
+                >
+                  <span className="text-base">👤</span>
+                  <span className="truncate text-sm">{user.global_name || user.username}</span>
+                  <CopyButton text={user.id} size="xs" className="ml-auto shrink-0 opacity-40 hover:opacity-100" />
+                </SoundLink>
+              )}
               <SoundLink
-                href={`/profile/${user.id}`}
+                href={isOwner ? "/admin/seasons" : "/"}
                 soundType="click"
-                className="flex items-center gap-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.07] px-3 py-2.5 text-sm font-semibold text-indigo-300 transition-all duration-200 hover:border-indigo-400/30 hover:bg-indigo-500/[0.12] hover:text-white"
+                className="block rounded-xl border border-purple-500/15 bg-purple-500/[0.06] px-3 py-2.5 transition-all duration-200 hover:border-purple-400/25 hover:bg-purple-500/[0.10]"
               >
-                <span className="text-base">👤</span>
-                <span className="truncate text-sm">{user.global_name || user.username}</span>
-                <CopyButton text={user.id} size="xs" className="ml-auto shrink-0 opacity-40 hover:opacity-100" />
+                <SeasonStatusWidget season={season} />
               </SoundLink>
-            )}
-
-            {/* Season status card */}
-            <SoundLink
-              href={isOwner ? "/admin/seasons" : "/"}
-              soundType="click"
-              className="block rounded-xl border border-purple-500/15 bg-purple-500/[0.06] px-3 py-2.5 transition-all duration-200 hover:border-purple-400/25 hover:bg-purple-500/[0.10]"
-            >
-              <SeasonStatusWidget season={season} />
-            </SoundLink>
-          </div>
+            </div>
+          )}
+          {sidebarCollapsed && user && (
+            <div className="border-t border-white/[0.05] px-2 py-3 flex justify-center">
+              <SoundLink href={`/profile/${user.id}`} soundType="click" title="My Profile" className="flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/[0.07] text-base transition-all duration-200 hover:bg-indigo-500/[0.15]">
+                👤
+              </SoundLink>
+            </div>
+          )}
         </aside>
 
-        <section className="w-full md:ml-60">
+        {/* ── Main content area ── */}
+        <section className={`w-full min-w-0 transition-all duration-300 ${contentML}`}>
+
           {/* ── Top header ── */}
-          <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-white/[0.05] px-4 backdrop-blur-xl md:px-6" style={{ background: "rgba(4,4,14,0.85)" }}>
+          <header
+            className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-white/[0.05] px-4 md:px-6"
+            style={{ background: "rgba(4,4,14,0.92)", backdropFilter: "blur(24px)" }}
+          >
             {/* Mobile menu button */}
             <button
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-sm transition-all duration-200 hover:bg-white/[0.08] md:hidden"
@@ -230,12 +309,17 @@ export default function Shell({
               {mobileOpen ? "✕" : "☰"}
             </button>
 
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-purple-400/70">Elevate All-Stars</p>
-              <p className="text-sm font-black leading-tight tracking-tight">Ranked Dashboard</p>
+            {/* Breadcrumb / title */}
+            <div className="flex-1 min-w-0 flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
+                <p className="text-[11px] font-bold uppercase tracking-widest text-purple-400/70">EAS Arena</p>
+              </div>
+              <div className="hidden md:block h-4 w-px bg-white/[0.08]" />
+              <p className="text-sm font-black tracking-tight text-white/80">Ranked Dashboard</p>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <ProfileMenu />
               <SoundToggle />
               <AuthButton initialUser={user} />
@@ -244,17 +328,20 @@ export default function Shell({
 
           {/* ── Mobile nav drawer ── */}
           {mobileOpen && (
-            <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMobileOpen(false)}>
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileOpen(false)}>
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
               <div
-                className="absolute left-0 top-0 h-full w-60 border-r border-white/[0.05] flex flex-col"
-                style={{ background: "rgba(7,7,26,0.98)", backdropFilter: "blur(20px)" }}
+                className="absolute left-0 top-0 h-full w-72 border-r border-white/[0.05] flex flex-col"
+                style={{ background: "rgba(6,6,20,0.99)", backdropFilter: "blur(24px)" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="px-5 py-4 border-b border-white/[0.05]">
-                  <SoundLink href="/" soundType="click" className="block text-xl font-black" onClick={() => setMobileOpen(false)}>
+                <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
+                  <SoundLink href="/" soundType="click" className="text-xl font-black" onClick={() => setMobileOpen(false)}>
                     EAS <span className="summer-text-gradient">ARENA</span>
                   </SoundLink>
+                  <button onClick={() => setMobileOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:text-white">
+                    ✕
+                  </button>
                 </div>
 
                 <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 text-sm">
@@ -263,7 +350,7 @@ export default function Shell({
                       key={href}
                       href={href}
                       soundType="success"
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-500 transition-all duration-200 hover:bg-white/[0.05] hover:text-zinc-200"
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-400 transition-all duration-200 hover:bg-white/[0.06] hover:text-zinc-200"
                       onClick={() => setMobileOpen(false)}
                     >
                       {label}
@@ -278,7 +365,7 @@ export default function Shell({
                       <SoundLink
                         href={`/profile/${user.id}`}
                         soundType="click"
-                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-500 transition-all duration-200 hover:bg-indigo-500/[0.07] hover:text-indigo-300"
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-400 transition-all duration-200 hover:bg-indigo-500/[0.07] hover:text-indigo-300"
                         onClick={() => setMobileOpen(false)}
                       >
                         👤 My Profile
@@ -294,7 +381,7 @@ export default function Shell({
                       key={href}
                       href={href}
                       soundType="success"
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-600 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300"
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-500 transition-all duration-200 hover:bg-yellow-500/[0.07] hover:text-yellow-300"
                       onClick={() => setMobileOpen(false)}
                     >
                       {label}
@@ -311,7 +398,7 @@ export default function Shell({
                           key={href}
                           href={href}
                           soundType="success"
-                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-zinc-600 transition-all duration-200 hover:bg-red-500/[0.07] hover:text-red-300"
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-500 transition-all duration-200 hover:bg-red-500/[0.07] hover:text-red-300"
                           onClick={() => setMobileOpen(false)}
                         >
                           {label}
@@ -324,12 +411,18 @@ export default function Shell({
             </div>
           )}
 
-          {/* ── Page content ── */}
-          <div className="px-4 py-6 md:px-6 md:py-8 animate-fade-in max-w-[1400px]">{children}</div>
+          {/* ── Page content — full width, no artificial max-width cap ── */}
+          <div className="w-full px-4 py-6 md:px-8 md:py-8 animate-fade-in">
+            {children}
+          </div>
 
-          <footer className="mx-4 mt-8 border-t border-white/[0.05] py-5 text-center text-xs text-zinc-700 md:mx-6">
-            <span className="summer-text-gradient font-bold">EAS Arena</span>
-            <span className="text-zinc-700"> · © 2026 · All rights reserved</span>
+          <footer className="border-t border-white/[0.04] px-8 py-6 mt-4">
+            <div className="flex flex-col items-center gap-1 text-center">
+              <p className="text-sm font-black">
+                <span className="summer-text-gradient">EAS Arena</span>
+              </p>
+              <p className="text-[11px] text-zinc-700">© 2026 Elevate All-Stars · All rights reserved</p>
+            </div>
           </footer>
         </section>
       </div>

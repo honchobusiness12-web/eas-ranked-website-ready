@@ -14,7 +14,7 @@ export default function PremiumUpsell({
 }: PremiumUpsellProps) {
   if (compact) {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-yellow-500/15 bg-yellow-500/[0.06] px-4 py-3 backdrop-blur-sm transition-all duration-200 hover:border-yellow-400/25">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-yellow-500/15 bg-yellow-500/[0.06] px-5 py-4 backdrop-blur-sm transition-all duration-200 hover:border-yellow-400/25">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-yellow-500/15 text-sm">💎</div>
           <p className="text-xs text-zinc-400 truncate">{message}</p>
@@ -32,7 +32,7 @@ export default function PremiumUpsell({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-yellow-500/15 p-6 backdrop-blur-sm" style={{ background: "linear-gradient(135deg, rgba(255,215,0,0.06) 0%, rgba(255,159,67,0.04) 50%, rgba(168,85,247,0.05) 100%), rgba(11,11,31,0.9)" }}>
+    <div className="relative overflow-hidden rounded-2xl border border-yellow-500/15 p-6 backdrop-blur-sm" style={{ background: "linear-gradient(135deg, rgba(255,215,0,0.07) 0%, rgba(255,159,67,0.05) 50%, rgba(168,85,247,0.06) 100%), rgba(9,9,25,0.9)" }}>
       {/* Background orbs */}
       <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-15 blur-3xl" style={{ background: "radial-gradient(circle, #FFD700, transparent)" }} />
       <div className="pointer-events-none absolute -left-8 bottom-0 h-32 w-32 rounded-full opacity-10 blur-2xl" style={{ background: "radial-gradient(circle, #A855F7, transparent)" }} />
