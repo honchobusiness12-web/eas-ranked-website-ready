@@ -179,10 +179,22 @@ export default function AdminAnnouncementsPage() {
   return (
     <Shell>
       <div className="mb-6">
-        <h1 className="text-4xl font-black">📢 Announcement Panel</h1>
-        <p className="mt-2 text-zinc-400">
-          Publish live announcements to the dashboard. Developer access only.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black">📢 Announcement Panel</h1>
+            <p className="mt-2 text-zinc-400">
+              Publish live announcements to the dashboard. Appears instantly on all pages.
+            </p>
+          </div>
+          {/* Live indicator */}
+          <div className="flex items-center gap-2 rounded-xl border border-green-600/30 bg-green-950/20 px-4 py-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400" />
+            </span>
+            <span className="text-xs font-bold text-green-300">Real-Time Active</span>
+          </div>
+        </div>
       </div>
 
       {/* Publish / Edit form */}
@@ -308,9 +320,25 @@ export default function AdminAnnouncementsPage() {
             <button
               type="submit"
               disabled={publishing || !title.trim() || !message.trim()}
-              className="rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-6 py-2.5 font-black text-white hover:from-orange-400 hover:to-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3 font-black text-white shadow-lg shadow-orange-500/25 hover:from-orange-400 hover:to-red-400 hover:shadow-orange-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              style={{ boxShadow: publishing || !title.trim() || !message.trim() ? undefined : "0 0 20px rgba(249,115,22,0.35)" }}
             >
-              {publishing ? "Publishing…" : editingId ? "✏️ Update" : "📢 Publish"}
+              {publishing ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  <span>Broadcasting…</span>
+                </>
+              ) : editingId ? (
+                <>
+                  <span>✏️</span>
+                  <span>Update Announcement</span>
+                </>
+              ) : (
+                <>
+                  <span>📡</span>
+                  <span>Broadcast Now</span>
+                </>
+              )}
             </button>
             {editingId && (
               <button
@@ -328,14 +356,26 @@ export default function AdminAnnouncementsPage() {
       {/* Announcements history */}
       <div className="rounded-2xl border border-white/10 bg-[#0d0d14] overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-          <h2 className="text-xl font-black">📋 Announcement History</h2>
-          <button
-            onClick={loadAnnouncements}
-            disabled={loadingList}
-            className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
-          >
-            {loadingList ? "Loading…" : "↻ Refresh"}
-          </button>
+          <div>
+            <h2 className="text-xl font-black">📋 Announcement History</h2>
+            <p className="text-xs text-zinc-600 mt-0.5">
+              Active announcements appear as real-time toasts on all pages
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {announcements.length > 0 && (
+              <span className="rounded-lg border border-orange-600/30 bg-orange-950/20 px-2.5 py-1 text-xs font-bold text-orange-300">
+                {announcements.length} total
+              </span>
+            )}
+            <button
+              onClick={loadAnnouncements}
+              disabled={loadingList}
+              className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold text-zinc-400 hover:bg-white/5 transition disabled:opacity-50"
+            >
+              {loadingList ? "Loading…" : "↻ Refresh"}
+            </button>
+          </div>
         </div>
 
         {loadingList && announcements.length === 0 ? (
