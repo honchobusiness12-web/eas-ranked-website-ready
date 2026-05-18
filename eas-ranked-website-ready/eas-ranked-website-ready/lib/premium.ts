@@ -452,7 +452,7 @@ export const TOURNAMENT_WINNER_ROLE_IDS = [
 ];
 
 export interface UserBadge {
-  id: "developer" | "contentCreator" | "staff" | "premium" | "tournamentWinner";
+  id: "developer" | "contentCreator" | "staff" | "tournamentWinner";
   label: string;
   icon: string;
   color: string;
@@ -573,15 +573,14 @@ export async function isTournamentWinner(userId: string): Promise<boolean> {
 
 /**
  * Returns the full list of badges a user has earned.
- * Order: developer → contentCreator → staff → tournamentWinner → premium.
+ * Order: developer → contentCreator → staff → tournamentWinner.
  */
 export async function getUserBadges(userId: string): Promise<UserBadge[]> {
-  const [developer, contentCreator, staff, tournamentWinner, premium] = await Promise.all([
+  const [developer, contentCreator, staff, tournamentWinner] = await Promise.all([
     Promise.resolve(userId === DEVELOPER_USER_ID),
     isContentCreator(userId),
     isStaffUser(userId),
     isTournamentWinner(userId),
-    isPremiumUser(userId),
   ]);
 
   const badges: UserBadge[] = [];
@@ -624,16 +623,6 @@ export async function getUserBadges(userId: string): Promise<UserBadge[]> {
       icon: "🏆",
       color: "#FFD700",
       description: "Tournament Champion",
-    });
-  }
-
-  if (premium) {
-    badges.push({
-      id: "premium",
-      label: "Premium",
-      icon: "💎",
-      color: "#FF9F43",
-      description: "Premium Subscriber",
     });
   }
 
