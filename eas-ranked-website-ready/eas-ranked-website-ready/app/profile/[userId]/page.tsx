@@ -4,15 +4,13 @@ import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import AchievementBadge from "@/components/AchievementBadge";
 import BadgeDisplay from "@/components/BadgeDisplay";
-import CosmeticsPreview from "@/components/CosmeticsPreview";
 import CopyButton from "@/components/CopyButton";
 import { WinLossChart, CrSparkline } from "@/components/StatsChart";
 import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression } from "@/lib/charts";
-import { getCosmetics, getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
-import { THEMES, ACHIEVEMENT_FRAMES, BANNER_COLORS, buildGradientCSS } from "@/lib/premium-constants";
+import { getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
 import { getSession } from "@/lib/auth";
 
 export const revalidate = 30;
@@ -35,10 +33,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   // Is the viewer looking at their own profile?
   const isOwnProfile = viewerUserId !== null && viewerUserId === userId;
 
-  const [cosmetics, badges] = await Promise.all([
-    getCosmetics(userId),
-    getUserBadges(userId),
-  ]);
+  const badges = await getUserBadges(userId);
 
   if (!p) {
     return (
@@ -75,110 +70,23 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   const nextMin = next?.min ?? cr;
   const progressPct = next ? Math.min(100, Math.round((cr / nextMin) * 100)) : 100;
 
-  // Cosmetic accent color — custom color always takes priority
-  const accentColor = cosmetics?.profile_color || "#FF6B6B";
-
-  // Resolve hero background with correct priority:
-  // 1. banner_color (explicit choice) — highest priority
-  // 2. gradient_preset — overrides theme
-  // 3. theme (base palette) blended with accent — lowest priority
-  const themeEntry = THEMES.find((t) => t.id === (cosmetics?.theme ?? "dark"));
-  const bannerEntry = BANNER_COLORS.find((b) => b.id === (cosmetics?.banner_color ?? "default"));
-  const gradientCSS = buildGradientCSS(cosmetics?.gradient_preset ?? "none");
-
-  let heroBg: string;
-  if (bannerEntry && (bannerEntry.gradient || bannerEntry.color)) {
-    // Banner color/gradient takes highest priority
-    if (bannerEntry.gradient) {
-      heroBg = bannerEntry.gradient;
-    } else {
-      heroBg = `linear-gradient(135deg, ${bannerEntry.color}40, #0d0d14, ${accentColor}30)`;
-    }
-  } else if (gradientCSS) {
-    // Gradient preset overrides theme — blend with dark base for readability
-    heroBg = gradientCSS.replace(
-      /linear-gradient\(([^,]+),/,
-      `linear-gradient($1, #0d0d14,`
-    );
-  } else {
-    // Theme base + accent color — accent gets meaningful opacity (35%) so it's visible
-    const themeBg = themeEntry?.preview ?? "#05050b";
-    heroBg = `linear-gradient(135deg, ${themeBg}, #0d0d14, ${accentColor}35)`;
-  }
-
-  // Resolve achievement frame styling for avatar wrapper
-  const frameEntry = ACHIEVEMENT_FRAMES.find(
-    (f) => f.id === (cosmetics?.achievement_frame ?? "default")
-  );
-  const frameStyles: Record<string, React.CSSProperties> = {
-    default: {},
-    gold: { boxShadow: `0 0 0 3px #FFD700, 0 0 16px #FFD70060` },
-    diamond: { boxShadow: `0 0 0 3px #00D4FF, 0 0 16px #00D4FF60` },
-    fire: { boxShadow: `0 0 0 3px #FF6B00, 0 0 20px #FF6B0080` },
-    ice: { boxShadow: `0 0 0 3px #A0E8FF, 0 0 20px #A0E8FF80` },
-  };
-  const avatarFrameStyle: React.CSSProperties =
-    frameStyles[cosmetics?.achievement_frame ?? "default"] ?? {};
-
-  // Rank badge style from cosmetics
-  const rankBadgeStyle = cosmetics?.rank_badge_style ?? "default";
-
-  // Profile effect — applied as extra box-shadow / animation on the hero section
-  const profileEffect = cosmetics?.profile_effect ?? "none";
-  const effectStyle: React.CSSProperties = (() => {
-    switch (profileEffect) {
-      case "sparkle":
-        return { boxShadow: `0 0 0 1px ${accentColor}40, 0 0 40px ${accentColor}20` };
-      case "fire":
-        return { boxShadow: `0 0 0 1px #FF6B0060, 0 0 40px #FF6B0030, 0 0 80px #FF4500 20` };
-      case "snow":
-        return { boxShadow: `0 0 0 1px #A0E8FF40, 0 0 40px #A0E8FF20` };
-      case "lightning":
-        return { boxShadow: `0 0 0 1px ${accentColor}60, 0 0 30px ${accentColor}30` };
-      case "confetti":
-        return { boxShadow: `0 0 0 1px ${accentColor}50, 0 0 50px ${accentColor}25` };
-      default:
-        return {};
-    }
-  })();
-
-  // Theme-specific border enhancement — neon/cyberpunk themes get a stronger accent border
-  const heroBorderColor = (() => {
-    const theme = cosmetics?.theme ?? "dark";
-    if (theme === "neon" || theme === "cyberpunk") return `${accentColor}70`;
-    if (theme === "ocean") return `${accentColor}55`;
-    return `${accentColor}40`;
-  })();
-
   return (
     <Shell>
-      {/* Hero — data-profile-hero ensures inline background is never overridden by Tailwind bg-* classes */}
+      {/* Hero */}
       <section
-        data-profile-hero
-        className={`rounded-2xl border p-6 md:p-8${profileEffect !== "none" ? ` profile-effect-${profileEffect}` : ""}`}
+        className="rounded-2xl border border-white/10 p-6 md:p-8"
         style={{
-          borderColor: heroBorderColor,
-          background: heroBg,
-          ...effectStyle,
+          background: "linear-gradient(135deg, #0d0d14, #0d0d18)",
         }}
       >
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="flex flex-wrap items-center gap-5">
-            {/* Avatar with optional achievement frame */}
-            <div
-              className="rounded-full shrink-0"
-              style={{ borderRadius: "9999px", ...avatarFrameStyle }}
-              title={frameEntry ? `${frameEntry.icon} ${frameEntry.label} Frame` : undefined}
-            >
+            {/* Avatar */}
+            <div className="rounded-full shrink-0">
               <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-20 w-20" />
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tight md:text-3xl">{p.name}</h1>
-              {cosmetics?.player_title && (
-                <p className="text-xs font-bold mt-0.5" style={{ color: accentColor }}>
-                  {cosmetics.player_title}
-                </p>
-              )}
               <p className="text-sm text-zinc-500 mt-0.5">{p.username || "No username saved yet"}</p>
               {/* User ID display */}
               <div className="flex items-center gap-1.5 mt-1">
@@ -190,7 +98,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                 <BadgeDisplay badges={badges} size="md" className="mt-2" />
               )}
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <RankBadge cr={cr} size="md" badgeStyle={rankBadgeStyle} />
+                <RankBadge cr={cr} size="md" />
                 {p.blacklisted && (
                   <span className="rounded-lg border border-red-600/40 bg-red-950/20 px-2.5 py-0.5 text-xs font-bold text-red-400">
                     🚫 Blacklisted
@@ -353,9 +261,6 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               <Badge label="Blacklisted" active={p.blacklisted} danger />
             </div>
           </div>
-
-          {/* Active cosmetics */}
-          {cosmetics && <CosmeticsPreview cosmetics={cosmetics} />}
         </div>
       </section>
 
