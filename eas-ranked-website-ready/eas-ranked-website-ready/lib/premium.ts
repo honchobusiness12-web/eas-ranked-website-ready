@@ -70,23 +70,6 @@ export interface Subscription {
   updated_at: string;
 }
 
-export interface Cosmetics {
-  id: string;
-  user_id: string;
-  theme: string | null;
-  profile_banner: string | null;
-  rank_badge_style: string | null;
-  player_title: string | null;
-  profile_color: string | null;
-  achievement_frame: string | null;
-  gradient_preset: string | null;
-  banner_color: string | null;
-  banner_pattern: string | null;
-  profile_effect: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 // ---------------------------------------------------------------------------
 // DB initialisation — create tables if they don't exist
 // ---------------------------------------------------------------------------
@@ -105,34 +88,6 @@ export async function ensurePremiumTables(): Promise<void> {
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `);
-
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS cosmetics (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id BIGINT NOT NULL UNIQUE,
-        theme VARCHAR(50) DEFAULT 'dark',
-        profile_banner VARCHAR(255),
-        rank_badge_style VARCHAR(50) DEFAULT 'default',
-        player_title VARCHAR(100),
-        profile_color VARCHAR(50) DEFAULT '#FF6B6B',
-        achievement_frame VARCHAR(50) DEFAULT 'default',
-        gradient_preset VARCHAR(50) DEFAULT 'none',
-        banner_color VARCHAR(50) DEFAULT 'default',
-        banner_pattern VARCHAR(50) DEFAULT 'none',
-        profile_effect VARCHAR(50) DEFAULT 'none',
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
-    // Add new columns to existing tables if they don't exist (migration)
-    await pool.query(`
-      ALTER TABLE cosmetics
-        ADD COLUMN IF NOT EXISTS gradient_preset VARCHAR(50) DEFAULT 'none',
-        ADD COLUMN IF NOT EXISTS banner_color VARCHAR(50) DEFAULT 'default',
-        ADD COLUMN IF NOT EXISTS banner_pattern VARCHAR(50) DEFAULT 'none',
-        ADD COLUMN IF NOT EXISTS profile_effect VARCHAR(50) DEFAULT 'none'
-    `).catch(() => {}); // Ignore if table doesn't exist yet
   } catch (err) {
     console.error("[premium] ensurePremiumTables failed:", err);
   }
@@ -352,66 +307,6 @@ export async function upsertSubscription(
     );
   } catch (err) {
     console.error(`[premium] upsertSubscription(${userId}) failed:`, err);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Cosmetics helpers
-// ---------------------------------------------------------------------------
-
-export async function getCosmetics(userId: string): Promise<Cosmetics | null> {
-  try {
-    await ensurePremiumTables();
-    const result = await pool.query(
-      `SELECT * FROM cosmetics WHERE user_id = $1 LIMIT 1`,
-      [userId]
-    );
-    return result.rows[0] ?? null;
-  } catch (err) {
-    console.error(`[premium] getCosmetics(${userId}) failed:`, err);
-    return null;
-  }
-}
-
-export async function upsertCosmetics(
-  userId: string,
-  data: Partial<Omit<Cosmetics, "id" | "user_id" | "created_at" | "updated_at">>
-): Promise<void> {
-  try {
-    await ensurePremiumTables();
-    await pool.query(
-      `
-      INSERT INTO cosmetics (user_id, theme, profile_banner, rank_badge_style, player_title, profile_color, achievement_frame, gradient_preset, banner_color, banner_pattern, profile_effect)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-      ON CONFLICT (user_id) DO UPDATE SET
-        theme              = EXCLUDED.theme,
-        profile_banner     = EXCLUDED.profile_banner,
-        rank_badge_style   = EXCLUDED.rank_badge_style,
-        player_title       = EXCLUDED.player_title,
-        profile_color      = EXCLUDED.profile_color,
-        achievement_frame  = EXCLUDED.achievement_frame,
-        gradient_preset    = EXCLUDED.gradient_preset,
-        banner_color       = EXCLUDED.banner_color,
-        banner_pattern     = EXCLUDED.banner_pattern,
-        profile_effect     = EXCLUDED.profile_effect,
-        updated_at         = NOW()
-      `,
-      [
-        userId,
-        data.theme ?? "dark",
-        data.profile_banner ?? null,
-        data.rank_badge_style ?? "default",
-        data.player_title ?? null,
-        data.profile_color ?? "#FF6B6B",
-        data.achievement_frame ?? "default",
-        data.gradient_preset ?? "none",
-        data.banner_color ?? "default",
-        data.banner_pattern ?? "none",
-        data.profile_effect ?? "none",
-      ]
-    );
-  } catch (err) {
-    console.error(`[premium] upsertCosmetics(${userId}) failed:`, err);
   }
 }
 
@@ -831,20 +726,4 @@ export async function canHostScrim(
   return { allowed: false, reason: "limit_reached" };
 }
 
-// ---------------------------------------------------------------------------
-// Available cosmetic options — re-exported from premium-constants so that
-// server-side callers can continue importing from this module unchanged.
-// ---------------------------------------------------------------------------
 
-export {
-  THEMES,
-  RANK_BADGE_STYLES,
-  PLAYER_TITLES,
-  PROFILE_COLORS,
-  ACHIEVEMENT_FRAMES,
-  GRADIENT_PRESETS,
-  BANNER_COLORS,
-  BANNER_PATTERNS,
-  PROFILE_EFFECTS,
-  buildGradientCSS,
-} from "@/lib/premium-constants";

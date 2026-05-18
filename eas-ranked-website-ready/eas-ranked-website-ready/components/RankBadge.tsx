@@ -1,6 +1,5 @@
 import { getRank } from "@/lib/ranks";
 import { getTierColor } from "@/lib/charts";
-import { GRADIENT_PRESETS } from "@/lib/cosmetic-constants";
 
 const TIER_ICONS: Record<string, string> = {
   "R1 Rookie":        "🔰",
@@ -34,8 +33,6 @@ interface RankBadgeProps {
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
   badgeStyle?: RankBadgeStyle | string | null;
-  /** Optional gradient preset ID from player_cosmetics.badge_gradient */
-  gradientId?: string | null;
 }
 
 function buildStyleProps(
@@ -77,7 +74,6 @@ export default function RankBadge({
   size = "md",
   showLabel = true,
   badgeStyle = "default",
-  gradientId = null,
 }: RankBadgeProps) {
   const rankName = getRank(cr);
   const color = getTierColor(rankName);
@@ -92,25 +88,11 @@ export default function RankBadge({
   // "pulsing" needs a Tailwind animation class; others are pure inline styles
   const isPulsing = badgeStyle === "pulsing";
 
-  // If a custom gradient preset is provided, override the default style
-  const gradientPreset = gradientId
-    ? GRADIENT_PRESETS.find((g) => g.id === gradientId)
-    : null;
-
-  const customGradientStyle: React.CSSProperties | undefined = gradientPreset
-    ? {
-        background: gradientPreset.css,
-        borderColor: `${gradientPreset.to}60`,
-        color: "#ffffff",
-      }
-    : undefined;
-
   return (
     <span
       className={`inline-flex items-center rounded-lg border font-bold ${sizeClasses}${isPulsing ? " animate-pulse" : ""}`}
-      style={customGradientStyle ?? buildStyleProps(color, badgeStyle)}
+      style={buildStyleProps(color, badgeStyle)}
       title={`${rankName} — ${cr} CR`}
-      {...(customGradientStyle ? { "data-gradient-badge": "true" } : {})}
     >
       <span>{icon}</span>
       {showLabel && <span>{rankName}</span>}
