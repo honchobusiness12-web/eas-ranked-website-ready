@@ -9,7 +9,7 @@ import { WinLossChart, CrSparkline } from "@/components/StatsChart";
 import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
-import { parseCrProgression } from "@/lib/charts";
+import { parseCrProgression, getTierColor } from "@/lib/charts";
 import { getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
 import { getSession } from "@/lib/auth";
 
@@ -53,11 +53,13 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   const cr = Number(p.cr || 0);
   const rank = getRank(cr);
   const next = getNextRank(cr);
+  const rankColor = getTierColor(rank);
   const wins = Number(p.wins || 0);
   const losses = Number(p.losses || 0);
   const kills = Number(p.kills || 0);
   const matches = Number(p.matches || 0);
   const mvps = Number(p.mvp_count || 0);
+  const winStreak = Number((p as any).win_streak || 0);
   const winRate = matches ? Math.round((wins / matches) * 100) : 0;
   const kda = matches ? (kills / matches).toFixed(1) : "0.0";
 
@@ -68,58 +70,109 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
   // Rank progress
   const nextMin = next?.min ?? cr;
-  const progressPct = next ? Math.min(100, Math.round((cr / nextMin) * 100)) : 100;
+  // Find the current rank's min CR for accurate progress
+  const { ranks } = await import("@/lib/ranks");
+  let currentRankMin = 0;
+  for (const r of ranks) {
+    if (cr >= r.min) currentRankMin = r.min;
+  }
+  const progressPct = next
+    ? Math.min(100, Math.round(((cr - currentRankMin) / (nextMin - currentRankMin)) * 100))
+    : 100;
 
   return (
     <Shell>
-      {/* Hero */}
+      {/* ── Hero Banner ── */}
       <section
-        className="rounded-2xl border border-white/10 p-6 md:p-8"
+        className="relative overflow-hidden rounded-2xl border border-white/10 p-6 md:p-8"
         style={{
-          background: "linear-gradient(135deg, #0d0d14, #0d0d18)",
+          background: `linear-gradient(135deg, #0a0a16 0%, #0d0d1e 60%, ${rankColor}12 100%)`,
         }}
       >
-        <div className="flex flex-wrap items-start justify-between gap-5">
+        {/* Decorative rank glow */}
+        <div
+          className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-10 blur-3xl"
+          style={{ background: rankColor }}
+        />
+
+        <div className="relative flex flex-wrap items-start justify-between gap-6">
+          {/* Left: Avatar + identity */}
           <div className="flex flex-wrap items-center gap-5">
-            {/* Avatar */}
-            <div className="rounded-full shrink-0">
-              <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-20 w-20" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black tracking-tight md:text-3xl">{p.name}</h1>
-              <p className="text-sm text-zinc-500 mt-0.5">{p.username || "No username saved yet"}</p>
-              {/* User ID display */}
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-[10px] font-mono text-zinc-600">ID: {userId}</span>
-                <CopyButton text={userId} size="xs" />
+            {/* Avatar with rank-colored ring */}
+            <div
+              className="shrink-0 rounded-full p-0.5"
+              style={{ background: `linear-gradient(135deg, ${rankColor}80, ${rankColor}30)` }}
+            >
+              <div className="rounded-full bg-[#0a0a16] p-0.5">
+                <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-20 w-20" />
               </div>
-              {/* All badges in a row */}
+            </div>
+
+            <div>
+              {/* Name */}
+              <h1 className="text-2xl font-black tracking-tight md:text-4xl">{p.name}</h1>
+
+              {/* Username + ID */}
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                {p.username && (
+                  <span className="text-sm text-zinc-500">@{p.username}</span>
+                )}
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-[10px] text-zinc-700">ID: {userId}</span>
+                  <CopyButton text={userId} size="xs" />
+                </div>
+              </div>
+
+              {/* Badges row */}
               {badges.length > 0 && (
                 <BadgeDisplay badges={badges} size="md" className="mt-2" />
               )}
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <RankBadge cr={cr} size="md" />
+
+              {/* Rank + status chips */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <RankBadge cr={cr} size="lg" />
                 {p.blacklisted && (
-                  <span className="rounded-lg border border-red-600/40 bg-red-950/20 px-2.5 py-0.5 text-xs font-bold text-red-400">
+                  <span className="rounded-lg border border-red-600/50 bg-red-950/30 px-2.5 py-1 text-xs font-bold text-red-400">
                     🚫 Blacklisted
+                  </span>
+                )}
+                {!p.ranked && p.registered && (
+                  <span className="rounded-lg border border-yellow-600/40 bg-yellow-950/20 px-2.5 py-1 text-xs font-bold text-yellow-400">
+                    ⏳ Unranked
+                  </span>
+                )}
+                {p.ranked && (
+                  <span className="rounded-lg border border-green-600/40 bg-green-950/20 px-2.5 py-1 text-xs font-bold text-green-400">
+                    ✅ Ranked
                   </span>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Right: Action buttons */}
           <div className="flex flex-col gap-2 shrink-0">
             <SoundLink
               href={`/compare?a=${p.user_id}`}
               soundType="success"
-              className="rounded-lg border border-purple-600/40 px-3 py-2 text-xs font-bold text-purple-300 hover:bg-purple-950/30 transition-colors text-center"
+              className="flex items-center gap-2 rounded-xl border border-purple-600/40 bg-purple-950/20 px-4 py-2.5 text-sm font-bold text-purple-300 hover:bg-purple-950/40 hover:border-purple-500/60 transition-all"
             >
-              ⚔️ Compare
+              <span>⚔️</span>
+              <span>Compare</span>
+            </SoundLink>
+            <SoundLink
+              href="/leaderboard"
+              soundType="click"
+              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-bold text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200 transition-all"
+            >
+              <span>🏆</span>
+              <span>Leaderboard</span>
             </SoundLink>
           </div>
         </div>
       </section>
 
-      {/* Admin Panel quick access — owner only, shown on their own profile */}
+      {/* ── Admin Panel (owner only, own profile) ── */}
       {viewerIsOwner && isOwnProfile && (
         <section className="mt-3 rounded-2xl border border-red-700/30 bg-red-950/10 p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -151,72 +204,141 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
         </section>
       )}
 
-      {/* Stats grid */}
-      <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <StatCard title="CR" value={cr.toLocaleString()} color="orange" />
-        <StatCard title="Wins" value={wins.toString()} color="green" />
-        <StatCard title="Losses" value={losses.toString()} color="red" />
-        <StatCard title="Win Rate" value={`${winRate}%`} color="blue" />
-        <StatCard title="Kills" value={kills.toLocaleString()} color="yellow" />
-        <StatCard title="MVPs" value={mvps.toString()} color="yellow" />
-      </section>
+      {/* ── Two-column layout ── */}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
 
-      {/* Charts + progress */}
-      <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
-        {/* Left: CR progression + history */}
+        {/* ══ LEFT COLUMN ══ */}
         <div className="space-y-4">
-          {/* CR Sparkline */}
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <StatCard
+              icon="⚡"
+              title="CR"
+              value={cr.toLocaleString()}
+              sub={rank}
+              color="orange"
+              accent={rankColor}
+            />
+            <StatCard
+              icon="🏆"
+              title="Wins"
+              value={wins.toLocaleString()}
+              sub={`${winRate}% win rate`}
+              color="green"
+            />
+            <StatCard
+              icon="💀"
+              title="Losses"
+              value={losses.toLocaleString()}
+              sub={`${matches} total matches`}
+              color="red"
+            />
+            <StatCard
+              icon="🎯"
+              title="Kills"
+              value={kills.toLocaleString()}
+              sub={`${kda} per match`}
+              color="yellow"
+            />
+            <StatCard
+              icon="🌟"
+              title="MVPs"
+              value={mvps.toLocaleString()}
+              sub="Most Valuable Player"
+              color="purple"
+            />
+            <StatCard
+              icon="📊"
+              title="Win Rate"
+              value={`${winRate}%`}
+              sub={matches >= 20 ? (winRate >= 75 ? "⚡ Dominant" : winRate >= 60 ? "📈 Consistent" : "Improving") : "Need more matches"}
+              color="blue"
+            />
+          </div>
+
+          {/* CR Progression chart */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-4 text-sm font-black">📈 CR Progression</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-black">📈 CR Progression</h2>
+              <span className="text-xs text-zinc-600">Last {Math.min(crPoints.length, 20)} matches</span>
+            </div>
             <CrSparkline points={crPoints} />
           </div>
 
-          {/* Rank progress */}
+          {/* Rank Progress */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
             <h2 className="mb-4 text-sm font-black">🎯 Rank Progress</h2>
             {next ? (
               <>
-                <div className="flex justify-between text-xs mb-2 text-zinc-500">
-                  <span>Current: <span className="font-bold text-white">{rank}</span></span>
-                  <span>Next: <span className="font-bold text-orange-300">{next.name}</span></span>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <RankBadge cr={cr} size="sm" />
+                    <span className="text-xs text-zinc-500">→</span>
+                    <span
+                      className="rounded-lg border px-2 py-0.5 text-xs font-bold"
+                      style={{
+                        borderColor: `${getTierColor(next.name)}50`,
+                        background: `${getTierColor(next.name)}15`,
+                        color: getTierColor(next.name),
+                      }}
+                    >
+                      {next.name}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-orange-400">
+                    {(next.min - cr).toLocaleString()} CR to go
+                  </span>
                 </div>
-                <div className="h-2 rounded-full bg-white/[0.06]">
+                <div className="h-3 rounded-full bg-white/[0.06] overflow-hidden">
                   <div
-                    className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 transition-all duration-700"
-                    style={{ width: `${progressPct}%` }}
+                    className="h-3 rounded-full transition-all duration-700"
+                    style={{
+                      width: `${progressPct}%`,
+                      background: `linear-gradient(90deg, ${rankColor}cc, ${rankColor})`,
+                      boxShadow: `0 0 8px ${rankColor}60`,
+                    }}
                   />
                 </div>
                 <div className="mt-2 flex justify-between text-[11px] text-zinc-600">
-                  <span>{cr.toLocaleString()} CR</span>
-                  <span className="text-orange-400 font-bold">{(next.min - cr).toLocaleString()} CR to go</span>
+                  <span>{currentRankMin.toLocaleString()} CR</span>
+                  <span className="text-zinc-400 font-bold">{progressPct}%</span>
                   <span>{next.min.toLocaleString()} CR</span>
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🏆</span>
+              <div className="flex items-center gap-4 rounded-xl border border-yellow-600/30 bg-yellow-950/15 p-4">
+                <span className="text-3xl">🏆</span>
                 <div>
-                  <p className="text-sm font-black text-yellow-400">Maximum Rank Achieved!</p>
-                  <p className="text-xs text-zinc-500">You&apos;ve reached the pinnacle of the ladder.</p>
+                  <p className="font-black text-yellow-400">Maximum Rank Achieved!</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">You&apos;ve reached the pinnacle of the ladder.</p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Match history */}
+          {/* Match History */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-4 text-sm font-black">📜 Match History</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-black">📜 Match History</h2>
+              {history.length > 0 && (
+                <span className="text-xs text-zinc-600">{history.length} entries</span>
+              )}
+            </div>
             {history.length === 0 ? (
-              <p className="text-xs text-zinc-600">No history saved yet.</p>
+              <div className="flex flex-col items-center gap-2 py-6 text-center">
+                <span className="text-2xl">📭</span>
+                <p className="text-xs text-zinc-600">No match history saved yet.</p>
+              </div>
             ) : (
-              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
                 {history.slice(-20).reverse().map((item: string, index: number) => {
                   const isWin = item.toLowerCase().includes("win") || item.includes("+");
                   const isLoss = item.toLowerCase().includes("loss") || item.includes("-");
                   return (
                     <div
                       key={index}
-                      className={`rounded-lg px-3 py-2 text-xs border ${
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs border ${
                         isWin
                           ? "border-green-800/20 bg-green-950/15 text-green-300"
                           : isLoss
@@ -224,7 +346,8 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                           : "border-white/[0.05] bg-white/[0.03] text-zinc-400"
                       }`}
                     >
-                      {item}
+                      <span className="shrink-0">{isWin ? "✅" : isLoss ? "❌" : "➖"}</span>
+                      <span className="flex-1">{item}</span>
                     </div>
                   );
                 })}
@@ -233,46 +356,92 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
           </div>
         </div>
 
-        {/* Right: Win/loss chart + status + extra stats */}
+        {/* ══ RIGHT COLUMN ══ */}
         <div className="space-y-4">
+
           {/* Win/Loss donut */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-4 text-sm font-black">🎯 Win / Loss</h2>
+            <h2 className="mb-4 text-sm font-black">🎯 Win / Loss Ratio</h2>
             <WinLossChart wins={wins} losses={losses} matches={matches} />
           </div>
 
-          {/* Extra stats */}
+          {/* Detailed stats */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-3 text-sm font-black">📊 Extra Stats</h2>
+            <h2 className="mb-3 text-sm font-black">📊 Detailed Stats</h2>
             <div className="space-y-2">
-              <StatRow label="Total Matches" value={matches.toString()} />
-              <StatRow label="Kills / Match" value={kda} />
-              <StatRow label="MVPs" value={mvps.toString()} />
-              <StatRow label="Placement Matches" value={String(p.placement_matches || 0)} />
+              <StatRow icon="🎮" label="Total Matches" value={matches.toLocaleString()} />
+              <StatRow icon="🏆" label="Wins" value={wins.toLocaleString()} highlight="green" />
+              <StatRow icon="💀" label="Losses" value={losses.toLocaleString()} highlight="red" />
+              <StatRow icon="🎯" label="Kills / Match" value={kda} />
+              <StatRow icon="🌟" label="MVPs" value={mvps.toLocaleString()} highlight="yellow" />
+              {winStreak > 0 && (
+                <StatRow icon="🔥" label="Win Streak" value={`${winStreak}W`} highlight="orange" />
+              )}
+              <StatRow icon="📋" label="Placement Matches" value={String(p.placement_matches || 0)} />
             </div>
           </div>
 
-          {/* Player status */}
+          {/* Account Status */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-3 text-sm font-black">🔖 Status</h2>
+            <h2 className="mb-3 text-sm font-black">🔖 Account Status</h2>
             <div className="space-y-2">
-              <Badge label="Registered" active={p.registered} />
-              <Badge label="Ranked" active={p.ranked} />
-              <Badge label="Blacklisted" active={p.blacklisted} danger />
+              <StatusRow label="Registered" active={p.registered} icon="📝" />
+              <StatusRow label="Ranked" active={p.ranked} icon="🏅" />
+              <StatusRow label="Blacklisted" active={p.blacklisted} icon="🚫" danger />
+            </div>
+          </div>
+
+          {/* CR Breakdown */}
+          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
+            <h2 className="mb-3 text-sm font-black">⚡ CR Breakdown</h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-zinc-500">Current CR</span>
+                <span className="text-lg font-black" style={{ color: rankColor }}>
+                  {cr.toLocaleString()}
+                </span>
+              </div>
+              {next && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-500">Next rank at</span>
+                    <span className="text-sm font-bold text-zinc-300">{next.min.toLocaleString()} CR</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-500">CR needed</span>
+                    <span className="text-sm font-bold text-orange-400">{(next.min - cr).toLocaleString()}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-zinc-500">Current rank</span>
+                <span className="text-xs font-bold" style={{ color: rankColor }}>{rank}</span>
+              </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Achievements */}
+      {/* ── Achievements ── */}
       <section className="mt-4 rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-black">🏅 Achievements</h2>
-          <span className="rounded-lg border border-orange-600/30 bg-orange-950/20 px-2.5 py-1 text-xs font-bold text-orange-300">
-            {unlockedCount} / {achievements.length}
-          </span>
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-base font-black">🏅 Achievements</h2>
+            <p className="text-xs text-zinc-600 mt-0.5">Milestones earned through gameplay</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-24 rounded-full bg-white/[0.06] overflow-hidden">
+              <div
+                className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500"
+                style={{ width: `${Math.round((unlockedCount / achievements.length) * 100)}%` }}
+              />
+            </div>
+            <span className="rounded-lg border border-orange-600/30 bg-orange-950/20 px-2.5 py-1 text-xs font-bold text-orange-300">
+              {unlockedCount} / {achievements.length}
+            </span>
+          </div>
         </div>
-        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
           {achievements.map((a) => (
             <AchievementBadge key={a.id} achievement={a} size="md" />
           ))}
@@ -282,44 +451,107 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   );
 }
 
+// ── Sub-components ──────────────────────────────────────────────────────────
+
 function StatCard({
+  icon,
   title,
   value,
+  sub,
   color = "orange",
+  accent,
 }: {
+  icon: string;
   title: string;
   value: string;
+  sub?: string;
   color?: "orange" | "purple" | "green" | "red" | "blue" | "yellow";
+  accent?: string;
 }) {
-  const colors = {
-    orange: "text-orange-400",
-    purple: "text-orange-400",
+  const colorMap = {
+    orange: { text: "text-orange-400", border: "border-orange-500/20", bg: "bg-orange-500/10", glow: "#f97316" },
+    purple: { text: "text-purple-400", border: "border-purple-500/20", bg: "bg-purple-500/10", glow: "#a855f7" },
+    green:  { text: "text-green-400",  border: "border-green-500/20",  bg: "bg-green-500/10",  glow: "#22c55e" },
+    red:    { text: "text-red-400",    border: "border-red-500/20",    bg: "bg-red-500/10",    glow: "#ef4444" },
+    blue:   { text: "text-teal-400",   border: "border-teal-500/20",   bg: "bg-teal-500/10",   glow: "#14b8a6" },
+    yellow: { text: "text-yellow-400", border: "border-yellow-500/20", bg: "bg-yellow-500/10", glow: "#eab308" },
+  };
+  const c = colorMap[color];
+  const glowColor = accent ?? c.glow;
+
+  return (
+    <div
+      className={`group relative overflow-hidden rounded-xl border bg-[#0d0d18] px-4 py-4 transition-all duration-200 hover:scale-[1.02] ${c.border}`}
+    >
+      {/* Top accent line */}
+      <div
+        className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl opacity-60 group-hover:opacity-100 transition-opacity"
+        style={{ background: glowColor }}
+      />
+      <div className="flex items-start justify-between mb-2">
+        <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm ${c.bg}`}>
+          {icon}
+        </span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">{title}</span>
+      </div>
+      <p
+        className={`text-2xl font-black tracking-tight ${c.text}`}
+        style={accent ? { color: accent } : {}}
+      >
+        {value}
+      </p>
+      {sub && <p className="mt-0.5 text-[10px] text-zinc-600 truncate">{sub}</p>}
+    </div>
+  );
+}
+
+function StatRow({
+  icon,
+  label,
+  value,
+  highlight,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  highlight?: "green" | "red" | "yellow" | "orange";
+}) {
+  const highlightColors = {
     green:  "text-green-400",
     red:    "text-red-400",
-    blue:   "text-teal-400",
     yellow: "text-yellow-400",
+    orange: "text-orange-400",
   };
   return (
-    <div className="rounded-xl border border-white/[0.07] bg-[#0d0d18] px-4 py-4">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{title}</p>
-      <p className={`mt-1.5 text-2xl font-black tracking-tight ${colors[color]}`}>{value}</p>
+    <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm">{icon}</span>
+        <span className="text-xs text-zinc-500">{label}</span>
+      </div>
+      <span className={`text-xs font-bold ${highlight ? highlightColors[highlight] : "text-white"}`}>
+        {value}
+      </span>
     </div>
   );
 }
 
-function StatRow({ label, value }: { label: string; value: string }) {
+function StatusRow({
+  icon,
+  label,
+  active,
+  danger,
+}: {
+  icon: string;
+  label: string;
+  active: boolean;
+  danger?: boolean;
+}) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2">
-      <span className="text-xs text-zinc-500">{label}</span>
-      <span className="text-xs font-bold text-white">{value}</span>
-    </div>
-  );
-}
-
-function Badge({ label, active, danger }: { label: string; active: boolean; danger?: boolean }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2">
-      <span className="text-xs text-zinc-400">{label}</span>
+    <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm">{icon}</span>
+        <span className="text-xs text-zinc-400">{label}</span>
+      </div>
       <span
         className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
           active
