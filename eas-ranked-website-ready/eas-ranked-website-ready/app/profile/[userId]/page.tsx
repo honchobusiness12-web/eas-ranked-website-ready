@@ -11,7 +11,7 @@ import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression } from "@/lib/charts";
-import { isPremiumUser, getCosmetics, getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
+import { getCosmetics, getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
 import { THEMES, ACHIEVEMENT_FRAMES, BANNER_COLORS, buildGradientCSS } from "@/lib/premium-constants";
 import { getSession } from "@/lib/auth";
 
@@ -35,8 +35,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   // Is the viewer looking at their own profile?
   const isOwnProfile = viewerUserId !== null && viewerUserId === userId;
 
-  const [premium, cosmetics, badges] = await Promise.all([
-    isPremiumUser(userId),
+  const [cosmetics, badges] = await Promise.all([
     getCosmetics(userId),
     getUserBadges(userId),
   ]);
@@ -80,8 +79,8 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   const accentColor = cosmetics?.profile_color || "#FF6B6B";
 
   // Resolve hero background with correct priority:
-  // 1. banner_color (explicit premium choice) — highest priority
-  // 2. gradient_preset (premium gradient) — overrides theme
+  // 1. banner_color (explicit choice) — highest priority
+  // 2. gradient_preset — overrides theme
   // 3. theme (base palette) blended with accent — lowest priority
   const themeEntry = THEMES.find((t) => t.id === (cosmetics?.theme ?? "dark"));
   const bannerEntry = BANNER_COLORS.find((b) => b.id === (cosmetics?.banner_color ?? "default"));
@@ -89,14 +88,14 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
   let heroBg: string;
   if (bannerEntry && (bannerEntry.gradient || bannerEntry.color)) {
-    // Premium banner color/gradient takes highest priority
+    // Banner color/gradient takes highest priority
     if (bannerEntry.gradient) {
       heroBg = bannerEntry.gradient;
     } else {
       heroBg = `linear-gradient(135deg, ${bannerEntry.color}40, #0d0d14, ${accentColor}30)`;
     }
   } else if (gradientCSS) {
-    // Premium gradient preset overrides theme — blend with dark base for readability
+    // Gradient preset overrides theme — blend with dark base for readability
     heroBg = gradientCSS.replace(
       /linear-gradient\(([^,]+),/,
       `linear-gradient($1, #0d0d14,`
@@ -153,9 +152,9 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
   return (
     <Shell>
-      {/* Hero — data-premium-hero ensures inline background is never overridden by Tailwind bg-* classes */}
+      {/* Hero — data-profile-hero ensures inline background is never overridden by Tailwind bg-* classes */}
       <section
-        data-premium-hero
+        data-profile-hero
         className={`rounded-2xl border p-6 md:p-8${profileEffect !== "none" ? ` profile-effect-${profileEffect}` : ""}`}
         style={{
           borderColor: heroBorderColor,
