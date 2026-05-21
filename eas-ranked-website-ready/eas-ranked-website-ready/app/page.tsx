@@ -5,6 +5,7 @@ import RankBadge from "@/components/RankBadge";
 import DashboardStats from "@/components/DashboardStats";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import ActivityFeed from "@/components/ActivityFeed";
+import { LiveScrimBadge } from "@/components/LiveScrimBadge";
 import { syncPlayersFromDB } from "@/lib/cache";
 import { getCurrentSeason, type Season } from "@/lib/seasons";
 
@@ -41,6 +42,9 @@ export default async function HomePage() {
     <Shell>
       {/* Live announcements */}
       <AnnouncementBanner />
+
+      {/* Live scrim indicator — polls every 10s, hidden when no scrim is active */}
+      <LiveScrimBadge />
 
       {/* ── Hero — full-width immersive ── */}
       <section className="relative overflow-hidden rounded-2xl border border-white/[0.06]" style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(79,142,247,0.10) 35%, rgba(168,85,247,0.12) 65%, rgba(6,182,212,0.07) 100%), #07071a" }}>
