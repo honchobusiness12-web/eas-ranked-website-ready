@@ -126,7 +126,7 @@ export default function Shell({
 
         {/* ── Sidebar — desktop ── */}
         <aside
-          className={`fixed left-0 top-0 hidden h-screen flex-col border-r border-white/[0.05] md:flex transition-all duration-300 ${sidebarW} z-40`}
+          className={`fixed left-0 top-0 hidden h-screen flex-col border-r border-white/[0.05] md:flex transition-all duration-300 ${sidebarW} z-40 overflow-y-auto`}
           style={{ background: "rgba(6,6,20,0.97)", backdropFilter: "blur(24px)" }}
         >
           {/* Logo + collapse toggle */}
@@ -176,26 +176,37 @@ export default function Shell({
               const text = label.slice(label.indexOf(" ") + 1);
               const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
               return (
-                <SoundLink
-                  key={href}
-                  href={href}
-                  soundType="success"
-                  className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200 ${sidebarCollapsed ? "justify-center" : ""} ${
-                    isActive
-                      ? "bg-purple-500/[0.12] text-purple-200 border border-purple-500/20"
-                      : "text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200 border border-transparent"
-                  }`}
-                  title={sidebarCollapsed ? label : undefined}
-                >
-                  {isActive && (
-                    <span
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full bg-purple-400"
-                      style={{ transition: "opacity 0.2s ease" }}
-                    />
+                <div key={href} className="group relative">
+                  <SoundLink
+                    href={href}
+                    soundType="success"
+                    className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200 ${sidebarCollapsed ? "justify-center" : ""} ${
+                      isActive
+                        ? "bg-purple-500/[0.12] text-purple-200 border border-purple-500/20"
+                        : "text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200 border border-transparent"
+                    }`}
+                    title={sidebarCollapsed ? label : undefined}
+                  >
+                    {isActive && (
+                      <>
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full bg-purple-400 tab-indicator" />
+                        <span className="absolute inset-0 rounded-xl bg-purple-500/10 active-tab-glow" />
+                      </>
+                    )}
+                    <span className="relative shrink-0 text-base leading-none">{emoji}</span>
+                    {!sidebarCollapsed && <span className="relative truncate text-[13px] font-medium">{text}</span>}
+                  </SoundLink>
+
+                  {/* Tooltip for collapsed sidebar */}
+                  {sidebarCollapsed && (
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 hidden group-hover:block z-50">
+                      <div className="rounded-lg bg-zinc-900 border border-white/[0.10] px-2.5 py-1.5 text-xs font-bold text-white whitespace-nowrap shadow-lg">
+                        {text}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-zinc-900" />
+                      </div>
+                    </div>
                   )}
-                  <span className="shrink-0 text-base leading-none">{emoji}</span>
-                  {!sidebarCollapsed && <span className="truncate text-[13px] font-medium">{text}</span>}
-                </SoundLink>
+                </div>
               );
             })}
 
@@ -220,23 +231,37 @@ export default function Shell({
                   const text = label.slice(label.indexOf(" ") + 1);
                   const isActive = pathname === href || pathname.startsWith(href);
                   return (
-                    <SoundLink
-                      key={href}
-                      href={href}
-                      soundType="success"
-                      className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200 ${sidebarCollapsed ? "justify-center" : ""} ${
-                        isActive
-                          ? "bg-red-500/[0.10] text-red-300 border border-red-500/20"
-                          : "text-zinc-600 hover:bg-red-500/[0.07] hover:text-red-300 border border-transparent"
-                      }`}
-                      title={sidebarCollapsed ? label : undefined}
-                    >
-                      {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full bg-red-400" />
+                    <div key={href} className="group relative">
+                      <SoundLink
+                        href={href}
+                        soundType="success"
+                        className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200 ${sidebarCollapsed ? "justify-center" : ""} ${
+                          isActive
+                            ? "bg-red-500/[0.10] text-red-300 border border-red-500/20"
+                            : "text-zinc-600 hover:bg-red-500/[0.07] hover:text-red-300 border border-transparent"
+                        }`}
+                        title={sidebarCollapsed ? label : undefined}
+                      >
+                        {isActive && (
+                          <>
+                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full bg-red-400 tab-indicator" />
+                            <span className="absolute inset-0 rounded-xl bg-red-500/10 active-tab-glow" />
+                          </>
+                        )}
+                        <span className="relative shrink-0 text-base leading-none">{emoji}</span>
+                        {!sidebarCollapsed && <span className="relative truncate text-[13px] font-medium">{text}</span>}
+                      </SoundLink>
+
+                      {/* Tooltip for collapsed sidebar */}
+                      {sidebarCollapsed && (
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 hidden group-hover:block z-50">
+                          <div className="rounded-lg bg-zinc-900 border border-white/[0.10] px-2.5 py-1.5 text-xs font-bold text-white whitespace-nowrap shadow-lg">
+                            {text}
+                            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-zinc-900" />
+                          </div>
+                        </div>
                       )}
-                      <span className="shrink-0 text-base leading-none">{emoji}</span>
-                      {!sidebarCollapsed && <span className="truncate text-[13px] font-medium">{text}</span>}
-                    </SoundLink>
+                    </div>
                   );
                 })}
               </>
