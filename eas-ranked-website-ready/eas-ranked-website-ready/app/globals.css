@@ -782,6 +782,24 @@ select option {
   animation: announcement-progress 12s linear both;
 }
 
+/* ============================================================
+   Interactive CR chart — point glow pulse
+   ============================================================ */
+
+@keyframes point-glow {
+  0%, 100% { opacity: 0.15; r: 8; }
+  50%       { opacity: 0.35; r: 11; }
+}
+
+@keyframes counter-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-counter-up {
+  animation: counter-up 0.4s ease-out both;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

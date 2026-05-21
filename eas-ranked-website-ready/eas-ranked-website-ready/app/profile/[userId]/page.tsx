@@ -5,7 +5,14 @@ import RankBadge from "@/components/RankBadge";
 import AchievementBadge from "@/components/AchievementBadge";
 import BadgeDisplay from "@/components/BadgeDisplay";
 import CopyButton from "@/components/CopyButton";
-import { WinLossChart, CrSparkline } from "@/components/StatsChart";
+import { WinLossChart } from "@/components/StatsChart";
+import {
+  AnimatedStatCard,
+  AnimatedProgressBar,
+  CrProgressionSection,
+  AchievementProgress,
+  MatchHistoryList,
+} from "@/components/ProfileClient";
 import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
@@ -212,59 +219,65 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
           {/* Stats grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatCard
+            <AnimatedStatCard
               icon="⚡"
               title="CR"
-              value={cr.toLocaleString()}
+              numericValue={cr}
+              displayValue={cr.toLocaleString()}
               sub={rank}
               color="orange"
               accent={rankColor}
+              delay={0}
             />
-            <StatCard
+            <AnimatedStatCard
               icon="🏆"
               title="Wins"
-              value={wins.toLocaleString()}
+              numericValue={wins}
+              displayValue={wins.toLocaleString()}
               sub={`${winRate}% win rate`}
               color="green"
+              delay={60}
             />
-            <StatCard
+            <AnimatedStatCard
               icon="💀"
               title="Losses"
-              value={losses.toLocaleString()}
+              numericValue={losses}
+              displayValue={losses.toLocaleString()}
               sub={`${matches} total matches`}
               color="red"
+              delay={120}
             />
-            <StatCard
+            <AnimatedStatCard
               icon="🎯"
               title="Kills"
-              value={kills.toLocaleString()}
+              numericValue={kills}
+              displayValue={kills.toLocaleString()}
               sub={`${kda} per match`}
               color="yellow"
+              delay={180}
             />
-            <StatCard
+            <AnimatedStatCard
               icon="🌟"
               title="MVPs"
-              value={mvps.toLocaleString()}
+              numericValue={mvps}
+              displayValue={mvps.toLocaleString()}
               sub="Most Valuable Player"
               color="purple"
+              delay={240}
             />
-            <StatCard
+            <AnimatedStatCard
               icon="📊"
               title="Win Rate"
-              value={`${winRate}%`}
+              numericValue={winRate}
+              displayValue={`${winRate}%`}
               sub={matches >= 20 ? (winRate >= 75 ? "⚡ Dominant" : winRate >= 60 ? "📈 Consistent" : "Improving") : "Need more matches"}
               color="blue"
+              delay={300}
             />
           </div>
 
           {/* CR Progression chart */}
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-black">📈 CR Progression</h2>
-              <span className="text-xs text-zinc-600">Last {Math.min(crPoints.length, 20)} matches</span>
-            </div>
-            <CrSparkline points={crPoints} />
-          </div>
+          <CrProgressionSection crPoints={crPoints} />
 
           {/* Rank Progress */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
@@ -290,16 +303,12 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                     {(next.min - cr).toLocaleString()} CR to go
                   </span>
                 </div>
-                <div className="h-3 rounded-full bg-white/[0.06] overflow-hidden">
-                  <div
-                    className="h-3 rounded-full transition-all duration-700"
-                    style={{
-                      width: `${progressPct}%`,
-                      background: `linear-gradient(90deg, ${rankColor}cc, ${rankColor})`,
-                      boxShadow: `0 0 8px ${rankColor}60`,
-                    }}
-                  />
-                </div>
+                <AnimatedProgressBar
+                  pct={progressPct}
+                  color={`linear-gradient(90deg, ${rankColor}cc, ${rankColor})`}
+                  glowColor={`${rankColor}60`}
+                  height="h-3"
+                />
                 <div className="mt-2 flex justify-between text-[11px] text-zinc-600">
                   <span>{currentRankMin.toLocaleString()} CR</span>
                   <span className="text-zinc-400 font-bold">{progressPct}%</span>
@@ -325,34 +334,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                 <span className="text-xs text-zinc-600">{history.length} entries</span>
               )}
             </div>
-            {history.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 py-6 text-center">
-                <span className="text-2xl">📭</span>
-                <p className="text-xs text-zinc-600">No match history saved yet.</p>
-              </div>
-            ) : (
-              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-                {history.slice(-20).reverse().map((item: string, index: number) => {
-                  const isWin = item.toLowerCase().includes("win") || item.includes("+");
-                  const isLoss = item.toLowerCase().includes("loss") || item.includes("-");
-                  return (
-                    <div
-                      key={index}
-                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs border ${
-                        isWin
-                          ? "border-green-800/20 bg-green-950/15 text-green-300"
-                          : isLoss
-                          ? "border-red-800/20 bg-red-950/15 text-red-300"
-                          : "border-white/[0.05] bg-white/[0.03] text-zinc-400"
-                      }`}
-                    >
-                      <span className="shrink-0">{isWin ? "✅" : isLoss ? "❌" : "➖"}</span>
-                      <span className="flex-1">{item}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <MatchHistoryList history={history} />
           </div>
         </div>
 
@@ -429,17 +411,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             <h2 className="text-base font-black">🏅 Achievements</h2>
             <p className="text-xs text-zinc-600 mt-0.5">Milestones earned through gameplay</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-24 rounded-full bg-white/[0.06] overflow-hidden">
-              <div
-                className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500"
-                style={{ width: `${Math.round((unlockedCount / achievements.length) * 100)}%` }}
-              />
-            </div>
-            <span className="rounded-lg border border-orange-600/30 bg-orange-950/20 px-2.5 py-1 text-xs font-bold text-orange-300">
-              {unlockedCount} / {achievements.length}
-            </span>
-          </div>
+          <AchievementProgress unlocked={unlockedCount} total={achievements.length} />
         </div>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
           {achievements.map((a) => (
@@ -452,58 +424,6 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────
-
-function StatCard({
-  icon,
-  title,
-  value,
-  sub,
-  color = "orange",
-  accent,
-}: {
-  icon: string;
-  title: string;
-  value: string;
-  sub?: string;
-  color?: "orange" | "purple" | "green" | "red" | "blue" | "yellow";
-  accent?: string;
-}) {
-  const colorMap = {
-    orange: { text: "text-orange-400", border: "border-orange-500/20", bg: "bg-orange-500/10", glow: "#f97316" },
-    purple: { text: "text-purple-400", border: "border-purple-500/20", bg: "bg-purple-500/10", glow: "#a855f7" },
-    green:  { text: "text-green-400",  border: "border-green-500/20",  bg: "bg-green-500/10",  glow: "#22c55e" },
-    red:    { text: "text-red-400",    border: "border-red-500/20",    bg: "bg-red-500/10",    glow: "#ef4444" },
-    blue:   { text: "text-teal-400",   border: "border-teal-500/20",   bg: "bg-teal-500/10",   glow: "#14b8a6" },
-    yellow: { text: "text-yellow-400", border: "border-yellow-500/20", bg: "bg-yellow-500/10", glow: "#eab308" },
-  };
-  const c = colorMap[color];
-  const glowColor = accent ?? c.glow;
-
-  return (
-    <div
-      className={`group relative overflow-hidden rounded-xl border bg-[#0d0d18] px-4 py-4 transition-all duration-200 hover:scale-[1.02] ${c.border}`}
-    >
-      {/* Top accent line */}
-      <div
-        className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl opacity-60 group-hover:opacity-100 transition-opacity"
-        style={{ background: glowColor }}
-      />
-      <div className="flex items-start justify-between mb-2">
-        <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm ${c.bg}`}>
-          {icon}
-        </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">{title}</span>
-      </div>
-      <p
-        className={`text-2xl font-black tracking-tight ${c.text}`}
-        style={accent ? { color: accent } : {}}
-      >
-        {value}
-      </p>
-      {sub && <p className="mt-0.5 text-[10px] text-zinc-600 truncate">{sub}</p>}
-    </div>
-  );
-}
 
 function StatRow({
   icon,
