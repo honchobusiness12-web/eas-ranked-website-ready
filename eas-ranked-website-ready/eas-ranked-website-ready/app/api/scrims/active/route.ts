@@ -12,6 +12,7 @@ export async function GET() {
       `SELECT scrim_id, scrim_type, league_host_name, player_count, start_time
        FROM scrim_sessions
        WHERE status = 'active'
+         AND start_time > NOW() - INTERVAL '30 minutes'
        LIMIT 1`
     );
 

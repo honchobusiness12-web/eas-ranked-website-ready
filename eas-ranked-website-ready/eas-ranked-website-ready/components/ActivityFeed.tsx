@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 import type { CachedPlayer } from "@/lib/cache";
 import { getRank } from "@/lib/ranks";
 import { getTierColor } from "@/lib/charts";
@@ -135,9 +135,9 @@ interface ActivityFeedProps {
   players: CachedPlayer[];
 }
 
-export default function ActivityFeed({ players }: ActivityFeedProps) {
+const ActivityFeed = memo(function ActivityFeed({ players }: ActivityFeedProps) {
   const [visible, setVisible] = useState(false);
-  const events = deriveActivity(players);
+  const events = useMemo(() => deriveActivity(players), [players]);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setVisible(true));
@@ -209,4 +209,6 @@ export default function ActivityFeed({ players }: ActivityFeedProps) {
       ))}
     </div>
   );
-}
+});
+
+export default ActivityFeed;

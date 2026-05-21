@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo, useMemo } from "react";
 import type { CrPoint } from "@/lib/charts";
 
 interface MatchTimelineProps {
   points: CrPoint[];
 }
 
-export default function MatchTimeline({ points }: MatchTimelineProps) {
+const MatchTimeline = memo(function MatchTimeline({ points }: MatchTimelineProps) {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   if (points.length === 0) {
@@ -20,7 +20,7 @@ export default function MatchTimeline({ points }: MatchTimelineProps) {
   }
 
   // Show most recent first
-  const items = [...points].reverse();
+  const items = useMemo(() => [...points].reverse(), [points]);
 
   return (
     <div className="relative space-y-0">
@@ -125,7 +125,9 @@ export default function MatchTimeline({ points }: MatchTimelineProps) {
       })}
     </div>
   );
-}
+});
+
+export default MatchTimeline;
 
 function DetailRow({
   label,

@@ -17,9 +17,9 @@ const links = [
   { label: "👥 Players",           href: "/players" },
   { label: "⚔️ Compare",           href: "/compare" },
   { label: "📋 Placements",        href: "/placements" },
+  { label: "🔴 Live",              href: "/live" },
   { label: "🏷️ Ranks",             href: "/ranks" },
   { label: "📖 How Ranked Works",  href: "/guide" },
-  { label: "🎁 Redeem Code",       href: "/redeem" },
 ];
 
 const adminLinks = [
