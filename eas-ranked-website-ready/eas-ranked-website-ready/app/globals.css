@@ -828,6 +828,177 @@ select option {
   animation: counter-up 0.4s ease-out both;
 }
 
+/* ============================================================
+   Micro-animations — buttons, cards, badges, tabs, leaderboard
+   ============================================================ */
+
+/* Button press feedback */
+button:active:not(:disabled),
+a:active {
+  transform: scale(0.97);
+}
+
+/* Card fade-in on mount */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card-enter {
+  animation: card-enter 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Hover lift for interactive cards */
+.card-interactive {
+  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1),
+              box-shadow 0.2s cubic-bezier(0.4,0,0.2,1),
+              border-color 0.2s ease;
+}
+.card-interactive:hover {
+  transform: translateY(-2px) scale(1.005);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+/* Rank badge glow pulse */
+@keyframes badge-glow {
+  0%, 100% { box-shadow: 0 0 6px currentColor; opacity: 0.85; }
+  50%       { box-shadow: 0 0 18px currentColor, 0 0 36px currentColor; opacity: 1; }
+}
+
+.badge-animated {
+  animation: badge-glow 2s ease-in-out infinite;
+}
+
+/* Badge scale on hover */
+.badge-hover {
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s ease;
+}
+.badge-hover:hover {
+  transform: scale(1.08);
+}
+
+/* Tab underline slide */
+@keyframes tab-underline-in {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.tab-active-underline {
+  animation: tab-underline-in 0.2s cubic-bezier(0.4,0,0.2,1) both;
+  transform-origin: left center;
+}
+
+/* Leaderboard row staggered fade-in */
+@keyframes row-enter {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.row-enter {
+  animation: row-enter 0.3s ease-out both;
+}
+
+/* Leaderboard row hover highlight */
+.leaderboard-row {
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.leaderboard-row:hover {
+  background: rgba(168,85,247,0.05);
+  transform: translateX(2px);
+}
+
+/* Smooth color transitions on all text */
+p, span, h1, h2, h3, h4, h5, h6 {
+  transition: color 0.2s ease;
+}
+
+/* ============================================================
+   Typography polish
+   ============================================================ */
+
+/* Tighter tracking for large headings */
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Improved body text readability */
+p {
+  line-height: 1.6;
+}
+
+/* Stat numbers — tabular, tight */
+.stat-number {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* Label text — consistent uppercase micro-labels */
+.label-text {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+
+/* Section title */
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: #f1f1f8;
+}
+
+/* Mono values (IDs, codes) */
+.mono-value {
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   Rank-themed glow utilities (dynamic, used via inline styles)
+   ============================================================ */
+
+/* Animated rank aura — applied to avatar rings for high ranks */
+@keyframes rank-aura {
+  0%, 100% { opacity: 0.7; filter: blur(0px); }
+  50%       { opacity: 1;   filter: blur(1px); }
+}
+
+.rank-aura-animated {
+  animation: rank-aura 2.5s ease-in-out infinite;
+}
+
+/* Player card entrance */
+@keyframes player-card-enter {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.player-card-enter {
+  animation: player-card-enter 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* Timeline dot pulse */
+@keyframes timeline-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+
+/* Activity feed item entrance */
+@keyframes activity-enter {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.activity-enter {
+  animation: activity-enter 0.3s ease-out both;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

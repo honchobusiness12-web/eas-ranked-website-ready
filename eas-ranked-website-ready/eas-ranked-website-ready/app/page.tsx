@@ -4,6 +4,7 @@ import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import DashboardStats from "@/components/DashboardStats";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import ActivityFeed from "@/components/ActivityFeed";
 import { syncPlayersFromDB } from "@/lib/cache";
 import { getCurrentSeason, type Season } from "@/lib/seasons";
 
@@ -189,33 +190,19 @@ export default async function HomePage() {
         <div className="flex flex-col gap-5">
           <SeasonCard season={currentSeason} />
 
-          {/* Recent activity */}
+          {/* Activity Feed */}
           <div className="overflow-hidden rounded-2xl border border-white/[0.06] backdrop-blur-sm flex-1" style={{ background: "rgba(9,9,25,0.85)" }}>
             <div className="border-b border-white/[0.06] px-5 py-4" style={{ background: "linear-gradient(90deg, rgba(79,142,247,0.07), transparent)" }}>
               <div className="flex items-center gap-2.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/15 text-sm">⚡</div>
                 <div>
-                  <h3 className="text-sm font-black">Recent Activity</h3>
-                  <p className="text-[10px] text-zinc-600">Latest players</p>
+                  <h3 className="text-sm font-black">Live Activity</h3>
+                  <p className="text-[10px] text-zinc-600">Recent match events</p>
                 </div>
               </div>
             </div>
             <div className="px-3 py-2">
-              {players.slice(0, 7).map((p: any) => (
-                <SoundLink
-                  href={`/profile/${p.user_id}`}
-                  key={p.user_id}
-                  soundType="click"
-                  className="group flex items-center gap-3 rounded-xl px-2 py-2.5 transition-all duration-200 hover:bg-white/[0.04]"
-                >
-                  <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate group-hover:text-white transition-colors">{p.name || "Unknown Player"}</p>
-                    <p className="text-xs text-zinc-600">{(p.cr || 0).toLocaleString()} CR · {p.wins || 0}W</p>
-                  </div>
-                  <RankBadge cr={Number(p.cr || 0)} size="sm" showLabel={false} />
-                </SoundLink>
-              ))}
+              <ActivityFeed players={players as any} />
             </div>
           </div>
         </div>
