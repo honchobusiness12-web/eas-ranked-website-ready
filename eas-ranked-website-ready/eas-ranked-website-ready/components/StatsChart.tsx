@@ -2,6 +2,7 @@
 
 import { type RankBucket } from "@/lib/charts";
 import { type CrPoint } from "@/lib/charts";
+export { InteractiveCrChart } from "@/components/InteractiveCrChart";
 
 // ---------------------------------------------------------------------------
 // Win / Loss donut chart (pure SVG)
