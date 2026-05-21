@@ -8,6 +8,7 @@ This directory contains Discord bot cogs for EAS Arena.
 |-----|------|---------|
 | Giveaway Codes | `cogs/giveaway_codes.py` | Owner-only slash commands for managing Premium giveaway codes |
 | Premium Sync   | `cogs/premium_sync.py`   | Auto-syncs Buy Me a Coffee premium role to the website database |
+| Scrim Expiry   | `cogs/scrim_expiry.py`   | Background task that marks active scrims as 'expired' after 30 minutes |
 
 ---
 
@@ -27,6 +28,7 @@ async def main():
     bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
     await bot.load_extension("cogs.giveaway_codes")
     await bot.load_extension("cogs.premium_sync")
+    await bot.load_extension("cogs.scrim_expiry")
     await bot.start(os.getenv("DISCORD_BOT_TOKEN"))
 ```
 
@@ -43,6 +45,7 @@ async def main():
 | `WEBSITE_API_KEY` | Shared secret — must match `WEBHOOK_SECRET` on the website               |
 | `PREMIUM_ROLE_ID` | Discord role ID for premium (default: `1502426990995836928`)             |
 | `LOG_CHANNEL_ID`  | Optional: Discord channel ID for premium sync log messages               |
+| `DATABASE_URL`    | PostgreSQL connection string — required by `scrim_expiry` cog            |
 
 ---
 

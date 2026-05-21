@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { RankTheme } from "@/lib/rankThemes";
 
 interface PlayerCardProps {
@@ -18,7 +19,7 @@ interface PlayerCardProps {
  * Shareable player card — a compact, visually rich summary of a player's stats.
  * Designed to be screenshot-friendly and ready for a future download/share feature.
  */
-export default function PlayerCard({
+const PlayerCard = memo(function PlayerCard({
   name,
   username,
   avatar,
@@ -119,7 +120,9 @@ export default function PlayerCard({
       </p>
     </div>
   );
-}
+});
+
+export default PlayerCard;
 
 function StatPill({
   label,

@@ -14,21 +14,6 @@ export default function GiveawayRedeemInfoPage() {
           </p>
         </div>
 
-        {/* Redeem CTA */}
-        <div className="rounded-2xl border border-purple-700/40 bg-gradient-to-br from-purple-950/30 to-black p-6 mb-8 text-center">
-          <p className="text-xl font-black text-purple-300 mb-2">Have a code already?</p>
-          <p className="text-sm text-zinc-400 mb-5">
-            Head straight to the redemption page to activate your reward.
-          </p>
-          <SoundLink
-            href="/redeem"
-            soundType="success"
-            className="inline-block rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 font-black text-white hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-900/30"
-          >
-            🎁 Redeem Your Code →
-          </SoundLink>
-        </div>
-
         {/* Where to find codes */}
         <section className="mb-8">
           <h2 className="text-2xl font-black mb-4">📍 Where to Find Codes</h2>
@@ -94,8 +79,8 @@ export default function GiveawayRedeemInfoPage() {
               {
                 step: 2,
                 icon: "🎁",
-                title: "Go to the Redeem page",
-                desc: "Navigate to the Redeem Code page using the sidebar link or the button above.",
+                title: "Contact an admin",
+                desc: "Reach out to an EAS Arena admin in the Discord server to have your code applied to your account.",
               },
               {
                 step: 3,
@@ -159,7 +144,7 @@ export default function GiveawayRedeemInfoPage() {
               },
               {
                 q: "How do I check my code status?",
-                a: "Visit the Redeem page — it shows your current status. You can also check your profile page.",
+                a: "Check your profile page to see your current premium status and any active rewards.",
               },
             ].map(({ q, a }) => (
               <details

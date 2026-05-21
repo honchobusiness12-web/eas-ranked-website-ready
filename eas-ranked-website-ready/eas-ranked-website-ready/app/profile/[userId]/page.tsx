@@ -12,7 +12,7 @@ import {
   CrProgressionSection,
   AchievementProgress,
 } from "@/components/ProfileClient";
-import MatchTimeline from "@/components/MatchTimeline";
+import MatchPagination from "@/components/MatchPagination";
 import PlayerCard from "@/components/PlayerCard";
 import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
@@ -353,7 +353,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                 <span className="text-xs text-zinc-600">{crPoints.length} entries</span>
               )}
             </div>
-            <MatchTimeline points={crPoints} />
+            <MatchPagination points={crPoints} itemsPerPage={5} />
           </div>
         </div>
 
