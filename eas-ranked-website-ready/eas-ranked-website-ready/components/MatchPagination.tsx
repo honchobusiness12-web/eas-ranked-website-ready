@@ -43,7 +43,7 @@ const MatchPagination = memo(function MatchPagination({
 }: MatchPaginationProps) {
   const [page, setPage] = useState(0);
   const [expanded, setExpanded] = useState<number | null>(null);
-  const [animating, setAnimating] = useState(false);
+  const [fading, setFading] = useState(false);
 
   // Most recent first
   const items = useMemo(() => [...points].reverse(), [points]);
@@ -57,13 +57,14 @@ const MatchPagination = memo(function MatchPagination({
   const goToPage = useCallback(
     (next: number) => {
       if (next === page || next < 0 || next >= totalPages) return;
-      setAnimating(true);
-      // Brief fade-out, then switch page and reset expanded
+      // Fade out, swap content (height adjusts immediately to new page), fade in
+      setFading(true);
       setTimeout(() => {
         setPage(next);
         setExpanded(null);
-        setAnimating(false);
-      }, 150);
+        // Allow one frame for the DOM to update with new items before fading back in
+        requestAnimationFrame(() => setFading(false));
+      }, 120);
     },
     [page, totalPages]
   );
@@ -84,10 +85,10 @@ const MatchPagination = memo(function MatchPagination({
 
   return (
     <div>
-      {/* Match list */}
+      {/* Match list — height is always determined by current page items only */}
       <div
-        className="relative space-y-0 transition-opacity duration-150"
-        style={{ opacity: animating ? 0 : 1 }}
+        className="relative transition-opacity duration-[120ms] ease-in-out"
+        style={{ opacity: fading ? 0 : 1 }}
       >
         {/* Vertical spine */}
         <div className="absolute left-[19px] top-3 bottom-3 w-px bg-white/[0.06]" />
@@ -192,7 +193,7 @@ const MatchPagination = memo(function MatchPagination({
 
       {/* Pagination controls — only shown when there is more than one page */}
       {totalPages > 1 && (
-        <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="mt-2 flex items-center justify-between gap-2">
           {/* Back */}
           <button
             onClick={() => goToPage(page - 1)}
@@ -232,7 +233,7 @@ const MatchPagination = memo(function MatchPagination({
 
       {/* Page indicator */}
       {totalPages > 1 && (
-        <p className="mt-2 text-center text-[10px] text-zinc-700">
+        <p className="mt-1.5 text-center text-[10px] text-zinc-700">
           Page {page + 1} of {totalPages} &bull; {items.length} total entries
         </p>
       )}
