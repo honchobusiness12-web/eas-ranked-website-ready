@@ -3,6 +3,7 @@ import SoundProvider from "@/components/SoundProvider";
 import ToastProvider from "@/components/ToastProvider";
 import AnnouncementProvider from "@/components/AnnouncementProvider";
 import AnnouncementToast from "@/components/AnnouncementToast";
+import { PageTransition } from "@/components/PageTransition";
 
 export const metadata = {
   title: "EAS Arena Dashboard",
@@ -16,7 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SoundProvider>
           <ToastProvider>
             <AnnouncementProvider>
-              {children}
+              <PageTransition>
+                {children}
+              </PageTransition>
               <AnnouncementToast />
             </AnnouncementProvider>
           </ToastProvider>

@@ -5,7 +5,10 @@ import SoundToggle from "@/components/SoundToggle";
 import AuthButton from "@/components/AuthButton";
 import ProfileMenu from "@/components/ProfileMenu";
 import CopyButton from "@/components/CopyButton";
+import { PageTransition } from "@/components/PageTransition";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import type { DiscordUser } from "@/lib/auth";
 
 const links = [
@@ -87,10 +90,16 @@ export default function Shell({
   children: React.ReactNode;
   user?: DiscordUser | null;
 }) {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [season, setSeason] = useState<ShellSeason | null>(null);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!user) return;
@@ -165,16 +174,27 @@ export default function Shell({
             {links.map(({ label, href }) => {
               const emoji = label.split(" ")[0];
               const text = label.slice(label.indexOf(" ") + 1);
+              const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
               return (
                 <SoundLink
                   key={href}
                   href={href}
                   soundType="success"
-                  className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-zinc-500 transition-all duration-200 hover:bg-white/[0.06] hover:text-zinc-200 ${sidebarCollapsed ? "justify-center" : ""}`}
+                  className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200 ${sidebarCollapsed ? "justify-center" : ""} ${
+                    isActive
+                      ? "bg-purple-500/[0.12] text-purple-200 border border-purple-500/20"
+                      : "text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200 border border-transparent"
+                  }`}
                   title={sidebarCollapsed ? label : undefined}
                 >
+                  {isActive && (
+                    <span
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full bg-purple-400"
+                      style={{ transition: "opacity 0.2s ease" }}
+                    />
+                  )}
                   <span className="shrink-0 text-base leading-none">{emoji}</span>
-                  {!sidebarCollapsed && <span className="truncate text-[13px]">{text}</span>}
+                  {!sidebarCollapsed && <span className="truncate text-[13px] font-medium">{text}</span>}
                 </SoundLink>
               );
             })}
@@ -198,16 +218,24 @@ export default function Shell({
                 {adminLinks.map(({ label, href }) => {
                   const emoji = label.split(" ")[0];
                   const text = label.slice(label.indexOf(" ") + 1);
+                  const isActive = pathname === href || pathname.startsWith(href);
                   return (
                     <SoundLink
                       key={href}
                       href={href}
                       soundType="success"
-                      className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-zinc-600 transition-all duration-200 hover:bg-red-500/[0.07] hover:text-red-300 ${sidebarCollapsed ? "justify-center" : ""}`}
+                      className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200 ${sidebarCollapsed ? "justify-center" : ""} ${
+                        isActive
+                          ? "bg-red-500/[0.10] text-red-300 border border-red-500/20"
+                          : "text-zinc-600 hover:bg-red-500/[0.07] hover:text-red-300 border border-transparent"
+                      }`}
                       title={sidebarCollapsed ? label : undefined}
                     >
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full bg-red-400" />
+                      )}
                       <span className="shrink-0 text-base leading-none">{emoji}</span>
-                      {!sidebarCollapsed && <span className="truncate text-[13px]">{text}</span>}
+                      {!sidebarCollapsed && <span className="truncate text-[13px] font-medium">{text}</span>}
                     </SoundLink>
                   );
                 })}
@@ -250,6 +278,9 @@ export default function Shell({
         {/* ── Main content area ── */}
         <section className={`w-full min-w-0 transition-all duration-300 ${contentML}`}>
 
+          {/* ── Loading progress bar ── */}
+          <LoadingOverlay />
+
           {/* ── Top header ── */}
           <header
             className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-white/[0.05] px-4 md:px-6"
@@ -284,9 +315,9 @@ export default function Shell({
           {/* ── Mobile nav drawer ── */}
           {mobileOpen && (
             <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileOpen(false)}>
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
               <div
-                className="absolute left-0 top-0 h-full w-72 border-r border-white/[0.05] flex flex-col"
+                className="absolute left-0 top-0 h-full w-72 border-r border-white/[0.05] flex flex-col animate-slide-in"
                 style={{ background: "rgba(6,6,20,0.99)", backdropFilter: "blur(24px)" }}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -300,17 +331,24 @@ export default function Shell({
                 </div>
 
                 <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 text-sm">
-                  {links.map(({ label, href }) => (
-                    <SoundLink
-                      key={href}
-                      href={href}
-                      soundType="success"
-                      className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-400 transition-all duration-200 hover:bg-white/[0.06] hover:text-zinc-200"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {label}
-                    </SoundLink>
-                  ))}
+                  {links.map(({ label, href }) => {
+                    const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
+                    return (
+                      <SoundLink
+                        key={href}
+                        href={href}
+                        soundType="success"
+                        className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-200 ${
+                          isActive
+                            ? "bg-purple-500/[0.12] text-purple-200 border border-purple-500/20"
+                            : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200 border border-transparent"
+                        }`}
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        {label}
+                      </SoundLink>
+                    );
+                  })}
 
                   {user && (
                     <>
@@ -320,7 +358,7 @@ export default function Shell({
                       <SoundLink
                         href={`/profile/${user.id}`}
                         soundType="click"
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-400 transition-all duration-200 hover:bg-indigo-500/[0.07] hover:text-indigo-300"
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-400 transition-all duration-200 hover:bg-indigo-500/[0.07] hover:text-indigo-300 border border-transparent"
                         onClick={() => setMobileOpen(false)}
                       >
                         👤 My Profile
@@ -333,17 +371,24 @@ export default function Shell({
                       <div className="pt-4 pb-1.5 px-3">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-red-500/70">Admin</p>
                       </div>
-                      {adminLinks.map(({ label, href }) => (
-                        <SoundLink
-                          key={href}
-                          href={href}
-                          soundType="success"
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-zinc-500 transition-all duration-200 hover:bg-red-500/[0.07] hover:text-red-300"
-                          onClick={() => setMobileOpen(false)}
-                        >
-                          {label}
-                        </SoundLink>
-                      ))}
+                      {adminLinks.map(({ label, href }) => {
+                        const isActive = pathname === href || pathname.startsWith(href);
+                        return (
+                          <SoundLink
+                            key={href}
+                            href={href}
+                            soundType="success"
+                            className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-200 ${
+                              isActive
+                                ? "bg-red-500/[0.10] text-red-300 border border-red-500/20"
+                                : "text-zinc-500 hover:bg-red-500/[0.07] hover:text-red-300 border border-transparent"
+                            }`}
+                            onClick={() => setMobileOpen(false)}
+                          >
+                            {label}
+                          </SoundLink>
+                        );
+                      })}
                     </>
                   )}
                 </nav>
@@ -352,9 +397,11 @@ export default function Shell({
           )}
 
           {/* ── Page content — full width, no artificial max-width cap ── */}
-          <div className="w-full px-4 py-6 md:px-8 md:py-8 animate-fade-in">
-            {children}
-          </div>
+          <PageTransition>
+            <div className="w-full px-4 py-6 md:px-8 md:py-8">
+              {children}
+            </div>
+          </PageTransition>
 
           <footer className="border-t border-white/[0.04] px-8 py-6 mt-4">
             <div className="flex flex-col items-center gap-1 text-center">
