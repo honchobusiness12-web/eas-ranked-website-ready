@@ -355,6 +355,22 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             </div>
             <MatchPagination points={crPoints} itemsPerPage={5} />
           </div>
+
+          {/* ── Achievements ── */}
+          <section className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-base font-black">🏅 Achievements</h2>
+                <p className="text-xs text-zinc-600 mt-0.5">Milestones earned through gameplay</p>
+              </div>
+              <AchievementProgress unlocked={unlockedCount} total={achievements.length} />
+            </div>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+              {achievements.map((a) => (
+                <AchievementBadge key={a.id} achievement={a} size="md" />
+              ))}
+            </div>
+          </section>
         </div>
 
         {/* ══ RIGHT COLUMN ══ */}
@@ -439,21 +455,6 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
         </div>
       </div>
 
-      {/* ── Achievements ── */}
-      <section className="mt-4 rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-base font-black">🏅 Achievements</h2>
-            <p className="text-xs text-zinc-600 mt-0.5">Milestones earned through gameplay</p>
-          </div>
-          <AchievementProgress unlocked={unlockedCount} total={achievements.length} />
-        </div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-          {achievements.map((a) => (
-            <AchievementBadge key={a.id} achievement={a} size="md" />
-          ))}
-        </div>
-      </section>
     </Shell>
   );
 }
