@@ -11,14 +11,16 @@ import {
   AnimatedProgressBar,
   CrProgressionSection,
   AchievementProgress,
-  MatchHistoryList,
 } from "@/components/ProfileClient";
+import MatchTimeline from "@/components/MatchTimeline";
+import PlayerCard from "@/components/PlayerCard";
 import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression, getTierColor } from "@/lib/charts";
 import { getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
 import { getSession } from "@/lib/auth";
+import { getRankTheme } from "@/lib/rankThemes";
 
 export const revalidate = 30;
 
@@ -61,6 +63,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   const rank = getRank(cr);
   const next = getNextRank(cr);
   const rankColor = getTierColor(rank);
+  const rankTheme = getRankTheme(rank);
   const wins = Number(p.wins || 0);
   const losses = Number(p.losses || 0);
   const kills = Number(p.kills || 0);
@@ -91,36 +94,52 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
     <Shell>
       {/* ── Hero Banner ── */}
       <section
-        className="relative overflow-hidden rounded-2xl border border-white/10 p-6 md:p-8"
+        className="relative overflow-hidden rounded-2xl border p-6 md:p-8"
         style={{
-          background: `linear-gradient(135deg, #0a0a16 0%, #0d0d1e 60%, ${rankColor}12 100%)`,
+          background: `linear-gradient(135deg, #0a0a16 0%, #0d0d1e 55%, ${rankColor}14 100%)`,
+          borderColor: `${rankColor}25`,
         }}
       >
-        {/* Decorative rank glow */}
+        {/* Decorative rank glow — primary */}
         <div
-          className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-10 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full opacity-15 blur-3xl"
           style={{ background: rankColor }}
+        />
+        {/* Secondary glow — bottom left */}
+        <div
+          className="pointer-events-none absolute -left-12 -bottom-12 h-48 w-48 rounded-full opacity-10 blur-3xl"
+          style={{ background: rankTheme.secondary }}
         />
 
         <div className="relative flex flex-wrap items-start justify-between gap-6">
           {/* Left: Avatar + identity */}
           <div className="flex flex-wrap items-center gap-5">
-            {/* Avatar with rank-colored ring */}
+            {/* Avatar with animated rank-colored ring */}
             <div
-              className="shrink-0 rounded-full p-0.5"
-              style={{ background: `linear-gradient(135deg, ${rankColor}80, ${rankColor}30)` }}
+              className="shrink-0 rounded-full p-[2px]"
+              style={{
+                background: `linear-gradient(135deg, ${rankColor}90, ${rankTheme.secondary}60)`,
+                boxShadow: rankTheme.animated
+                  ? `0 0 20px ${rankTheme.glow}, 0 0 40px ${rankTheme.glow}`
+                  : `0 0 12px ${rankTheme.glow}`,
+              }}
             >
-              <div className="rounded-full bg-[#0a0a16] p-0.5">
-                <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-20 w-20" />
+              <div className="rounded-full bg-[#0a0a16] p-[2px]">
+                <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-24 w-24" />
               </div>
             </div>
 
             <div>
               {/* Name */}
-              <h1 className="text-2xl font-black tracking-tight md:text-4xl">{p.name}</h1>
+              <h1
+                className="text-3xl font-black tracking-tight md:text-5xl"
+                style={{ textShadow: `0 0 30px ${rankColor}40` }}
+              >
+                {p.name}
+              </h1>
 
               {/* Username + ID */}
-              <div className="mt-1 flex flex-wrap items-center gap-2">
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
                 {p.username && (
                   <span className="text-sm text-zinc-500">@{p.username}</span>
                 )}
@@ -137,7 +156,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
               {/* Rank + status chips */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <RankBadge cr={cr} size="lg" />
+                <RankBadge cr={cr} size="lg" badgeStyle={rankTheme.animated ? "glowing" : "gradient"} />
                 {p.blacklisted && (
                   <span className="rounded-lg border border-red-600/50 bg-red-950/30 px-2.5 py-1 text-xs font-bold text-red-400">
                     🚫 Blacklisted
@@ -162,7 +181,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             <SoundLink
               href={`/compare?a=${p.user_id}`}
               soundType="success"
-              className="flex items-center gap-2 rounded-xl border border-purple-600/40 bg-purple-950/20 px-4 py-2.5 text-sm font-bold text-purple-300 hover:bg-purple-950/40 hover:border-purple-500/60 transition-all"
+              className="flex items-center gap-2 rounded-xl border border-purple-600/40 bg-purple-950/20 px-4 py-2.5 text-sm font-bold text-purple-300 hover:bg-purple-950/40 hover:border-purple-500/60 transition-all hover:scale-[1.02]"
             >
               <span>⚔️</span>
               <span>Compare</span>
@@ -170,7 +189,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             <SoundLink
               href="/leaderboard"
               soundType="click"
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-bold text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200 transition-all"
+              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-bold text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200 transition-all hover:scale-[1.02]"
             >
               <span>🏆</span>
               <span>Leaderboard</span>
@@ -326,20 +345,36 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             )}
           </div>
 
-          {/* Match History */}
+          {/* Match Timeline */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-black">📜 Match History</h2>
-              {history.length > 0 && (
-                <span className="text-xs text-zinc-600">{history.length} entries</span>
+              {crPoints.length > 0 && (
+                <span className="text-xs text-zinc-600">{crPoints.length} entries</span>
               )}
             </div>
-            <MatchHistoryList history={history} />
+            <MatchTimeline points={crPoints} />
           </div>
         </div>
 
         {/* ══ RIGHT COLUMN ══ */}
         <div className="space-y-4">
+
+          {/* Player Card */}
+          <div>
+            <h2 className="mb-2 text-sm font-black text-zinc-400 uppercase tracking-widest px-1">🃏 Player Card</h2>
+            <PlayerCard
+              name={p.name}
+              username={p.username}
+              avatar={p.avatar_url}
+              rank={rank}
+              cr={cr}
+              winRate={winRate}
+              mvps={mvps}
+              winStreak={winStreak}
+              theme={rankTheme}
+            />
+          </div>
 
           {/* Win/Loss donut */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
