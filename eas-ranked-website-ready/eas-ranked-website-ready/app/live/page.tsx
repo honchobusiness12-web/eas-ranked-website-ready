@@ -324,7 +324,7 @@ export default async function LivePage() {
                       <p className="text-xs font-bold text-zinc-300 truncate group-hover:text-white transition-colors">
                         {p.name}
                       </p>
-                      <RankBadge cr={Number(p.cr)} size="xs" />
+                      <RankBadge cr={Number(p.cr)} size="sm" />
                     </div>
                     <span className="shrink-0 text-sm font-black text-purple-300">
                       {Number(p.cr).toLocaleString()}
