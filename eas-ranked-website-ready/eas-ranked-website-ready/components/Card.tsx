@@ -49,24 +49,22 @@ export default function Card({
   noAnimation = false,
 }: CardProps) {
   const hoverClasses = hoverable
-    ? "card-hover-lift hover:border-white/[0.13] hover:shadow-[0_16px_48px_rgba(0,0,0,0.55),0_0_0_1px_rgba(168,85,247,0.08)]"
-    : "";
+    ? "glass-card-premium hover:border-white/[0.13] hover:shadow-[0_20px_60px_rgba(0,0,0,0.6),0_0_0_1px_rgba(168,85,247,0.10)] hover:-translate-y-1"
+    : "glass-card-premium";
 
-  const animClass = noAnimation ? "" : "animate-fadeInUp";
+  const animClass = noAnimation ? "" : "animate-card-entrance";
 
   return (
     <Tag
-      className={`relative overflow-hidden rounded-2xl border border-white/[0.07] backdrop-blur-sm ${hoverClasses} ${animClass} ${className}`}
+      className={`relative overflow-hidden ${hoverClasses} ${animClass} ${className}`}
       style={{
-        background: "rgba(10,10,28,0.85)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.04) inset",
         animationDelay: noAnimation ? undefined : `${delay}ms`,
         ...style,
       }}
     >
       {accent && (
         <div
-          className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl transition-opacity duration-300 opacity-70 group-hover:opacity-100"
+          className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.25rem] transition-all duration-300 opacity-70 group-hover:opacity-100 group-hover:h-[3px]"
           style={{ background: accentColors[accent] }}
         />
       )}

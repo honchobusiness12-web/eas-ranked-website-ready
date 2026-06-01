@@ -167,7 +167,7 @@ export default function Shell({
 
         {/* ── Sidebar — desktop ── */}
         <aside
-          className={`fixed left-0 top-0 hidden h-screen flex-col md:flex transition-all duration-300 ${sidebarW} z-40 overflow-y-auto sidebar-v2`}
+          className={`fixed left-0 top-0 hidden h-screen flex-col md:flex transition-all duration-300 ${sidebarW} z-40 overflow-y-auto sidebar-premium`}
         >
           {/* Logo + collapse */}
           <div className="flex items-center justify-between px-3 py-4 border-b border-white/[0.05]">
@@ -233,34 +233,37 @@ export default function Shell({
                   <SoundLink
                     href={href}
                     soundType="success"
-                    className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200 ${sidebarCollapsed ? "justify-center" : ""} ${
+                    className={`nav-item-premium relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 ${sidebarCollapsed ? "justify-center" : ""} ${
                       isActive
-                        ? "bg-purple-500/[0.13] text-purple-200 border border-purple-500/[0.22]"
-                        : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200 hover:translate-x-0.5 border border-transparent"
+                        ? "active bg-purple-500/[0.13] text-purple-200 border border-purple-500/[0.22]"
+                        : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200 border border-transparent"
                     }`}
                     title={sidebarCollapsed ? label : undefined}
                   >
+                    {/* Active indicator bar */}
+                    <span className={`nav-indicator ${isActive ? "" : "hidden"}`} />
                     {isActive && (
-                      <>
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-purple-400 animate-slideInLeft" />
-                        <span className="absolute inset-0 rounded-xl active-tab-glow" />
-                      </>
+                      <span className="absolute inset-0 rounded-xl active-tab-glow" />
                     )}
-                    <span className={`relative shrink-0 text-base leading-none transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-105"}`}>{emoji}</span>
+                    <span className={`relative shrink-0 text-base leading-none transition-transform duration-250 ${isActive ? "scale-110" : "group-hover:scale-108"}`}
+                      style={{ filter: isActive ? "drop-shadow(0 0 6px rgba(168,85,247,0.5))" : undefined }}>
+                      {emoji}
+                    </span>
                     {!sidebarCollapsed && (
                       <span className="relative flex-1 truncate text-[13px] font-medium">{label}</span>
                     )}
                     {!sidebarCollapsed && live && (
                       <span className="relative shrink-0 flex h-2 w-2">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulseAnim" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
                       </span>
                     )}
                   </SoundLink>
 
                   {sidebarCollapsed && (
-                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 hidden group-hover:block z-50 pointer-events-none">
-                      <div className="rounded-lg bg-zinc-900 border border-white/[0.10] px-2.5 py-1.5 text-xs font-bold text-white whitespace-nowrap shadow-xl">
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2.5 hidden group-hover:block z-50 pointer-events-none">
+                      <div className="animate-tooltip rounded-lg bg-zinc-900 border border-white/[0.12] px-3 py-1.5 text-xs font-bold text-white whitespace-nowrap shadow-xl"
+                        style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(168,85,247,0.1)" }}>
                         {label}
                         <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-zinc-900" />
                       </div>
@@ -372,7 +375,7 @@ export default function Shell({
           <LoadingOverlay />
 
           {/* ── Top header ── */}
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-3 px-4 md:px-6 header-v2">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-3 px-4 md:px-6 header-premium">
             {/* Mobile menu button */}
             <button
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-sm transition-all duration-200 hover:bg-white/[0.08] hover:text-white md:hidden"
@@ -385,8 +388,11 @@ export default function Shell({
             {/* Breadcrumb */}
             <div className="flex-1 min-w-0 flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
-                <p className="text-[11px] font-bold uppercase tracking-widest text-purple-400/60">EAS Arena</p>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-60" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-purple-400" />
+                </span>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-purple-400/70 animated-underline">EAS Arena</p>
               </div>
               <div className="hidden md:block h-4 w-px bg-white/[0.07]" />
               <p className="text-sm font-black tracking-tight text-white/75">Ranked Dashboard</p>
@@ -404,8 +410,8 @@ export default function Shell({
             <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileOpen(false)}>
               <div className="absolute inset-0 bg-black/75 backdrop-blur-sm animate-fade-in" />
               <div
-                className="absolute left-0 top-0 h-full w-72 border-r border-white/[0.05] flex flex-col animate-slide-in"
-                style={{ background: "rgba(5,5,18,0.99)", backdropFilter: "blur(24px)" }}
+                className="absolute left-0 top-0 h-full w-72 border-r border-white/[0.05] flex flex-col animate-slide-in sidebar-premium"
+                style={{ boxShadow: "4px 0 32px rgba(0,0,0,0.5)" }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
@@ -503,17 +509,20 @@ export default function Shell({
 
           {/* ── Page content ── */}
           <PageTransition>
-            <div className="w-full px-4 py-6 md:px-8 md:py-8">
+            <div className="w-full px-4 py-6 md:px-8 md:py-8 scroll-premium">
               {children}
             </div>
           </PageTransition>
 
           <footer className="border-t border-white/[0.04] px-8 py-6 mt-4">
-            <div className="flex flex-col items-center gap-1 text-center">
+            <div className="flex flex-col items-center gap-2 text-center">
               <p className="text-sm font-black">
-                <span className="summer-text-gradient">EAS Arena</span>
+                <span className="summer-text-gradient animate-text-shimmer">EAS Arena</span>
               </p>
               <p className="text-[11px] text-zinc-700">© 2026 Elevate All-Stars · All rights reserved</p>
+              {/* Subtle footer accent line */}
+              <div className="mt-1 h-px w-24 rounded-full"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(168,85,247,0.3), transparent)" }} />
             </div>
           </footer>
         </section>

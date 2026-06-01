@@ -155,22 +155,26 @@ const ActivityFeed = memo(function ActivityFeed({ players }: ActivityFeedProps) 
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       {events.map((event, idx) => (
         <a
           key={event.id}
           href={`/profile/${event.userId}`}
-          className="group flex items-center gap-2.5 rounded-xl px-2 py-2 transition-all duration-200 hover:bg-white/[0.04]"
+          className="activity-item-premium group flex items-center gap-2.5 px-2 py-2.5"
           style={{
             opacity: visible ? 1 : 0,
-            transform: visible ? "translateX(0)" : "translateX(-8px)",
-            transition: `opacity 0.3s ease ${idx * 40}ms, transform 0.3s ease ${idx * 40}ms`,
+            transform: visible ? "translateX(0)" : "translateX(-12px)",
+            transition: `opacity 0.35s cubic-bezier(0.4,0,0.2,1) ${idx * 45}ms, transform 0.35s cubic-bezier(0.4,0,0.2,1) ${idx * 45}ms`,
           }}
         >
-          {/* Activity icon */}
+          {/* Activity icon with glow */}
           <div
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs"
-            style={{ background: `${event.color}18` }}
+            className="activity-icon flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm"
+            style={{
+              background: `linear-gradient(135deg, ${event.color}22, ${event.color}10)`,
+              border: `1px solid ${event.color}28`,
+              boxShadow: `0 0 8px ${event.color}15`,
+            }}
           >
             {event.icon}
           </div>
@@ -181,14 +185,14 @@ const ActivityFeed = memo(function ActivityFeed({ players }: ActivityFeedProps) 
           {/* Text */}
           <div className="flex-1 min-w-0">
             <p className="text-xs leading-tight">
-              <span className="font-bold text-zinc-200 group-hover:text-white transition-colors truncate">
+              <span className="font-bold text-zinc-200 transition-colors duration-200 group-hover:text-white">
                 {event.playerName}
               </span>{" "}
               <span className="text-zinc-500">{event.description}</span>
             </p>
             {event.rank && (
               <p
-                className="text-[10px] font-medium truncate"
+                className="text-[10px] font-semibold truncate mt-0.5 transition-opacity duration-200 group-hover:opacity-100 opacity-80"
                 style={{ color: getTierColor(event.rank) }}
               >
                 {event.rank}
@@ -199,8 +203,12 @@ const ActivityFeed = memo(function ActivityFeed({ players }: ActivityFeedProps) 
           {/* CR delta badge */}
           {event.crDelta !== undefined && (
             <span
-              className="shrink-0 text-[10px] font-black tabular-nums"
-              style={{ color: event.color }}
+              className="shrink-0 text-[10px] font-black tabular-nums rounded-full px-1.5 py-0.5 transition-all duration-200"
+              style={{
+                color: event.color,
+                background: `${event.color}12`,
+                border: `1px solid ${event.color}20`,
+              }}
             >
               {event.crDelta > 0 ? "+" : ""}{event.crDelta}
             </span>
