@@ -202,17 +202,20 @@ export default function Shell({
               </>
             ) : (
               <>
-                <SoundLink
-                  href="/"
-                  soundType="click"
-                  className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl text-lg logo-glow"
+                <div
                   style={{
                     background: "linear-gradient(135deg, rgba(124,58,237,0.35), rgba(79,142,247,0.25))",
                     border: "1px solid rgba(168,85,247,0.3)",
                   }}
                 >
-                  🏆
-                </SoundLink>
+                  <SoundLink
+                    href="/"
+                    soundType="click"
+                    className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl text-lg logo-glow"
+                  >
+                    🏆
+                  </SoundLink>
+                </div>
                 <button
                   onClick={() => setSidebarCollapsed(false)}
                   className="absolute -right-3 top-[72px] flex h-6 w-6 items-center justify-center rounded-full border border-white/[0.12] bg-zinc-900 text-zinc-400 shadow-lg transition-all duration-200 hover:text-white text-xs"
