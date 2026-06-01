@@ -21,6 +21,7 @@ import { parseCrProgression, getTierColor } from "@/lib/charts";
 import { getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
 import { getSession } from "@/lib/auth";
 import { getRankTheme } from "@/lib/rankThemes";
+import { getMVPHistory, getCRHistory } from "@/lib/db";
 
 export const revalidate = 30;
 
@@ -43,6 +44,18 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   const isOwnProfile = viewerUserId !== null && viewerUserId === userId;
 
   const badges = await getUserBadges(userId);
+
+  // Fetch MVP and CR history (gracefully handle missing tables)
+  let mvpHistory: Array<{ id: string; match_id: string; season_id: string; awarded_at: string }> = [];
+  let crHistory: Array<{ id: string; old_cr: number; new_cr: number; change: number; match_id: string; season_id: string; recorded_at: string }> = [];
+  try {
+    [mvpHistory, crHistory] = await Promise.all([
+      getMVPHistory(userId, 10),
+      getCRHistory(userId, 20),
+    ]);
+  } catch {
+    // Tables may not exist yet — silently ignore
+  }
 
   if (!p) {
     return (
@@ -371,6 +384,146 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               ))}
             </div>
           </section>
+
+          {/* ── MVP History ── */}
+          {mvpHistory.length > 0 && (
+            <section className="rounded-2xl border border-yellow-500/[0.18] bg-[#0d0d18] p-5 animate-fadeInUp">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-lg mvp-glow"
+                    style={{ background: "rgba(234,179,8,0.14)", border: "1px solid rgba(234,179,8,0.25)" }}
+                  >
+                    🌟
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black">MVP History</h2>
+                    <p className="text-[10px] text-zinc-600 mt-0.5">Last {mvpHistory.length} MVP awards</p>
+                  </div>
+                </div>
+                <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                  {mvpHistory.length} total
+                </span>
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-1 gap-2 mb-4">
+                <div className="flex items-center justify-between rounded-xl bg-yellow-500/[0.06] border border-yellow-500/[0.12] px-4 py-3">
+                  <span className="text-xs text-zinc-400">Total MVPs on record</span>
+                  <span className="text-lg font-black text-yellow-300">{mvpHistory.length}</span>
+                </div>
+              </div>
+
+              {/* History list */}
+              <div className="space-y-1.5">
+                {mvpHistory.map((entry, idx) => (
+                  <div
+                    key={entry.id}
+                    className="history-item-enter flex items-center justify-between rounded-xl bg-white/[0.03] border border-white/[0.05] px-4 py-2.5 hover:bg-yellow-500/[0.05] hover:border-yellow-500/[0.12] transition-all duration-200"
+                    style={{ animationDelay: `${idx * 50}ms` }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">🌟</span>
+                      <div>
+                        <p className="text-xs font-bold text-yellow-300">MVP Awarded</p>
+                        <p className="text-[10px] text-zinc-600 font-mono">Match: {entry.match_id.slice(0, 12)}…</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-zinc-600 tabular-nums">
+                      {new Date(entry.awarded_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── CR History ── */}
+          {crHistory.length > 0 && (() => {
+            const gains = crHistory.filter((e) => e.change > 0);
+            const avgGain = gains.length
+              ? Math.round(gains.reduce((s, e) => s + e.change, 0) / gains.length)
+              : 0;
+            const highestGain = gains.length
+              ? Math.max(...gains.map((e) => e.change))
+              : 0;
+
+            return (
+              <section className="rounded-2xl border border-purple-500/[0.18] bg-[#0d0d18] p-5 animate-fadeInUp delay-60">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
+                      style={{ background: "rgba(168,85,247,0.14)", border: "1px solid rgba(168,85,247,0.25)" }}
+                    >
+                      ⚡
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-black">CR History</h2>
+                      <p className="text-[10px] text-zinc-600 mt-0.5">Last {crHistory.length} CR changes</p>
+                    </div>
+                  </div>
+                  <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-black text-purple-300">
+                    {crHistory.length} entries
+                  </span>
+                </div>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="rounded-xl bg-green-500/[0.06] border border-green-500/[0.12] px-3 py-2.5 text-center">
+                    <p className="text-lg font-black text-green-300">+{avgGain}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-0.5">Avg CR Gain</p>
+                  </div>
+                  <div className="rounded-xl bg-yellow-500/[0.06] border border-yellow-500/[0.12] px-3 py-2.5 text-center">
+                    <p className="text-lg font-black text-yellow-300">+{highestGain}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-0.5">Best Single Match</p>
+                  </div>
+                </div>
+
+                {/* History list */}
+                <div className="space-y-1.5">
+                  {crHistory.map((entry, idx) => {
+                    const isGain = entry.change > 0;
+                    const isLoss = entry.change < 0;
+                    return (
+                      <div
+                        key={entry.id}
+                        className="history-item-enter flex items-center justify-between rounded-xl bg-white/[0.03] border border-white/[0.05] px-4 py-2.5 hover:bg-purple-500/[0.04] hover:border-purple-500/[0.10] transition-all duration-200"
+                        style={{ animationDelay: `${idx * 40}ms` }}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-base">
+                            {isGain ? "📈" : isLoss ? "📉" : "➡️"}
+                          </span>
+                          <div>
+                            <p className={`text-xs font-bold ${isGain ? "cr-gain" : isLoss ? "cr-loss" : "cr-neutral"}`}>
+                              {isGain ? "+" : ""}{entry.change} CR
+                            </p>
+                            <p className="text-[10px] text-zinc-600">
+                              {entry.old_cr.toLocaleString()} → {entry.new_cr.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-zinc-600 tabular-nums">
+                          {new Date(entry.recorded_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })()}
         </div>
 
         {/* ══ RIGHT COLUMN ══ */}

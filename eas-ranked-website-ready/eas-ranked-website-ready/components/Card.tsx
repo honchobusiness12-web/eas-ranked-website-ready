@@ -12,6 +12,10 @@ interface CardProps {
   style?: React.CSSProperties;
   /** Optional header section with gradient */
   headerGradient?: "purple" | "blue" | "green" | "red" | "orange" | "teal" | "gold";
+  /** Stagger delay in ms for fadeInUp animation */
+  delay?: number;
+  /** Disable entrance animation */
+  noAnimation?: boolean;
 }
 
 const accentColors: Record<string, string> = {
@@ -41,23 +45,28 @@ export default function Card({
   accent,
   as: Tag = "div",
   style,
+  delay = 0,
+  noAnimation = false,
 }: CardProps) {
   const hoverClasses = hoverable
-    ? "transition-all duration-200 hover:border-white/[0.11] hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+    ? "card-hover-lift hover:border-white/[0.13] hover:shadow-[0_16px_48px_rgba(0,0,0,0.55),0_0_0_1px_rgba(168,85,247,0.08)]"
     : "";
+
+  const animClass = noAnimation ? "" : "animate-fadeInUp";
 
   return (
     <Tag
-      className={`relative overflow-hidden rounded-2xl border border-white/[0.07] backdrop-blur-sm ${hoverClasses} ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-white/[0.07] backdrop-blur-sm ${hoverClasses} ${animClass} ${className}`}
       style={{
         background: "rgba(10,10,28,0.85)",
         boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.04) inset",
+        animationDelay: noAnimation ? undefined : `${delay}ms`,
         ...style,
       }}
     >
       {accent && (
         <div
-          className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
+          className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl transition-opacity duration-300 opacity-70 group-hover:opacity-100"
           style={{ background: accentColors[accent] }}
         />
       )}
