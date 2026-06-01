@@ -75,23 +75,23 @@ export default async function HomePage() {
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             {/* Left: copy */}
             <div className="flex-1 min-w-0">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-purple-500/25 bg-purple-500/10 px-4 py-1.5 backdrop-blur-sm">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-purple-500/25 bg-purple-500/10 px-4 py-1.5 backdrop-blur-sm animate-fadeInUp">
                 <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
                 <p className="text-xs font-bold uppercase tracking-widest text-purple-300">Live Ranked System</p>
               </div>
-              <h1 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl xl:text-7xl">
+              <h1 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl xl:text-7xl animate-fadeInUp delay-60">
                 <span className="hero-text-gradient">Climb the ranks.</span>
                 <br />
                 <span className="text-white/85">Own the arena.</span>
               </h1>
-              <p className="mt-5 max-w-2xl text-sm text-zinc-400 leading-relaxed md:text-base lg:text-lg">
+              <p className="mt-5 max-w-2xl text-sm text-zinc-400 leading-relaxed md:text-base lg:text-lg animate-fadeInUp delay-120">
                 Track CR, ranks, placements, MVPs, and live competitive activity — all powered by real-time data.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap gap-3 animate-fadeInUp delay-180">
                 <SoundLink
                   href="/leaderboard"
                   soundType="success"
-                  className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_8px_32px_rgba(124,58,237,0.55)] active:scale-[0.98]"
+                  className="btn-press inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white hover:shadow-[0_8px_32px_rgba(124,58,237,0.55)]"
                   style={{ background: "linear-gradient(135deg, #7C3AED, #4F8EF7)" }}
                 >
                   🏆 Leaderboard
@@ -99,21 +99,21 @@ export default async function HomePage() {
                 <SoundLink
                   href="/compare"
                   soundType="success"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.22] hover:bg-white/[0.09] hover:text-white hover:scale-[1.02]"
+                  className="btn-press inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm hover:border-white/[0.22] hover:bg-white/[0.09] hover:text-white"
                 >
                   ⚔️ Compare
                 </SoundLink>
                 <SoundLink
                   href="/players"
                   soundType="success"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.22] hover:bg-white/[0.09] hover:text-white hover:scale-[1.02]"
+                  className="btn-press inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm hover:border-white/[0.22] hover:bg-white/[0.09] hover:text-white"
                 >
                   👥 Players
                 </SoundLink>
                 <SoundLink
                   href="/ranks"
                   soundType="success"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.22] hover:bg-white/[0.09] hover:text-white hover:scale-[1.02]"
+                  className="btn-press inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm hover:border-white/[0.22] hover:bg-white/[0.09] hover:text-white"
                 >
                   🏷️ Ranks
                 </SoundLink>
@@ -143,13 +143,13 @@ export default async function HomePage() {
       </section>
 
       {/* ── Key metrics grid ── */}
-      <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 stagger-children">
-        <MetricCard title="Total Players" value={totalPlayers} note="Live database" color="purple" icon="👥" />
-        <MetricCard title="Ranked"         value={rankedPlayers}    note="Fully ranked"  color="lime"   icon="🏆" />
-        <MetricCard title="Placements"     value={placementPlayers} note="In progress"   color="yellow" icon="📋" />
-        <MetricCard title="Avg CR"         value={avgCr}            note="All players"   color="teal"   icon="📊" />
-        <MetricCard title="Total Matches"  value={totalMatches}     note="All time"      color="orange" icon="⚔️" />
-        <MetricCard title="Top Kills"      value={topKills}         note="Record holder" color="coral"  icon="💀" />
+      <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <MetricCard title="Total Players" value={totalPlayers} note="Live database" color="purple" icon="👥" delay={0} />
+        <MetricCard title="Ranked"         value={rankedPlayers}    note="Fully ranked"  color="lime"   icon="🏆" delay={60} />
+        <MetricCard title="Placements"     value={placementPlayers} note="In progress"   color="yellow" icon="📋" delay={120} />
+        <MetricCard title="Avg CR"         value={avgCr}            note="All players"   color="teal"   icon="📊" delay={180} />
+        <MetricCard title="Total Matches"  value={totalMatches}     note="All time"      color="orange" icon="⚔️" delay={240} />
+        <MetricCard title="Top Kills"      value={topKills}         note="Record holder" color="coral"  icon="💀" delay={300} />
       </section>
 
       {/* ── Main content grid ── */}
@@ -214,7 +214,7 @@ export default async function HomePage() {
                 href={`/profile/${p.user_id}`}
                 key={p.user_id}
                 soundType="click"
-                className="group grid grid-cols-[52px_1fr] md:grid-cols-[52px_1fr_160px_100px] items-center border-b border-white/[0.04] px-6 py-3.5 transition-all duration-150 hover:bg-purple-500/[0.04] last:border-0"
+                className="table-row-stagger group grid grid-cols-[52px_1fr] md:grid-cols-[52px_1fr_160px_100px] items-center border-b border-white/[0.04] px-6 py-3.5 transition-all duration-150 hover:bg-purple-500/[0.04] last:border-0"
               >
                 <span className="text-sm font-black">
                   {index === 0 ? (
@@ -365,7 +365,7 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl border border-white/[0.07] p-5 backdrop-blur-sm"
+      className="relative overflow-hidden rounded-2xl border border-white/[0.07] p-5 backdrop-blur-sm card-hover-lift animate-fadeInUp"
       style={{
         background: "rgba(10,10,28,0.85)",
         boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.04) inset",
@@ -423,12 +423,14 @@ function MetricCard({
   note,
   color = "coral",
   icon,
+  delay = 0,
 }: {
   title: string;
   value: number;
   note: string;
   color?: "coral" | "lime" | "yellow" | "teal" | "orange" | "purple" | "green" | "blue" | "red";
   icon?: string;
+  delay?: number;
 }) {
   const colorMap: Record<string, { text: string; glow: string; accent: string; iconBg: string; border: string; from: string; to: string }> = {
     coral:  { text: "text-rose-300",   glow: "rgba(244,63,94,0.09)",   accent: "rgba(244,63,94,0.7)",   iconBg: "rgba(244,63,94,0.13)",   border: "rgba(244,63,94,0.18)",   from: "#E11D48", to: "#FB7185" },
@@ -445,15 +447,16 @@ function MetricCard({
 
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm"
+      className="group relative overflow-hidden rounded-2xl p-5 card-hover-lift animate-fadeInUp backdrop-blur-sm"
       style={{
-        background: "rgba(10,10,28,0.85)",
+        background: "rgba(10,10,28,0.88)",
         border: `1px solid ${cm.border}`,
+        animationDelay: `${delay}ms`,
       }}
     >
       {/* Top accent line */}
       <div
-        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-200"
+        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-300"
         style={{ background: `linear-gradient(90deg, ${cm.from}, ${cm.to}, transparent)` }}
       />
       {/* Hover glow */}
@@ -466,17 +469,17 @@ function MetricCard({
         <div className="min-w-0">
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">{title}</p>
           <p
-            className={`mt-2 text-2xl font-black ${cm.text}`}
-            style={{ letterSpacing: "-0.04em", lineHeight: 1.1 }}
+            className={`mt-2.5 text-2xl font-black stat-counter ${cm.text}`}
+            style={{ letterSpacing: "-0.04em", lineHeight: 1.1, animationDelay: `${delay + 100}ms` }}
           >
             {value.toLocaleString()}
           </p>
-          <p className="mt-1 text-[10px] text-zinc-600">{note}</p>
+          <p className="mt-1.5 text-[10px] text-zinc-600">{note}</p>
         </div>
         {icon && (
           <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg transition-transform duration-200 group-hover:scale-110"
-            style={{ background: cm.iconBg }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+            style={{ background: cm.iconBg, border: `1px solid ${cm.border}` }}
           >
             {icon}
           </div>

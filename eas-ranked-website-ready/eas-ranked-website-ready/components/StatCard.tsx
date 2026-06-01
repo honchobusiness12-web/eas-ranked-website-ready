@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 
 type StatColor =
   | "purple"
@@ -20,6 +22,10 @@ interface StatCardProps {
   className?: string;
   trend?: number;
   trendLabel?: string;
+  /** Stagger delay in ms for fadeInUp animation */
+  delay?: number;
+  /** Animate numeric value from 0 to final */
+  animateCount?: boolean;
 }
 
 const colorMap: Record<
@@ -109,6 +115,38 @@ const colorMap: Record<
   },
 };
 
+function useCountUp(target: number, duration = 800, delay = 0) {
+  const [count, setCount] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (target === 0) { setCount(0); return; }
+    const timeout = setTimeout(() => {
+      const animate = (ts: number) => {
+        if (!startRef.current) startRef.current = ts;
+        const elapsed = ts - startRef.current;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.round(eased * target));
+        if (progress < 1) {
+          rafRef.current = requestAnimationFrame(animate);
+        }
+      };
+      rafRef.current = requestAnimationFrame(animate);
+    }, delay);
+
+    return () => {
+      clearTimeout(timeout);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      startRef.current = null;
+    };
+  }, [target, duration, delay]);
+
+  return count;
+}
+
 export default function StatCard({
   title,
   value,
@@ -118,24 +156,32 @@ export default function StatCard({
   className = "",
   trend,
   trendLabel,
+  delay = 0,
+  animateCount = true,
 }: StatCardProps) {
   const cm = colorMap[color];
-  const displayValue =
-    typeof value === "number" ? value.toLocaleString() : value;
+  const isNumeric = typeof value === "number";
+  const numericTarget = isNumeric ? (value as number) : 0;
+  const animatedCount = useCountUp(animateCount && isNumeric ? numericTarget : 0, 800, delay);
+
+  const displayValue = isNumeric
+    ? (animateCount ? animatedCount.toLocaleString() : numericTarget.toLocaleString())
+    : value;
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 ${className}`}
+      className={`group relative overflow-hidden rounded-2xl p-5 card-hover-lift animate-fadeInUp ${className}`}
       style={{
-        background: "rgba(10,10,28,0.85)",
+        background: "rgba(10,10,28,0.88)",
         border: `1px solid ${cm.border}`,
         backdropFilter: "blur(16px)",
-        boxShadow: `0 4px 20px rgba(0,0,0,0.3), 0 0 0 0 ${cm.accent}`,
+        boxShadow: `0 4px 20px rgba(0,0,0,0.3)`,
+        animationDelay: `${delay}ms`,
       }}
     >
       {/* Top accent line */}
       <div
-        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl transition-opacity duration-200 opacity-60 group-hover:opacity-100"
+        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl transition-opacity duration-300 opacity-60 group-hover:opacity-100"
         style={{ background: `linear-gradient(90deg, ${cm.gradientFrom}, ${cm.gradientTo}, transparent)` }}
       />
 
@@ -145,24 +191,30 @@ export default function StatCard({
         style={{ background: `radial-gradient(ellipse at top left, ${cm.glow}, transparent 65%)` }}
       />
 
+      {/* Hover border glow */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none"
+        style={{ boxShadow: `inset 0 0 0 1px ${cm.accent}30` }}
+      />
+
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">
             {title}
           </p>
           <p
-            className={`mt-2 text-2xl font-black tracking-tight ${cm.text}`}
-            style={{ letterSpacing: "-0.04em", lineHeight: 1.1 }}
+            className={`mt-2.5 text-2xl font-black tracking-tight stat-counter ${cm.text}`}
+            style={{ letterSpacing: "-0.04em", lineHeight: 1.1, animationDelay: `${delay + 100}ms` }}
           >
             {displayValue}
           </p>
-          <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
             {note && (
               <p className="text-[10px] text-zinc-600">{note}</p>
             )}
             {trend !== undefined && (
               <span
-                className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-all duration-200 ${
                   trend > 0
                     ? "bg-green-500/10 text-green-400 border border-green-500/20"
                     : trend < 0
@@ -179,8 +231,8 @@ export default function StatCard({
         </div>
         {icon && (
           <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg transition-transform duration-200 group-hover:scale-110"
-            style={{ background: cm.iconBg }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+            style={{ background: cm.iconBg, border: `1px solid ${cm.border}` }}
           >
             {icon}
           </div>

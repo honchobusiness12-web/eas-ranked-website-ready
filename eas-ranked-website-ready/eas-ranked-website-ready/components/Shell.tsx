@@ -111,7 +111,7 @@ function SeasonStatusWidget({ season }: { season: ShellSeason | null }) {
           </div>
           <div className="h-1 w-full rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
             <div
-              className="h-full rounded-full transition-all duration-700"
+              className="h-full rounded-full season-progress-bar"
               style={{
                 width: `${progressPct}%`,
                 background: "linear-gradient(90deg, #7C3AED, #A855F7, #4F8EF7)",
@@ -233,27 +233,27 @@ export default function Shell({
                   <SoundLink
                     href={href}
                     soundType="success"
-                    className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-150 ${sidebarCollapsed ? "justify-center" : ""} ${
+                    className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200 ${sidebarCollapsed ? "justify-center" : ""} ${
                       isActive
                         ? "bg-purple-500/[0.13] text-purple-200 border border-purple-500/[0.22]"
-                        : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200 border border-transparent"
+                        : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200 hover:translate-x-0.5 border border-transparent"
                     }`}
                     title={sidebarCollapsed ? label : undefined}
                   >
                     {isActive && (
                       <>
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-purple-400 tab-indicator" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-purple-400 animate-slideInLeft" />
                         <span className="absolute inset-0 rounded-xl active-tab-glow" />
                       </>
                     )}
-                    <span className="relative shrink-0 text-base leading-none">{emoji}</span>
+                    <span className={`relative shrink-0 text-base leading-none transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-105"}`}>{emoji}</span>
                     {!sidebarCollapsed && (
                       <span className="relative flex-1 truncate text-[13px] font-medium">{label}</span>
                     )}
                     {!sidebarCollapsed && live && (
                       <span className="relative shrink-0 flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-60" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulseAnim" />
                       </span>
                     )}
                   </SoundLink>

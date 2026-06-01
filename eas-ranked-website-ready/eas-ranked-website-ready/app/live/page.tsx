@@ -164,7 +164,7 @@ export default async function LivePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {scrims.map((scrim) => {
+            {scrims.map((scrim, idx) => {
               const minutesElapsed = Math.floor(
                 (Date.now() - new Date(scrim.start_time).getTime()) / 60000
               );
@@ -172,7 +172,8 @@ export default async function LivePage() {
               return (
                 <div
                   key={scrim.scrim_id}
-                  className="scrim-live-card p-5"
+                  className="scrim-live-card p-5 animate-fadeInUp"
+                  style={{ animationDelay: `${idx * 80}ms` }}
                 >
                   {/* Top accent */}
                   <div className="neon-line-red mb-4" />
@@ -291,14 +292,15 @@ export default async function LivePage() {
                   <p className="text-xs text-zinc-500 font-medium">No players in placements right now.</p>
                 </div>
               ) : (
-                placements.map((p: any) => {
+                placements.map((p: any, idx: number) => {
                   const done = Number(p.placement_matches);
                   return (
                     <SoundLink
                       key={p.user_id}
                       href={`/profile/${p.user_id}`}
                       soundType="click"
-                      className="flex items-center gap-3 px-5 py-3.5 transition-all duration-150 hover:bg-orange-500/[0.04]"
+                      className="activity-row flex items-center gap-3 px-5 py-3.5 transition-all duration-150 hover:bg-orange-500/[0.04]"
+                      style={{ animationDelay: `${idx * 50}ms` }}
                     >
                       <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
                       <div className="flex-1 min-w-0">
@@ -378,7 +380,8 @@ export default async function LivePage() {
                     key={p.user_id}
                     href={`/profile/${p.user_id}`}
                     soundType="click"
-                    className="group flex items-center gap-3 px-4 py-3 transition-all duration-150 hover:bg-purple-500/[0.04]"
+                    className="activity-row group flex items-center gap-3 px-4 py-3 transition-all duration-150 hover:bg-purple-500/[0.04]"
+                    style={{ animationDelay: `${idx * 40}ms` }}
                   >
                     <span className="w-6 shrink-0 text-center">
                       {idx === 0 ? (

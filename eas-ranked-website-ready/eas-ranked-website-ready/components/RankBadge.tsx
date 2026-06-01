@@ -89,8 +89,11 @@ export default function RankBadge({
 
   return (
     <span
-      className={`inline-flex items-center border font-bold tracking-wide transition-transform duration-150 hover:scale-[1.03] ${sizeClasses}${isPulsing ? " animate-pulse" : ""}`}
-      style={buildStyleProps(color, badgeStyle)}
+      className={`inline-flex items-center border font-bold tracking-wide hover-scale-108 transition-all duration-200 ${sizeClasses}${isPulsing ? " animate-pulse" : ""}`}
+      style={{
+        ...buildStyleProps(color, badgeStyle),
+        transition: "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease",
+      }}
       title={`${rankName} — ${cr.toLocaleString()} CR`}
     >
       <span className="leading-none">{icon}</span>
