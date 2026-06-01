@@ -15,14 +15,23 @@ export default function ErrorState({
 }: ErrorStateProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-2xl border border-red-700/30 bg-red-950/10 py-16 px-6 text-center ${className}`}
+      className={`flex flex-col items-center justify-center rounded-2xl border border-red-500/[0.18] py-16 px-8 text-center backdrop-blur-sm ${className}`}
+      style={{
+        background: "rgba(127,29,29,0.08)",
+        boxShadow: "0 4px 24px rgba(239,68,68,0.08)",
+      }}
     >
-      <p className="text-5xl mb-4" role="img" aria-hidden="true">
+      <div
+        className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
+        style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.20)" }}
+        role="img"
+        aria-hidden="true"
+      >
         ⚠️
-      </p>
+      </div>
       <p className="text-base font-black text-red-300">{title}</p>
       {description && (
-        <p className="mt-2 text-sm text-zinc-500 max-w-sm">{description}</p>
+        <p className="mt-2 text-sm text-zinc-500 max-w-sm leading-relaxed">{description}</p>
       )}
       {action && <div className="mt-6">{action}</div>}
     </div>

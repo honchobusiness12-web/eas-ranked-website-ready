@@ -41,26 +41,38 @@ export function LiveScrimBadge() {
     const interval = setInterval(fetchScrim, 10_000);
     return () => clearInterval(interval);
   }, []);
-
   if (loading || !scrim) return null;
 
   return (
-    <div className="mb-4 animate-fade-in rounded-2xl border border-red-500/50 bg-red-950/20 p-4 backdrop-blur-sm">
+    <div
+      className="mb-5 animate-fade-in rounded-2xl border border-red-500/25 p-4 backdrop-blur-sm"
+      style={{
+        background: "rgba(127,29,29,0.08)",
+        boxShadow: "0 0 24px rgba(239,68,68,0.08), 0 4px 16px rgba(0,0,0,0.3)",
+      }}
+    >
+      {/* Top accent */}
+      <div className="neon-line-red mb-3" />
+
       <div className="flex items-center gap-3">
         {/* Pulsing live indicator */}
-        <div className="relative flex shrink-0 items-center justify-center">
-          <span className="absolute inline-flex h-3 w-3 animate-ping rounded-full bg-red-500 opacity-60" />
+        <div className="relative flex shrink-0 h-3 w-3 items-center justify-center">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-60" />
           <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
         </div>
 
         {/* Scrim details */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-black text-red-400">🔴 LIVE SCRIM</p>
-          <p className="mt-0.5 text-xs text-red-300">
-            {scrim.type} &bull; {scrim.playerCount} players &bull; {scrim.startedMinutesAgo}m ago
-          </p>
-          <p className="mt-1 text-[10px] text-red-400/70">
-            Hosted by {scrim.host}
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-black text-red-400">🔴 LIVE SCRIM</p>
+            <span className="rounded-full border border-red-500/25 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-400">
+              {scrim.type}
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-zinc-400">
+            <span className="font-semibold text-zinc-300">{scrim.playerCount}</span> players ·{" "}
+            <span className="font-semibold text-zinc-300">{scrim.startedMinutesAgo}m</span> ago ·{" "}
+            Hosted by <span className="font-semibold text-zinc-200">{scrim.host}</span>
           </p>
         </div>
       </div>

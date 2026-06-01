@@ -18,65 +18,94 @@ interface StatCardProps {
   icon?: string;
   color?: StatColor;
   className?: string;
+  trend?: number;
+  trendLabel?: string;
 }
 
 const colorMap: Record<
   StatColor,
-  { text: string; glow: string; accent: string; iconBg: string }
+  { text: string; glow: string; accent: string; iconBg: string; border: string; gradientFrom: string; gradientTo: string }
 > = {
   purple: {
-    text:   "text-purple-400",
-    glow:   "rgba(192,132,252,0.12)",
-    accent: "rgba(192,132,252,0.7)",
-    iconBg: "rgba(192,132,252,0.12)",
+    text:         "text-purple-300",
+    glow:         "rgba(168,85,247,0.10)",
+    accent:       "rgba(168,85,247,0.8)",
+    iconBg:       "rgba(168,85,247,0.14)",
+    border:       "rgba(168,85,247,0.18)",
+    gradientFrom: "#7C3AED",
+    gradientTo:   "#A855F7",
   },
   blue: {
-    text:   "text-blue-400",
-    glow:   "rgba(96,165,250,0.12)",
-    accent: "rgba(96,165,250,0.7)",
-    iconBg: "rgba(96,165,250,0.12)",
+    text:         "text-blue-300",
+    glow:         "rgba(79,142,247,0.10)",
+    accent:       "rgba(79,142,247,0.8)",
+    iconBg:       "rgba(79,142,247,0.14)",
+    border:       "rgba(79,142,247,0.18)",
+    gradientFrom: "#3B82F6",
+    gradientTo:   "#60A5FA",
   },
   green: {
-    text:   "text-green-400",
-    glow:   "rgba(74,222,128,0.12)",
-    accent: "rgba(74,222,128,0.7)",
-    iconBg: "rgba(74,222,128,0.12)",
+    text:         "text-green-300",
+    glow:         "rgba(34,197,94,0.10)",
+    accent:       "rgba(34,197,94,0.8)",
+    iconBg:       "rgba(34,197,94,0.14)",
+    border:       "rgba(34,197,94,0.18)",
+    gradientFrom: "#16A34A",
+    gradientTo:   "#4ADE80",
   },
   red: {
-    text:   "text-red-400",
-    glow:   "rgba(248,113,113,0.12)",
-    accent: "rgba(248,113,113,0.7)",
-    iconBg: "rgba(248,113,113,0.12)",
+    text:         "text-red-300",
+    glow:         "rgba(239,68,68,0.10)",
+    accent:       "rgba(239,68,68,0.8)",
+    iconBg:       "rgba(239,68,68,0.14)",
+    border:       "rgba(239,68,68,0.18)",
+    gradientFrom: "#DC2626",
+    gradientTo:   "#F87171",
   },
   yellow: {
-    text:   "text-yellow-400",
-    glow:   "rgba(250,204,21,0.12)",
-    accent: "rgba(250,204,21,0.7)",
-    iconBg: "rgba(250,204,21,0.12)",
+    text:         "text-yellow-300",
+    glow:         "rgba(234,179,8,0.10)",
+    accent:       "rgba(234,179,8,0.8)",
+    iconBg:       "rgba(234,179,8,0.14)",
+    border:       "rgba(234,179,8,0.18)",
+    gradientFrom: "#CA8A04",
+    gradientTo:   "#FDE047",
   },
   orange: {
-    text:   "text-orange-400",
-    glow:   "rgba(251,146,60,0.12)",
-    accent: "rgba(251,146,60,0.7)",
-    iconBg: "rgba(251,146,60,0.12)",
+    text:         "text-orange-300",
+    glow:         "rgba(249,115,22,0.10)",
+    accent:       "rgba(249,115,22,0.8)",
+    iconBg:       "rgba(249,115,22,0.14)",
+    border:       "rgba(249,115,22,0.18)",
+    gradientFrom: "#EA580C",
+    gradientTo:   "#FB923C",
   },
   teal: {
-    text:   "text-cyan-400",
-    glow:   "rgba(34,211,238,0.12)",
-    accent: "rgba(34,211,238,0.7)",
-    iconBg: "rgba(34,211,238,0.12)",
+    text:         "text-cyan-300",
+    glow:         "rgba(6,182,212,0.10)",
+    accent:       "rgba(6,182,212,0.8)",
+    iconBg:       "rgba(6,182,212,0.14)",
+    border:       "rgba(6,182,212,0.18)",
+    gradientFrom: "#0891B2",
+    gradientTo:   "#22D3EE",
   },
   coral: {
-    text:   "text-red-400",
-    glow:   "rgba(248,113,113,0.12)",
-    accent: "rgba(248,113,113,0.7)",
-    iconBg: "rgba(248,113,113,0.12)",
+    text:         "text-rose-300",
+    glow:         "rgba(244,63,94,0.10)",
+    accent:       "rgba(244,63,94,0.8)",
+    iconBg:       "rgba(244,63,94,0.14)",
+    border:       "rgba(244,63,94,0.18)",
+    gradientFrom: "#E11D48",
+    gradientTo:   "#FB7185",
   },
   lime: {
-    text:   "text-green-400",
-    glow:   "rgba(74,222,128,0.12)",
-    accent: "rgba(74,222,128,0.7)",
-    iconBg: "rgba(74,222,128,0.12)",
+    text:         "text-lime-300",
+    glow:         "rgba(132,204,22,0.10)",
+    accent:       "rgba(132,204,22,0.8)",
+    iconBg:       "rgba(132,204,22,0.14)",
+    border:       "rgba(132,204,22,0.18)",
+    gradientFrom: "#65A30D",
+    gradientTo:   "#A3E635",
   },
 };
 
@@ -87,6 +116,8 @@ export default function StatCard({
   icon,
   color = "purple",
   className = "",
+  trend,
+  trendLabel,
 }: StatCardProps) {
   const cm = colorMap[color];
   const displayValue =
@@ -94,38 +125,61 @@ export default function StatCard({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border border-white/[0.06] p-4 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.10] hover:scale-[1.02] hover:-translate-y-0.5 ${className}`}
-      style={{ background: "rgba(9,9,25,0.85)" }}
+      className={`group relative overflow-hidden rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 ${className}`}
+      style={{
+        background: "rgba(10,10,28,0.85)",
+        border: `1px solid ${cm.border}`,
+        backdropFilter: "blur(16px)",
+        boxShadow: `0 4px 20px rgba(0,0,0,0.3), 0 0 0 0 ${cm.accent}`,
+      }}
     >
       {/* Top accent line */}
       <div
-        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl opacity-50 transition-opacity duration-200 group-hover:opacity-100"
-        style={{ background: cm.accent }}
-      />
-      {/* Hover glow */}
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-        style={{ background: `radial-gradient(ellipse at top, ${cm.glow}, transparent 70%)` }}
+        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl transition-opacity duration-200 opacity-60 group-hover:opacity-100"
+        style={{ background: `linear-gradient(90deg, ${cm.gradientFrom}, ${cm.gradientTo}, transparent)` }}
       />
 
-      <div className="relative flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none"
+        style={{ background: `radial-gradient(ellipse at top left, ${cm.glow}, transparent 65%)` }}
+      />
+
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">
             {title}
           </p>
           <p
-            className={`mt-1.5 text-2xl font-black tracking-tight ${cm.text}`}
-            style={{ letterSpacing: "-0.03em" }}
+            className={`mt-2 text-2xl font-black tracking-tight ${cm.text}`}
+            style={{ letterSpacing: "-0.04em", lineHeight: 1.1 }}
           >
             {displayValue}
           </p>
-          {note && (
-            <p className="mt-0.5 text-[10px] text-zinc-700">{note}</p>
-          )}
+          <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+            {note && (
+              <p className="text-[10px] text-zinc-600">{note}</p>
+            )}
+            {trend !== undefined && (
+              <span
+                className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                  trend > 0
+                    ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                    : trend < 0
+                    ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                    : "bg-white/[0.05] text-zinc-500 border border-white/[0.08]"
+                }`}
+              >
+                {trend > 0 ? "↑" : trend < 0 ? "↓" : "—"}
+                {trend !== 0 && Math.abs(trend)}
+                {trendLabel && <span className="ml-0.5">{trendLabel}</span>}
+              </span>
+            )}
+          </div>
         </div>
         {icon && (
           <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-base"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg transition-transform duration-200 group-hover:scale-110"
             style={{ background: cm.iconBg }}
           >
             {icon}
