@@ -144,15 +144,9 @@ export default async function LivePage() {
         </div>
 
         {scrims.length === 0 ? (
-          <div
-            className="rounded-2xl border border-white/[0.06] p-10 text-center backdrop-blur-sm"
-            style={{
-              background: "rgba(10,10,28,0.80)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.04) inset",
-            }}
-          >
+          <div className="empty-state-premium">
             <div
-              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
+              className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl animate-float empty-icon"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
             >
               😴
@@ -172,18 +166,19 @@ export default async function LivePage() {
               return (
                 <div
                   key={scrim.scrim_id}
-                  className="scrim-live-card p-5 animate-fadeInUp"
+                  className="scrim-live-card gradient-border-animated p-5 animate-card-entrance"
                   style={{ animationDelay: `${idx * 80}ms` }}
                 >
                   {/* Top accent */}
-                  <div className="neon-line-red mb-4" />
+                  <div className="neon-line-red mb-4 animate-accent-grow" />
 
                   {/* Live indicator */}
                   <div className="flex items-center justify-between mb-4">
                     <p className="text-sm font-black text-white">
                       {isRanked ? "🏆 Ranked Scrim" : "📋 Placement Scrim"}
                     </p>
-                    <div className="flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-1">
+                    <div className="flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-1"
+                      style={{ boxShadow: "0 0 12px rgba(239,68,68,0.1)" }}>
                       <span className="relative flex h-2 w-2">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
                         <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
@@ -193,22 +188,22 @@ export default async function LivePage() {
                   </div>
 
                   <p className="text-xs text-zinc-400 mb-4">
-                    Hosted by <span className="font-bold text-zinc-200">{scrim.league_host_name}</span>
+                    Hosted by <span className="font-bold text-zinc-200 transition-colors duration-200">{scrim.league_host_name}</span>
                   </p>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div
-                      className="rounded-xl px-3 py-2.5 text-center"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                      className="rounded-xl px-3 py-2.5 text-center transition-all duration-200 hover:bg-white/[0.06]"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
                     >
-                      <p className="text-xl font-black text-white">{scrim.player_count}</p>
+                      <p className="text-xl font-black text-white counter-number">{scrim.player_count}</p>
                       <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-0.5">Players</p>
                     </div>
                     <div
-                      className="rounded-xl px-3 py-2.5 text-center"
-                      style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)" }}
+                      className="rounded-xl px-3 py-2.5 text-center transition-all duration-200 hover:bg-red-500/[0.12]"
+                      style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)", boxShadow: "0 0 12px rgba(239,68,68,0.06)" }}
                     >
-                      <p className="text-xl font-black text-red-400">{minutesElapsed}m</p>
+                      <p className="text-xl font-black text-red-400 counter-number">{minutesElapsed}m</p>
                       <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-0.5">Elapsed</p>
                     </div>
                   </div>
@@ -226,57 +221,60 @@ export default async function LivePage() {
         <div className="space-y-5">
 
           {/* Live Activity */}
-          <div
-            className="overflow-hidden rounded-2xl border border-white/[0.07] backdrop-blur-sm"
-            style={{
-              background: "rgba(10,10,28,0.85)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.04) inset",
-            }}
-          >
+          <div className="glass-card-premium gradient-border-animated overflow-hidden animate-card-entrance">
+            {/* Top accent */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.25rem]"
+              style={{ background: "linear-gradient(90deg, rgba(79,142,247,0.8), rgba(6,182,212,0.5), transparent)" }} />
             <div
               className="border-b border-white/[0.06] px-5 py-4"
-              style={{ background: "linear-gradient(90deg, rgba(79,142,247,0.08), transparent)" }}
+              style={{ background: "linear-gradient(90deg, rgba(79,142,247,0.10), rgba(6,182,212,0.04), transparent)" }}
             >
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
-                  style={{ background: "rgba(79,142,247,0.14)", border: "1px solid rgba(79,142,247,0.22)" }}
-                >
-                  ⚡
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="icon-wrap flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{ background: "linear-gradient(135deg, rgba(79,142,247,0.2), rgba(6,182,212,0.12))", border: "1px solid rgba(79,142,247,0.25)", boxShadow: "0 0 12px rgba(79,142,247,0.1)" }}
+                  >
+                    ⚡
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black">Live Activity</h3>
+                    <p className="text-[10px] text-zinc-500">Recent match events from all players</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-black">Live Activity</h3>
-                  <p className="text-[10px] text-zinc-600">Recent match events from all players</p>
+                <div className="flex items-center gap-1.5 rounded-full border border-green-500/25 bg-green-500/10 px-2.5 py-1">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-400" />
+                  </span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-green-400">Live</span>
                 </div>
               </div>
             </div>
-            <div className="px-3 py-2">
+            <div className="px-3 py-2 scroll-premium" style={{ maxHeight: "400px", overflowY: "auto" }}>
               <ActivityFeed players={players as any} />
             </div>
           </div>
 
           {/* Placement Progress */}
-          <div
-            className="overflow-hidden rounded-2xl border border-white/[0.07] backdrop-blur-sm"
-            style={{
-              background: "rgba(10,10,28,0.85)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.04) inset",
-            }}
-          >
+          <div className="glass-card-premium gradient-border-animated overflow-hidden animate-card-entrance" style={{ animationDelay: "0.1s" }}>
+            {/* Top accent */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.25rem]"
+              style={{ background: "linear-gradient(90deg, rgba(249,115,22,0.8), rgba(251,146,60,0.5), transparent)" }} />
             <div
               className="border-b border-white/[0.06] px-5 py-4"
-              style={{ background: "linear-gradient(90deg, rgba(249,115,22,0.08), transparent)" }}
+              style={{ background: "linear-gradient(90deg, rgba(249,115,22,0.10), rgba(251,146,60,0.04), transparent)" }}
             >
               <div className="flex items-center gap-2.5">
                 <div
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
-                  style={{ background: "rgba(249,115,22,0.14)", border: "1px solid rgba(249,115,22,0.22)" }}
+                  className="icon-wrap flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                  style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.2), rgba(251,146,60,0.12))", border: "1px solid rgba(249,115,22,0.25)", boxShadow: "0 0 12px rgba(249,115,22,0.1)" }}
                 >
                   📋
                 </div>
                 <div>
                   <h3 className="text-sm font-black">Placement Progress</h3>
-                  <p className="text-[10px] text-zinc-600">Players completing placement matches</p>
+                  <p className="text-[10px] text-zinc-500">Players completing placement matches</p>
                 </div>
               </div>
             </div>
@@ -330,34 +328,31 @@ export default async function LivePage() {
 
         {/* Right: Top Ranked Players */}
         <div>
-          <div
-            className="overflow-hidden rounded-2xl border border-white/[0.07] backdrop-blur-sm"
-            style={{
-              background: "rgba(10,10,28,0.85)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.04) inset",
-            }}
-          >
+          <div className="glass-card-premium gradient-border-animated overflow-hidden animate-card-entrance" style={{ animationDelay: "0.15s" }}>
+            {/* Top accent */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.25rem]"
+              style={{ background: "linear-gradient(90deg, rgba(168,85,247,0.8), rgba(79,142,247,0.5), transparent)" }} />
             <div
               className="border-b border-white/[0.06] px-5 py-4"
-              style={{ background: "linear-gradient(90deg, rgba(124,58,237,0.08), transparent)" }}
+              style={{ background: "linear-gradient(90deg, rgba(124,58,237,0.10), rgba(79,142,247,0.04), transparent)" }}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
                   <div
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
-                    style={{ background: "rgba(168,85,247,0.14)", border: "1px solid rgba(168,85,247,0.22)" }}
+                    className="icon-wrap flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.2), rgba(79,142,247,0.12))", border: "1px solid rgba(168,85,247,0.25)", boxShadow: "0 0 12px rgba(168,85,247,0.1)" }}
                   >
                     🏆
                   </div>
                   <div>
                     <h3 className="text-sm font-black">Top Ranked</h3>
-                    <p className="text-[10px] text-zinc-600">Highest CR players</p>
+                    <p className="text-[10px] text-zinc-500">Highest CR players</p>
                   </div>
                 </div>
                 <SoundLink
                   href="/leaderboard"
                   soundType="click"
-                  className="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors rounded-lg border border-purple-500/20 bg-purple-500/[0.07] px-2.5 py-1.5"
+                  className="press-feedback text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-all duration-200 rounded-lg border border-purple-500/20 bg-purple-500/[0.07] px-2.5 py-1.5 hover:border-purple-400/35 hover:bg-purple-500/[0.12]"
                 >
                   Full board →
                 </SoundLink>
@@ -380,28 +375,30 @@ export default async function LivePage() {
                     key={p.user_id}
                     href={`/profile/${p.user_id}`}
                     soundType="click"
-                    className="activity-row group flex items-center gap-3 px-4 py-3 transition-all duration-150 hover:bg-purple-500/[0.04]"
-                    style={{ animationDelay: `${idx * 40}ms` }}
+                    className="lb-row-premium table-row-stagger group flex items-center gap-3 px-4 py-3"
+                    style={{ animationDelay: `${idx * 45}ms` }}
                   >
                     <span className="w-6 shrink-0 text-center">
                       {idx === 0 ? (
-                        <span className="text-base">🥇</span>
+                        <span className="text-base" style={{ filter: "drop-shadow(0 0 4px rgba(234,179,8,0.4))" }}>🥇</span>
                       ) : idx === 1 ? (
                         <span className="text-base">🥈</span>
                       ) : idx === 2 ? (
                         <span className="text-base">🥉</span>
                       ) : (
-                        <span className="text-xs font-black text-zinc-600">#{idx + 1}</span>
+                        <span className="text-xs font-black text-zinc-600 tabular-nums">#{idx + 1}</span>
                       )}
                     </span>
-                    <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
+                    <div className="player-avatar-wrap">
+                      <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-8 w-8" />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-zinc-300 truncate group-hover:text-white transition-colors">
+                      <p className="text-xs font-bold text-zinc-300 truncate transition-colors duration-200 group-hover:text-white">
                         {p.name}
                       </p>
                       <RankBadge cr={Number(p.cr)} size="sm" />
                     </div>
-                    <span className="shrink-0 text-sm font-black text-purple-300 tabular-nums">
+                    <span className="shrink-0 text-sm font-black text-purple-300 tabular-nums transition-colors duration-200 group-hover:text-purple-200">
                       {Number(p.cr).toLocaleString()}
                     </span>
                   </SoundLink>
@@ -414,15 +411,9 @@ export default async function LivePage() {
 
       {/* Empty state */}
       {!hasAnything && (
-        <div
-          className="mt-6 rounded-2xl border border-white/[0.06] p-14 text-center backdrop-blur-sm"
-          style={{
-            background: "rgba(10,10,28,0.80)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.04) inset",
-          }}
-        >
+        <div className="mt-6 empty-state-premium">
           <div
-            className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl text-4xl"
+            className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl text-4xl animate-float empty-icon"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
             🌙
@@ -434,7 +425,7 @@ export default async function LivePage() {
           <SoundLink
             href="/"
             soundType="click"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.10] bg-white/[0.04] px-6 py-2.5 text-sm font-bold text-zinc-400 hover:bg-white/[0.07] hover:text-zinc-200 transition-all duration-200"
+            className="mt-6 press-feedback inline-flex items-center gap-2 rounded-xl border border-white/[0.10] bg-white/[0.04] px-6 py-2.5 text-sm font-bold text-zinc-400 transition-all duration-200 hover:border-purple-500/25 hover:bg-purple-500/[0.07] hover:text-zinc-200 hover:shadow-[0_4px_16px_rgba(168,85,247,0.1)]"
           >
             ← Back to Dashboard
           </SoundLink>
