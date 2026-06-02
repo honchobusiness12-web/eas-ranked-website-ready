@@ -16,19 +16,19 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-gradient-to-r from-[#FF6B6B] to-[#FF8C42] text-white border-transparent shadow-[0_4px_16px_rgba(255,107,107,0.35)] hover:shadow-[0_8px_24px_rgba(255,107,107,0.5)] hover:opacity-92 hover:-translate-y-0.5",
+    "bg-gradient-to-r from-[#FF7F50] to-[#FF8C42] text-white border-transparent shadow-[0_4px_20px_rgba(255,127,80,0.45)] hover:shadow-[0_8px_32px_rgba(255,127,80,0.65)] hover:opacity-92 hover:-translate-y-0.5",
   secondary:
-    "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 hover:border-sky-300 hover:text-sky-800 hover:-translate-y-0.5",
+    "border text-[#00CFFF] hover:-translate-y-0.5",
   ghost:
-    "bg-transparent text-gray-500 border-transparent hover:bg-sky-50 hover:text-sky-700",
+    "bg-transparent border-transparent hover:-translate-y-0.5",
   danger:
-    "bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 hover:text-red-700 hover:-translate-y-0.5",
+    "border hover:-translate-y-0.5",
   gold:
     "bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-transparent shadow-[0_4px_16px_rgba(255,165,0,0.25)] hover:shadow-[0_8px_24px_rgba(255,165,0,0.4)] hover:opacity-92 hover:-translate-y-0.5",
   success:
     "bg-gradient-to-r from-green-500 to-emerald-400 text-white border-transparent shadow-[0_4px_16px_rgba(34,197,94,0.25)] hover:shadow-[0_8px_24px_rgba(34,197,94,0.4)] hover:opacity-92 hover:-translate-y-0.5",
   outline:
-    "bg-transparent text-sky-600 border-sky-300 hover:bg-sky-50 hover:border-sky-400 hover:text-sky-700 hover:-translate-y-0.5",
+    "bg-transparent border hover:-translate-y-0.5",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -51,14 +51,25 @@ export default function Button({
 }: ButtonProps) {
   const isDisabled = disabled || loading;
 
+  const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
+    primary: {},
+    secondary: { background: "rgba(0,207,255,0.10)", borderColor: "rgba(0,207,255,0.28)", color: "#00CFFF" },
+    ghost: { color: "rgba(168,255,246,0.65)" },
+    danger: { background: "rgba(255,127,80,0.10)", borderColor: "rgba(255,127,80,0.28)", color: "#FF7F50" },
+    gold: {},
+    success: {},
+    outline: { borderColor: "rgba(0,207,255,0.35)", color: "#00CFFF" },
+  };
+
   return (
     <button
       {...props}
       disabled={isDisabled}
+      style={variantStyles[variant]}
       className={`
         inline-flex items-center justify-center font-bold border
         transition-all duration-200 active:scale-[0.97] active:translate-y-0
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00CFFF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#062B45]
         disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
         ${variantClasses[variant]}
         ${sizeClasses[size]}

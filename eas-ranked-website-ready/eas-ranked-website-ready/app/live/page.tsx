@@ -425,7 +425,8 @@ export default async function LivePage() {
           <SoundLink
             href="/"
             soundType="click"
-            className="mt-6 press-feedback inline-flex items-center gap-2 rounded-xl border border-white/[0.10] bg-white/[0.04] px-6 py-2.5 text-sm font-bold text-zinc-400 transition-all duration-200 hover:border-purple-500/25 hover:bg-purple-500/[0.07] hover:text-zinc-200 hover:shadow-[0_4px_16px_rgba(168,85,247,0.1)]"
+            className="mt-6 press-feedback inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all duration-200"
+            style={{ border: "1px solid rgba(0,207,255,0.20)", background: "rgba(0,207,255,0.08)", color: "rgba(168,255,246,0.75)" }}
           >
             ← Back to Dashboard
           </SoundLink>

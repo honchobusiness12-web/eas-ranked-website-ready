@@ -19,10 +19,10 @@ export default function GuidePage() {
           <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-orange-600/60 bg-orange-950/30 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/60 transition">
             🏷️ View All Ranks
           </SoundLink>
-          <SoundLink href="/placements" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold hover:bg-white/10 transition">
+          <SoundLink href="/placements" soundType="success" className="rounded-xl px-4 py-2 text-sm font-bold transition" style={{ border: "1px solid rgba(0,207,255,0.20)", background: "rgba(0,207,255,0.08)", color: "rgba(168,255,246,0.80)" }}>
             📋 Placements Tracker
           </SoundLink>
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold hover:bg-white/10 transition">
+          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl px-4 py-2 text-sm font-bold transition" style={{ border: "1px solid rgba(0,207,255,0.20)", background: "rgba(0,207,255,0.08)", color: "rgba(168,255,246,0.80)" }}>
             🏆 Leaderboard
           </SoundLink>
         </div>
@@ -460,13 +460,13 @@ export default function GuidePage() {
           Check the leaderboard to see where you stand, view all rank tiers, or track players currently in placements.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-5 py-2.5 text-sm font-bold hover:from-orange-400 hover:to-red-400 transition-all">
+          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all" style={{ background: "linear-gradient(135deg, #FF7F50, #FF8C42)" }}>
             🏆 Leaderboard
           </SoundLink>
-          <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition">
+          <SoundLink href="/ranks" soundType="success" className="rounded-xl px-5 py-2.5 text-sm font-bold transition" style={{ border: "1px solid rgba(0,207,255,0.20)", background: "rgba(0,207,255,0.08)", color: "rgba(168,255,246,0.80)" }}>
             🏷️ Rank Guide
           </SoundLink>
-          <SoundLink href="/placements" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition">
+          <SoundLink href="/placements" soundType="success" className="rounded-xl px-5 py-2.5 text-sm font-bold transition" style={{ border: "1px solid rgba(0,207,255,0.20)", background: "rgba(0,207,255,0.08)", color: "rgba(168,255,246,0.80)" }}>
             📋 Placements
           </SoundLink>
         </div>

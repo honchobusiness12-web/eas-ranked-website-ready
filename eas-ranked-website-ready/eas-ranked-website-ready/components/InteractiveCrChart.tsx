@@ -55,23 +55,23 @@ function Tooltip({ data, containerWidth }: { data: TooltipData; containerWidth: 
       <div
         className="rounded-xl border p-3 text-xs shadow-2xl"
         style={{
-          background: "rgba(10,10,22,0.97)",
+          background: "rgba(4,30,48,0.97)",
           borderColor: isWin
-            ? "rgba(34,197,94,0.4)"
+            ? "rgba(74,222,128,0.40)"
             : isLoss
-            ? "rgba(239,68,68,0.4)"
-            : "rgba(255,255,255,0.12)",
-          backdropFilter: "blur(16px)",
+            ? "rgba(255,127,80,0.40)"
+            : "rgba(0,207,255,0.20)",
+          backdropFilter: "blur(20px)",
           boxShadow: isWin
-            ? "0 8px 32px rgba(34,197,94,0.15), 0 2px 8px rgba(0,0,0,0.6)"
+            ? "0 8px 32px rgba(74,222,128,0.15), 0 2px 8px rgba(0,0,0,0.6)"
             : isLoss
-            ? "0 8px 32px rgba(239,68,68,0.15), 0 2px 8px rgba(0,0,0,0.6)"
-            : "0 8px 32px rgba(0,0,0,0.5)",
+            ? "0 8px 32px rgba(255,127,80,0.15), 0 2px 8px rgba(0,0,0,0.6)"
+            : "0 8px 32px rgba(0,207,255,0.12), 0 2px 8px rgba(0,0,0,0.5)",
         }}
       >
         {/* Header row */}
         <div className="flex items-center justify-between gap-3 mb-2">
-          <span className="font-black text-white text-[11px] tracking-tight">
+          <span className="font-black text-[11px] tracking-tight" style={{ color: "#e0f7ff" }}>
             {point.label}
           </span>
           {point.result && (
@@ -91,23 +91,23 @@ function Tooltip({ data, containerWidth }: { data: TooltipData; containerWidth: 
         <div className="space-y-1">
           {point.crBefore !== undefined && (
             <div className="flex items-center justify-between">
-              <span className="text-zinc-500">Before</span>
-              <span className="font-bold text-zinc-300 tabular-nums">
+              <span style={{ color: "rgba(168,255,246,0.50)" }}>Before</span>
+              <span className="font-bold tabular-nums" style={{ color: "rgba(168,255,246,0.80)" }}>
                 {point.crBefore.toLocaleString()}
               </span>
             </div>
           )}
           {point.crAfter !== undefined && (
             <div className="flex items-center justify-between">
-              <span className="text-zinc-500">After</span>
-              <span className="font-bold text-white tabular-nums">
+              <span style={{ color: "rgba(168,255,246,0.50)" }}>After</span>
+              <span className="font-bold tabular-nums" style={{ color: "#e0f7ff" }}>
                 {point.crAfter.toLocaleString()}
               </span>
             </div>
           )}
           {point.crDelta !== undefined && (
             <div className="flex items-center justify-between border-t border-white/[0.06] pt-1 mt-1">
-              <span className="text-zinc-500">Change</span>
+              <span style={{ color: "rgba(168,255,246,0.50)" }}>Change</span>
               <span
                 className={`font-black tabular-nums ${
                   deltaPositive ? "text-green-400" : "text-red-400"
@@ -123,8 +123,8 @@ function Tooltip({ data, containerWidth }: { data: TooltipData; containerWidth: 
         {/* Rank */}
         {point.rank && (
           <div className="mt-2 pt-1.5 border-t border-white/[0.06]">
-            <span className="text-zinc-600">Rank: </span>
-            <span className="text-zinc-300 font-bold">{point.rank}</span>
+            <span style={{ color: "rgba(168,255,246,0.45)" }}>Rank: </span>
+            <span className="font-bold" style={{ color: "rgba(168,255,246,0.80)" }}>{point.rank}</span>
           </div>
         )}
 
@@ -140,7 +140,7 @@ function Tooltip({ data, containerWidth }: { data: TooltipData; containerWidth: 
 
         {/* Note */}
         {point.note && (
-          <p className="mt-1.5 text-zinc-500 text-[10px] italic">{point.note}</p>
+          <p className="mt-1.5 text-[10px] italic" style={{ color: "rgba(168,255,246,0.45)" }}>{point.note}</p>
         )}
       </div>
     </div>
@@ -184,7 +184,7 @@ export function InteractiveCrChart({ points }: InteractiveCrChartProps) {
 
   if (points.length < 2) {
     return (
-      <div className="flex h-32 items-center justify-center text-sm text-zinc-500">
+      <div className="flex h-32 items-center justify-center text-sm" style={{ color: "rgba(168,255,246,0.55)" }}>
         Not enough history to display chart
       </div>
     );
@@ -218,8 +218,8 @@ export function InteractiveCrChart({ points }: InteractiveCrChartProps) {
   const overallDelta = lastPoint.cr - firstPoint.cr;
   const isUp = overallDelta >= 0;
 
-  // Line color: orange-to-green gradient for up, orange-to-red for down
-  const lineColor = isUp ? "#22c55e" : "#ef4444";
+  // Line color: cyan for up, coral for down
+  const lineColor = isUp ? "#00CFFF" : "#FF7F50";
   const gradId = `crGrad_${W}`;
   const glowId = `crGlow_${W}`;
   const maskId = `crMask_${W}`;
@@ -324,7 +324,7 @@ export function InteractiveCrChart({ points }: InteractiveCrChartProps) {
         <defs>
           {/* Area fill gradient */}
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={lineColor} stopOpacity="0.22" />
+            <stop offset="0%" stopColor={lineColor} stopOpacity="0.30" />
             <stop offset="100%" stopColor={lineColor} stopOpacity="0.01" />
           </linearGradient>
 
@@ -361,7 +361,7 @@ export function InteractiveCrChart({ points }: InteractiveCrChartProps) {
               y1={y}
               x2={W - PAD_X}
               y2={y}
-              stroke="rgba(255,255,255,0.04)"
+              stroke="rgba(0,207,255,0.06)"
               strokeWidth="1"
             />
           );
@@ -394,7 +394,7 @@ export function InteractiveCrChart({ points }: InteractiveCrChartProps) {
           const isLoss = pt.result === "loss";
           const isActive = i === activeIndex;
           const isLast = i === points.length - 1;
-          const dotColor = isWin ? "#22c55e" : isLoss ? "#ef4444" : "#f97316";
+          const dotColor = isWin ? "#4ade80" : isLoss ? "#FF7F50" : "#00CFFF";
           const r = isLast ? 5 : isActive ? 4.5 : 3;
 
           return (
@@ -430,7 +430,7 @@ export function InteractiveCrChart({ points }: InteractiveCrChartProps) {
                 cy={c.y}
                 r={r}
                 fill={dotColor}
-                stroke="rgba(10,10,22,0.8)"
+                stroke="rgba(4,30,48,0.85)"
                 strokeWidth="1.5"
                 style={{ transition: "r 0.15s ease" }}
               />
@@ -465,7 +465,7 @@ export function InteractiveCrChart({ points }: InteractiveCrChartProps) {
             y1={PAD_Y}
             x2={coords[activeIndex].x}
             y2={H - PAD_Y}
-            stroke="rgba(255,255,255,0.12)"
+            stroke="rgba(0,207,255,0.20)"
             strokeWidth="1"
             strokeDasharray="3 3"
           />
@@ -478,12 +478,11 @@ export function InteractiveCrChart({ points }: InteractiveCrChartProps) {
       )}
 
       {/* Bottom labels */}
-      <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-600">
+      <div className="mt-2 flex items-center justify-between text-[11px]" style={{ color: "rgba(168,255,246,0.45)" }}>
         <span>{firstPoint.label}</span>
         <span
-          className={`font-black tabular-nums ${
-            isUp ? "text-green-400" : "text-red-400"
-          }`}
+          className="font-black tabular-nums"
+          style={{ color: isUp ? "#4ade80" : "#FF7F50" }}
         >
           {isUp ? "+" : ""}
           {overallDelta} CR

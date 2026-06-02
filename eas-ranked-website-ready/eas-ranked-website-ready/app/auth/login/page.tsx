@@ -19,17 +19,18 @@ export default async function LoginPage({
   return (
     <Shell>
       <div className="flex min-h-[70vh] items-center justify-center">
-        <div className="w-full max-w-md rounded-3xl border border-sky-200 bg-white p-10 text-center shadow-xl shadow-sky-100/50">
+        <div className="w-full max-w-md rounded-3xl p-10 text-center"
+          style={{ background: "rgba(6,43,69,0.85)", border: "1px solid rgba(0,207,255,0.22)", boxShadow: "0 24px 80px rgba(0,0,0,0.40), 0 0 0 1px rgba(0,207,255,0.10) inset", backdropFilter: "blur(24px)" }}>
           {/* Logo */}
-          <div className="mb-6 text-6xl">🏖️</div>
-          <h1 className="text-3xl font-black text-gray-800">
+          <div className="mb-6 text-6xl">🌊</div>
+          <h1 className="text-3xl font-black" style={{ color: "#e0f7ff" }}>
             EAS <span className="summer-text-gradient">ARENA</span>
           </h1>
-          <p className="mt-2 text-gray-500">Sign in to access your profile and stats</p>
+          <p className="mt-2" style={{ color: "rgba(168,255,246,0.65)" }}>Sign in to access your profile and stats</p>
 
           {/* Error */}
           {errorMsg && (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <div className="mt-4 rounded-xl px-4 py-3 text-sm" style={{ border: "1px solid rgba(255,127,80,0.35)", background: "rgba(255,127,80,0.10)", color: "#FF7F50" }}>
               ⚠️ {errorMsg}
             </div>
           )}
@@ -37,7 +38,8 @@ export default async function LoginPage({
           {/* Login button */}
           <a
             href={authUrl}
-            className="mt-8 flex items-center justify-center gap-3 rounded-xl bg-[#5865F2] px-6 py-4 text-base font-bold text-white transition hover:bg-[#4752C4] active:scale-95"
+            className="mt-8 flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-base font-bold text-white transition hover:opacity-90 active:scale-95"
+            style={{ background: "#5865F2", boxShadow: "0 4px 20px rgba(88,101,242,0.40)" }}
           >
             <svg
               className="h-6 w-6"
@@ -51,10 +53,10 @@ export default async function LoginPage({
           </a>
 
           {/* Info */}
-          <div className="mt-8 space-y-3 rounded-2xl border border-sky-100 bg-sky-50 p-5 text-left text-sm text-gray-500">
-            <p className="font-bold text-gray-700">🔒 What we collect</p>
+          <div className="mt-8 space-y-3 rounded-2xl p-5 text-left text-sm" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(0,207,255,0.06)", color: "rgba(168,255,246,0.65)" }}>
+            <p className="font-bold" style={{ color: "#e0f7ff" }}>🔒 What we collect</p>
             <p>• Your Discord user ID, username, and avatar</p>
-            <p>• We do <span className="text-gray-800 font-semibold">not</span> collect your email or messages</p>
+            <p>• We do <span className="font-semibold" style={{ color: "#e0f7ff" }}>not</span> collect your email or messages</p>
             <p>• Your session is stored in a secure cookie and expires in 7 days</p>
             <p>• You can log out at any time</p>
           </div>

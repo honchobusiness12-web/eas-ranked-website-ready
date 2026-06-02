@@ -108,10 +108,10 @@ export default function LeaderboardPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-xl" style={{ border: "1px solid rgba(14,165,233,0.2)" }}>🏆</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-xl" style={{ background: "rgba(0,207,255,0.14)", border: "1px solid rgba(0,207,255,0.25)" }}>🏆</div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-gray-800">Leaderboard</h1>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <h1 className="text-2xl font-black tracking-tight" style={{ color: "#e0f7ff" }}>Leaderboard</h1>
+              <p className="text-xs mt-0.5" style={{ color: "rgba(168,255,246,0.55)" }}>
                 {loading ? "Loading players…" : `${sorted.length.toLocaleString()} players ranked`}
               </p>
             </div>
@@ -119,14 +119,15 @@ export default function LeaderboardPage() {
         </div>
         <button
           onClick={() => { setLoading(true); window.location.reload(); }}
-          className="flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-bold text-sky-600 transition-all duration-200 hover:border-sky-300 hover:bg-sky-100 hover:text-sky-700"
+          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200"
+          style={{ border: "1px solid rgba(0,207,255,0.25)", background: "rgba(0,207,255,0.10)", color: "#00CFFF" }}
         >
           🔄 Refresh
         </button>
       </div>
 
       {/* ── Controls bar — search + sort + filters ── */}
-      <div className="mb-4 rounded-2xl border border-sky-100 p-4 backdrop-blur-sm bg-white/90">
+      <div className="mb-4 rounded-2xl p-4 backdrop-blur-sm" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(6,43,69,0.80)" }}>
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
@@ -143,11 +144,10 @@ export default function LeaderboardPage() {
               <button
                 key={key}
                 onClick={() => handleSort(key)}
-                className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-200 ${
-                  sortKey === key
-                    ? "border-sky-300 bg-sky-100 text-sky-700 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
-                    : "border-gray-200 bg-white text-gray-500 hover:border-sky-200 hover:text-sky-600"
-                }`}
+                className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-200"
+                style={sortKey === key
+                  ? { border: "1px solid rgba(0,207,255,0.40)", background: "rgba(0,207,255,0.15)", color: "#00CFFF", boxShadow: "0 0 12px rgba(0,207,255,0.15)" }
+                  : { border: "1px solid rgba(168,255,246,0.15)", background: "rgba(168,255,246,0.05)", color: "rgba(168,255,246,0.60)" }}
               >
                 {key === "cr" ? "CR" : key === "mvp_count" ? "MVPs" : key.charAt(0).toUpperCase() + key.slice(1)}
                 {sortIcon(key)}
@@ -158,13 +158,14 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Filters panel — always visible */}
-        <div className="mt-4 pt-4 border-t border-sky-100 flex flex-wrap items-end gap-4">
+        <div className="mt-4 pt-4 flex flex-wrap items-end gap-4" style={{ borderTop: "1px solid rgba(0,207,255,0.12)" }}>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Rank Tier</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(168,255,246,0.55)" }}>Rank Tier</p>
             <select
               value={rankFilter}
               onChange={(e) => { setRankFilter(e.target.value); setPage(1); }}
-              className="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-gray-700 transition-all duration-200 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-200"
+              className="rounded-xl px-3 py-2 text-sm transition-all duration-200 focus:outline-none"
+              style={{ border: "1px solid rgba(0,207,255,0.22)", background: "rgba(6,43,69,0.80)", color: "#e0f7ff" }}
             >
               <option value="all">All Ranks</option>
               <option value="rookie">R1 Rookie</option>
@@ -180,11 +181,12 @@ export default function LeaderboardPage() {
             </select>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Win Rate</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(168,255,246,0.55)" }}>Win Rate</p>
             <select
               value={winRateFilter}
               onChange={(e) => { setWinRateFilter(e.target.value); setPage(1); }}
-              className="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-gray-700 transition-all duration-200 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-200"
+              className="rounded-xl px-3 py-2 text-sm transition-all duration-200 focus:outline-none"
+              style={{ border: "1px solid rgba(0,207,255,0.22)", background: "rgba(6,43,69,0.80)", color: "#e0f7ff" }}
             >
               <option value="all">All Win Rates</option>
               <option value="60plus">60%+ Win Rate</option>
@@ -195,7 +197,8 @@ export default function LeaderboardPage() {
           {(rankFilter !== "all" || winRateFilter !== "all") && (
             <button
               onClick={() => { setRankFilter("all"); setWinRateFilter("all"); setPage(1); }}
-              className="rounded-xl border border-red-500/25 bg-red-500/[0.07] px-3 py-2 text-xs font-bold text-red-400 transition-all duration-200 hover:bg-red-500/[0.12] hover:text-red-300"
+              className="rounded-xl px-3 py-2 text-xs font-bold transition-all duration-200"
+              style={{ border: "1px solid rgba(255,127,80,0.30)", background: "rgba(255,127,80,0.08)", color: "#FF7F50" }}
             >
               ✕ Clear filters
             </button>
@@ -208,19 +211,19 @@ export default function LeaderboardPage() {
         <SkeletonTable rows={10} />
       ) : (
         <>
-          <div className="overflow-hidden rounded-2xl border border-sky-100 backdrop-blur-sm bg-white/90">
+          <div className="overflow-hidden rounded-2xl backdrop-blur-sm" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(6,43,69,0.80)" }}>
             {/* Column headers */}
-            <div className="hidden md:grid grid-cols-[56px_1fr_160px_100px_130px_80px] items-center border-b border-sky-100 px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400" style={{ background: "linear-gradient(90deg, rgba(14,165,233,0.05), transparent)" }}>
+            <div className="hidden md:grid grid-cols-[56px_1fr_160px_100px_130px_80px] items-center px-6 py-3 text-[10px] font-bold uppercase tracking-widest" style={{ borderBottom: "1px solid rgba(0,207,255,0.12)", background: "linear-gradient(90deg, rgba(0,207,255,0.06), transparent)", color: "rgba(168,255,246,0.50)" }}>
               <span>#</span>
               <span>Player</span>
               <span>Rank</span>
-              <button onClick={() => handleSort("cr")} className="text-left transition-colors hover:text-sky-500">
+              <button onClick={() => handleSort("cr")} className="text-left transition-colors hover:text-[#00CFFF]">
                 CR{sortIcon("cr")}
               </button>
-              <button onClick={() => handleSort("wins")} className="text-left transition-colors hover:text-sky-500">
+              <button onClick={() => handleSort("wins")} className="text-left transition-colors hover:text-[#00CFFF]">
                 W / L{sortIcon("wins")}
               </button>
-              <button onClick={() => handleSort("kills")} className="text-left transition-colors hover:text-sky-500">
+              <button onClick={() => handleSort("kills")} className="text-left transition-colors hover:text-[#00CFFF]">
                 Kills{sortIcon("kills")}
               </button>
             </div>
@@ -228,8 +231,8 @@ export default function LeaderboardPage() {
             {sorted.length === 0 ? (
               <div className="px-6 py-16 text-center">
                 <p className="text-4xl mb-4">🔍</p>
-                <p className="text-zinc-400 text-base font-black">No players match your search</p>
-                <p className="text-zinc-600 text-sm mt-1">Try adjusting your filters</p>
+                <p className="text-base font-black" style={{ color: "rgba(168,255,246,0.60)" }}>No players match your search</p>
+                <p className="text-sm mt-1" style={{ color: "rgba(168,255,246,0.40)" }}>Try adjusting your filters</p>
               </div>
             ) : (
               paginated.map((p: any, i: number) => {
@@ -241,39 +244,40 @@ export default function LeaderboardPage() {
                     href={`/profile/${p.user_id}`}
                     key={p.user_id}
                     soundType="click"
-                    className="group grid grid-cols-[56px_1fr] md:grid-cols-[56px_1fr_160px_100px_130px_80px] items-center border-b border-sky-50 px-6 py-4 transition-all duration-200 hover:bg-sky-50 last:border-0"
+                    className="group grid grid-cols-[56px_1fr] md:grid-cols-[56px_1fr_160px_100px_130px_80px] items-center px-6 py-4 transition-all duration-200 last:border-0 lb-row-premium"
+                    style={{ borderBottom: "1px solid rgba(0,207,255,0.08)" }}
                   >
                     <span className="text-xs font-black">
                       {globalIndex === 0 ? (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-yellow-500/15 text-base">🥇</span>
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(234,179,8,0.20)", boxShadow: "0 0 12px rgba(234,179,8,0.20)" }}>🥇</span>
                       ) : globalIndex === 1 ? (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-400/10 text-base">🥈</span>
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(148,163,184,0.15)" }}>🥈</span>
                       ) : globalIndex === 2 ? (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-orange-700/15 text-base">🥉</span>
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(180,83,9,0.20)" }}>🥉</span>
                       ) : (
-                        <span className="text-xs font-black text-zinc-700">#{globalIndex + 1}</span>
+                        <span className="text-xs font-black" style={{ color: "rgba(168,255,246,0.60)" }}>#{globalIndex + 1}</span>
                       )}
                     </span>
                     <div className="flex items-center gap-3 min-w-0">
                       <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-9 w-9" />
                       <div className="min-w-0">
-                        <p className="text-sm font-bold truncate text-gray-800 group-hover:text-sky-700 transition-colors">{p.name}</p>
-                        <p className="text-xs text-gray-400 truncate">{p.username || "—"}</p>
+                        <p className="text-sm font-bold truncate transition-colors" style={{ color: "#e0f7ff" }}>{p.name}</p>
+                        <p className="text-xs truncate" style={{ color: "rgba(168,255,246,0.50)" }}>{p.username || "—"}</p>
                       </div>
                     </div>
                     <div className="hidden md:block">
                       <RankBadge cr={Number(p.cr || 0)} size="sm" />
                     </div>
                     <div className="hidden md:flex items-center">
-                      <span className="text-sm font-black text-sky-600 group-hover:text-sky-700 transition-colors">{(p.cr || 0).toLocaleString()}</span>
+                      <span className="text-sm font-black transition-colors" style={{ color: "#00CFFF" }}>{(p.cr || 0).toLocaleString()}</span>
                     </div>
                     <div className="hidden md:flex items-center gap-1.5 text-xs">
-                      <span className="text-green-600 font-bold">{p.wins || 0}W</span>
-                      <span className="text-gray-300">/</span>
-                      <span className="text-red-500">{p.losses || 0}L</span>
-                      <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-gray-500 font-medium">{winRate}%</span>
+                      <span className="font-bold" style={{ color: "#4ade80" }}>{p.wins || 0}W</span>
+                      <span style={{ color: "rgba(168,255,246,0.25)" }}>/</span>
+                      <span style={{ color: "#FF7F50" }}>{p.losses || 0}L</span>
+                      <span className="rounded-md px-1.5 py-0.5 font-medium" style={{ background: "rgba(168,255,246,0.08)", color: "rgba(168,255,246,0.60)" }}>{winRate}%</span>
                     </div>
-                    <span className="hidden md:block text-xs font-bold text-gray-400 group-hover:text-gray-600 transition-colors">{(p.kills || 0).toLocaleString()}</span>
+                    <span className="hidden md:block text-xs font-bold transition-colors" style={{ color: "rgba(168,255,246,0.55)" }}>{(p.kills || 0).toLocaleString()}</span>
                   </SoundLink>
                 );
               })

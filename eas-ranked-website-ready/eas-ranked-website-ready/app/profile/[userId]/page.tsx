@@ -63,8 +63,8 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
         <div className="rounded-2xl border border-white/10 bg-[#0d0d14] p-12 text-center">
           <p className="text-5xl mb-4">❓</p>
           <h1 className="text-4xl font-black">Player Not Found</h1>
-          <p className="mt-2 text-zinc-400">This player does not exist in the database.</p>
-          <SoundLink href="/players" soundType="success" className="mt-6 inline-block rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-5 py-3 font-bold hover:from-orange-400 hover:to-red-400 transition-all">
+          <p className="mt-2" style={{ color: "rgba(168,255,246,0.55)" }}>This player does not exist in the database.</p>
+          <SoundLink href="/players" soundType="success" className="mt-6 inline-block rounded-xl px-5 py-3 font-bold transition-all" style={{ background: "linear-gradient(135deg, #FF7F50, #FF8C42)", color: "white" }}>
             Browse Players
           </SoundLink>
         </div>
@@ -202,7 +202,8 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             <SoundLink
               href="/leaderboard"
               soundType="click"
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-bold text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200 transition-all hover:scale-[1.02]"
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all hover:scale-[1.02]"
+              style={{ border: "1px solid rgba(0,207,255,0.20)", background: "rgba(0,207,255,0.07)", color: "rgba(168,255,246,0.75)" }}
             >
               <span>🏆</span>
               <span>Leaderboard</span>

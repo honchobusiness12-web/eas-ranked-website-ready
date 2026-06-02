@@ -14,13 +14,13 @@ interface PageHeaderProps {
 }
 
 const iconAccentMap: Record<string, { bg: string; border: string; glow: string }> = {
-  purple: { bg: "rgba(168,85,247,0.14)", border: "rgba(168,85,247,0.28)", glow: "rgba(168,85,247,0.08)" },
-  blue:   { bg: "rgba(79,142,247,0.14)",  border: "rgba(79,142,247,0.28)",  glow: "rgba(79,142,247,0.08)" },
-  gold:   { bg: "rgba(255,215,0,0.14)",   border: "rgba(255,215,0,0.28)",   glow: "rgba(255,215,0,0.08)" },
-  green:  { bg: "rgba(34,197,94,0.14)",   border: "rgba(34,197,94,0.28)",   glow: "rgba(34,197,94,0.08)" },
-  red:    { bg: "rgba(239,68,68,0.14)",   border: "rgba(239,68,68,0.28)",   glow: "rgba(239,68,68,0.08)" },
-  teal:   { bg: "rgba(6,182,212,0.14)",   border: "rgba(6,182,212,0.28)",   glow: "rgba(6,182,212,0.08)" },
-  orange: { bg: "rgba(249,115,22,0.14)",  border: "rgba(249,115,22,0.28)",  glow: "rgba(249,115,22,0.08)" },
+  purple: { bg: "rgba(0,207,255,0.14)",   border: "rgba(0,207,255,0.28)",   glow: "rgba(0,207,255,0.08)" },
+  blue:   { bg: "rgba(77,238,234,0.14)",  border: "rgba(77,238,234,0.28)",  glow: "rgba(77,238,234,0.08)" },
+  gold:   { bg: "rgba(242,217,166,0.14)", border: "rgba(242,217,166,0.28)", glow: "rgba(242,217,166,0.08)" },
+  green:  { bg: "rgba(74,222,128,0.14)",  border: "rgba(74,222,128,0.28)",  glow: "rgba(74,222,128,0.08)" },
+  red:    { bg: "rgba(255,127,80,0.14)",  border: "rgba(255,127,80,0.28)",  glow: "rgba(255,127,80,0.08)" },
+  teal:   { bg: "rgba(77,238,234,0.14)",  border: "rgba(77,238,234,0.28)",  glow: "rgba(77,238,234,0.08)" },
+  orange: { bg: "rgba(255,127,80,0.14)",  border: "rgba(255,127,80,0.28)",  glow: "rgba(255,127,80,0.08)" },
 };
 
 export default function PageHeader({

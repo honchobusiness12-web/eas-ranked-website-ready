@@ -29,7 +29,8 @@ export default function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="text-[11px] font-bold uppercase tracking-widest text-zinc-500"
+          className="text-[11px] font-bold uppercase tracking-widest"
+          style={{ color: "rgba(168,255,246,0.55)" }}
         >
           {label}
         </label>
@@ -44,18 +45,17 @@ export default function Input({
           id={inputId}
           {...props}
           className={`
-            w-full rounded-xl border bg-white/[0.04] py-2.5 text-sm text-white
-            placeholder-zinc-600 outline-none backdrop-blur-sm
+            w-full rounded-xl py-2.5 text-sm outline-none backdrop-blur-sm
             transition-all duration-200
-            focus:bg-white/[0.06] focus:ring-1
-            ${error
-              ? "border-red-500/50 focus:border-red-500/70 focus:ring-red-500/20"
-              : "border-white/[0.07] focus:border-purple-500/40 focus:ring-purple-500/20"
-            }
             ${prefixIcon ? "pl-9" : "pl-3.5"}
             ${suffixIcon ? "pr-9" : "pr-3.5"}
             ${className}
           `}
+          style={{
+            background: "rgba(6,43,69,0.75)",
+            border: error ? "1px solid rgba(255,127,80,0.45)" : "1px solid rgba(0,207,255,0.22)",
+            color: "#e0f7ff",
+          }}
         />
         {suffixIcon && (
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 text-sm">

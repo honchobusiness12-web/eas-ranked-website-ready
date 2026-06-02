@@ -30,88 +30,88 @@ interface StatCardProps {
 
 const colorMap: Record<
   StatColor,
-  { text: string; glow: string; accent: string; iconBg: string; border: string; gradientFrom: string; gradientTo: string }
+  { textColor: string; glow: string; accent: string; iconBg: string; border: string; gradientFrom: string; gradientTo: string }
 > = {
   purple: {
-    text:         "text-sky-700",
-    glow:         "rgba(14,165,233,0.10)",
-    accent:       "rgba(14,165,233,0.8)",
-    iconBg:       "rgba(14,165,233,0.12)",
-    border:       "rgba(14,165,233,0.20)",
-    gradientFrom: "#0ea5e9",
-    gradientTo:   "#06b6d4",
+    textColor:    "#00CFFF",
+    glow:         "rgba(0,207,255,0.12)",
+    accent:       "rgba(0,207,255,0.85)",
+    iconBg:       "rgba(0,207,255,0.14)",
+    border:       "rgba(0,207,255,0.22)",
+    gradientFrom: "#00CFFF",
+    gradientTo:   "#4DEEEA",
   },
   blue: {
-    text:         "text-cyan-700",
-    glow:         "rgba(6,182,212,0.10)",
-    accent:       "rgba(6,182,212,0.8)",
-    iconBg:       "rgba(6,182,212,0.12)",
-    border:       "rgba(6,182,212,0.20)",
-    gradientFrom: "#06b6d4",
-    gradientTo:   "#0891b2",
+    textColor:    "#4DEEEA",
+    glow:         "rgba(77,238,234,0.12)",
+    accent:       "rgba(77,238,234,0.85)",
+    iconBg:       "rgba(77,238,234,0.14)",
+    border:       "rgba(77,238,234,0.22)",
+    gradientFrom: "#4DEEEA",
+    gradientTo:   "#00CFFF",
   },
   green: {
-    text:         "text-green-700",
-    glow:         "rgba(34,197,94,0.10)",
-    accent:       "rgba(34,197,94,0.8)",
-    iconBg:       "rgba(34,197,94,0.12)",
-    border:       "rgba(34,197,94,0.20)",
+    textColor:    "#4ade80",
+    glow:         "rgba(74,222,128,0.12)",
+    accent:       "rgba(74,222,128,0.85)",
+    iconBg:       "rgba(74,222,128,0.14)",
+    border:       "rgba(74,222,128,0.22)",
     gradientFrom: "#22c55e",
-    gradientTo:   "#16a34a",
+    gradientTo:   "#4ade80",
   },
   red: {
-    text:         "text-red-600",
-    glow:         "rgba(255,107,107,0.10)",
-    accent:       "rgba(255,107,107,0.8)",
-    iconBg:       "rgba(255,107,107,0.12)",
-    border:       "rgba(255,107,107,0.20)",
-    gradientFrom: "#FF6B6B",
-    gradientTo:   "#ef4444",
+    textColor:    "#FF7F50",
+    glow:         "rgba(255,127,80,0.12)",
+    accent:       "rgba(255,127,80,0.85)",
+    iconBg:       "rgba(255,127,80,0.14)",
+    border:       "rgba(255,127,80,0.22)",
+    gradientFrom: "#FF7F50",
+    gradientTo:   "#FF8C42",
   },
   yellow: {
-    text:         "text-amber-600",
-    glow:         "rgba(245,158,11,0.10)",
-    accent:       "rgba(245,158,11,0.8)",
-    iconBg:       "rgba(245,158,11,0.12)",
-    border:       "rgba(245,158,11,0.20)",
-    gradientFrom: "#f59e0b",
+    textColor:    "#F2D9A6",
+    glow:         "rgba(242,217,166,0.12)",
+    accent:       "rgba(242,217,166,0.85)",
+    iconBg:       "rgba(242,217,166,0.14)",
+    border:       "rgba(242,217,166,0.22)",
+    gradientFrom: "#F2D9A6",
     gradientTo:   "#fbbf24",
   },
   orange: {
-    text:         "text-orange-600",
-    glow:         "rgba(255,140,66,0.10)",
-    accent:       "rgba(255,140,66,0.8)",
-    iconBg:       "rgba(255,140,66,0.12)",
-    border:       "rgba(255,140,66,0.20)",
+    textColor:    "#FF8C42",
+    glow:         "rgba(255,140,66,0.12)",
+    accent:       "rgba(255,140,66,0.85)",
+    iconBg:       "rgba(255,140,66,0.14)",
+    border:       "rgba(255,140,66,0.22)",
     gradientFrom: "#FF8C42",
-    gradientTo:   "#f97316",
+    gradientTo:   "#FF7F50",
   },
   teal: {
-    text:         "text-teal-700",
-    glow:         "rgba(20,184,166,0.10)",
-    accent:       "rgba(20,184,166,0.8)",
-    iconBg:       "rgba(20,184,166,0.12)",
-    border:       "rgba(20,184,166,0.20)",
-    gradientFrom: "#14b8a6",
-    gradientTo:   "#0d9488",
+    textColor:    "#A8FFF6",
+    glow:         "rgba(168,255,246,0.12)",
+    accent:       "rgba(168,255,246,0.85)",
+    iconBg:       "rgba(168,255,246,0.14)",
+    border:       "rgba(168,255,246,0.22)",
+    gradientFrom: "#A8FFF6",
+    gradientTo:   "#4DEEEA",
   },
   coral: {
-    text:         "text-rose-600",
-    glow:         "rgba(255,107,107,0.10)",
-    accent:       "rgba(255,107,107,0.8)",
-    iconBg:       "rgba(255,107,107,0.12)",
-    border:       "rgba(255,107,107,0.20)",
-    gradientFrom: "#FF6B6B",
+    textColor:    "#FF7F50",
+    glow:         "rgba(255,127,80,0.12)",
+    accent:       "rgba(255,127,80,0.85)",
+    iconBg:       "rgba(255,127,80,0.14)",
+    border:       "rgba(255,127,80,0.22)",
+    gradientFrom: "#FF7F50",
     gradientTo:   "#FF8C42",
   },
   lime: {
-    text:         "text-lime-700",
-    glow:         "rgba(132,204,22,0.10)",
-    accent:       "rgba(132,204,22,0.8)",
-    iconBg:       "rgba(132,204,22,0.12)",
-    border:       "rgba(132,204,22,0.20)",
-    gradientFrom: "#84cc16",
-    gradientTo:   "#65a30d",
+    textColor:    "#A8FFF6",
+    glow:         "rgba(168,255,246,0.12)",
+    accent:       "rgba(168,255,246,0.85)",
+    iconBg:       "rgba(168,255,246,0.14)",
+    border:       "rgba(168,255,246,0.22)",
+    gradientFrom: "#A8FFF6",
+    gradientTo:   "#4DEEEA",
   },
 };
 
@@ -172,10 +172,10 @@ export default function StatCard({
     <div
       className={`stat-card-premium group animate-card-entrance gpu-accelerate ${className}`}
       style={{
-        background: "rgba(255,255,255,0.92)",
+        background: "rgba(6,43,69,0.82)",
         border: `1px solid ${cm.border}`,
-        padding: "1.25rem",
-        boxShadow: `0 4px 20px rgba(0,0,0,0.05)`,
+        padding: "1.5rem",
+        boxShadow: `0 8px 32px rgba(0,0,0,0.28)`,
         animationDelay: `${delay}ms`,
       }}
     >
@@ -194,33 +194,34 @@ export default function StatCard({
       {/* Hover border glow */}
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[1.25rem] pointer-events-none"
-        style={{ boxShadow: `inset 0 0 0 1px ${cm.accent}28` }}
+        style={{ boxShadow: `inset 0 0 0 1px ${cm.accent}40` }}
       />
 
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">
+          <p className="text-[10px] font-bold uppercase tracking-widest leading-none" style={{ color: "rgba(168,255,246,0.55)" }}>
             {title}
           </p>
           <p
-            className={`mt-2.5 text-2xl font-black counter-number animate-stat-pop ${cm.text}`}
-            style={{ letterSpacing: "-0.04em", lineHeight: 1.1, animationDelay: `${delay + 80}ms` }}
+            className="mt-3 text-3xl font-black counter-number animate-stat-pop"
+            style={{ letterSpacing: "-0.04em", lineHeight: 1.1, animationDelay: `${delay + 80}ms`, color: cm.textColor }}
           >
             {displayValue}
           </p>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             {note && (
-              <p className="text-[10px] text-gray-400 transition-colors duration-200 group-hover:text-gray-500">{note}</p>
+              <p className="text-[10px] transition-colors duration-200" style={{ color: "rgba(168,255,246,0.45)" }}>{note}</p>
             )}
             {trend !== undefined && (
               <span
-                className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-all duration-200 ${
+                className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-all duration-200"
+                style={
                   trend > 0
-                    ? "bg-green-500/10 text-green-400 border border-green-500/20 group-hover:bg-green-500/15"
+                    ? { background: "rgba(74,222,128,0.12)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.25)" }
                     : trend < 0
-                    ? "bg-red-500/10 text-red-400 border border-red-500/20 group-hover:bg-red-500/15"
-                    : "bg-white/[0.05] text-zinc-500 border border-white/[0.08]"
-                }`}
+                    ? { background: "rgba(255,127,80,0.12)", color: "#FF7F50", border: "1px solid rgba(255,127,80,0.25)" }
+                    : { background: "rgba(168,255,246,0.06)", color: "rgba(168,255,246,0.5)", border: "1px solid rgba(168,255,246,0.12)" }
+                }
               >
                 {trend > 0 ? "↑" : trend < 0 ? "↓" : "—"}
                 {trend !== 0 && Math.abs(trend)}
@@ -231,8 +232,8 @@ export default function StatCard({
         </div>
         {icon && (
           <div
-            className="icon-wrap flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl"
-            style={{ background: cm.iconBg, border: `1px solid ${cm.border}` }}
+            className="icon-wrap flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl"
+            style={{ background: cm.iconBg, border: `1px solid ${cm.border}`, boxShadow: `0 0 16px ${cm.glow}` }}
           >
             {icon}
           </div>

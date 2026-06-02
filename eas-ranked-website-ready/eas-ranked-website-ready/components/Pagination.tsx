@@ -34,7 +34,7 @@ export default function Pagination({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
       {totalItems !== undefined && itemsPerPage !== undefined && (
-        <p className="text-xs text-zinc-600 font-medium">
+        <p className="text-xs font-medium" style={{ color: "rgba(168,255,246,0.50)" }}>
           {Math.min((page - 1) * itemsPerPage + 1, totalItems)}–{Math.min(page * itemsPerPage, totalItems)} of {totalItems.toLocaleString()}
         </p>
       )}
@@ -42,23 +42,23 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          className="rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-zinc-400 transition-all duration-200 disabled:opacity-25 hover:border-white/[0.12] hover:bg-white/[0.08] hover:text-white"
+          className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-200 disabled:opacity-25"
+          style={{ border: "1px solid rgba(0,207,255,0.22)", background: "rgba(0,207,255,0.08)", color: "#00CFFF" }}
         >
           ← Prev
         </button>
 
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={`ellipsis-${i}`} className="px-1.5 text-zinc-700 text-xs">…</span>
+            <span key={`ellipsis-${i}`} className="px-1.5 text-xs" style={{ color: "rgba(168,255,246,0.40)" }}>…</span>
           ) : (
             <button
               key={p}
               onClick={() => onPageChange(p as number)}
-              className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-200 ${
-                p === page
-                  ? "border-purple-500/40 bg-purple-500/15 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
-                  : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:border-white/[0.12] hover:bg-white/[0.08] hover:text-zinc-300"
-              }`}
+              className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-200"
+              style={p === page
+                ? { border: "1px solid rgba(0,207,255,0.45)", background: "rgba(0,207,255,0.18)", color: "#00CFFF", boxShadow: "0 0 12px rgba(0,207,255,0.20)" }
+                : { border: "1px solid rgba(0,207,255,0.12)", background: "rgba(0,207,255,0.05)", color: "rgba(168,255,246,0.60)" }}
             >
               {p}
             </button>
@@ -68,7 +68,8 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page === totalPages}
-          className="rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-zinc-400 transition-all duration-200 disabled:opacity-25 hover:border-white/[0.12] hover:bg-white/[0.08] hover:text-white"
+          className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-200 disabled:opacity-25"
+          style={{ border: "1px solid rgba(0,207,255,0.22)", background: "rgba(0,207,255,0.08)", color: "#00CFFF" }}
         >
           Next →
         </button>

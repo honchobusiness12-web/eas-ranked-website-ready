@@ -57,7 +57,7 @@ export default function PlayersPage() {
       {/* ── Page header ── */}
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/15 text-xl" style={{ border: "1px solid rgba(96,165,250,0.2)" }}>👥</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-xl" style={{ background: "rgba(0,207,255,0.14)", border: "1px solid rgba(0,207,255,0.25)" }}>👥</div>
           <div>
             <h1 className="text-2xl font-black tracking-tight">Players</h1>
             <p className="text-xs text-zinc-600 mt-0.5">
@@ -68,7 +68,7 @@ export default function PlayersPage() {
       </div>
 
       {/* ── Search + filters bar ── */}
-      <div className="mb-5 rounded-2xl border border-white/[0.06] p-4 backdrop-blur-sm" style={{ background: "rgba(9,9,25,0.85)" }}>
+      <div className="mb-5 rounded-2xl p-4 backdrop-blur-sm" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(6,43,69,0.80)" }}>
         <div className="flex flex-wrap items-center gap-3">
           {/* Search input */}
           <div className="relative flex-1 min-w-[200px]">
@@ -78,7 +78,8 @@ export default function PlayersPage() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Search by name or username…"
-              className="w-full rounded-xl border border-white/[0.07] bg-white/[0.04] py-2.5 pl-9 pr-4 text-sm text-white placeholder-zinc-600 outline-none transition-all duration-200 focus:border-purple-500/40 focus:bg-white/[0.06] focus:ring-1 focus:ring-purple-500/20 backdrop-blur-sm"
+              className="w-full rounded-xl py-2.5 pl-9 pr-4 text-sm outline-none transition-all duration-200 backdrop-blur-sm"
+              style={{ background: "rgba(6,43,69,0.75)", border: "1px solid rgba(0,207,255,0.22)", color: "#e0f7ff" }}
             />
           </div>
 
@@ -88,11 +89,10 @@ export default function PlayersPage() {
               <button
                 key={f}
                 onClick={() => handleFilterChange(f)}
-                className={`rounded-xl border px-3 py-1.5 text-xs font-bold capitalize transition-all duration-200 ${
-                  filter === f
-                    ? "border-purple-500/40 bg-purple-500/15 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
-                    : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:border-white/[0.12] hover:text-zinc-300"
-                }`}
+                className="rounded-xl px-3 py-1.5 text-xs font-bold capitalize transition-all duration-200"
+                style={filter === f
+                  ? { border: "1px solid rgba(0,207,255,0.40)", background: "rgba(0,207,255,0.15)", color: "#00CFFF", boxShadow: "0 0 12px rgba(0,207,255,0.15)" }
+                  : { border: "1px solid rgba(168,255,246,0.12)", background: "rgba(168,255,246,0.04)", color: "rgba(168,255,246,0.55)" }}
               >
                 {f === "all" ? "All Players" : f === "ranked" ? "Ranked" : f === "placement" ? "Placements" : "Unregistered"}
               </button>
@@ -189,9 +189,9 @@ export default function PlayersPage() {
 
 function Mini({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) {
   return (
-    <div className="rounded-xl border border-white/[0.05] bg-white/[0.03] px-2 py-2.5 transition-colors group-hover:border-white/[0.08]">
-      <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">{label}</p>
-      <p className={`text-xs font-black mt-0.5 ${highlight ? "text-purple-400" : "text-zinc-300"}`}>{value}</p>
+    <div className="rounded-xl px-2 py-2.5 transition-colors" style={{ border: "1px solid rgba(0,207,255,0.12)", background: "rgba(0,207,255,0.05)" }}>
+      <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(168,255,246,0.50)" }}>{label}</p>
+      <p className="text-xs font-black mt-0.5" style={{ color: highlight ? "#00CFFF" : "rgba(168,255,246,0.80)" }}>{value}</p>
     </div>
   );
 }

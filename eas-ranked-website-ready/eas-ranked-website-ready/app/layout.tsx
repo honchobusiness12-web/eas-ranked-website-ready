@@ -13,7 +13,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body style={{ background: "linear-gradient(160deg, #062B45 0%, #073d5c 40%, #064a5e 70%, #052535 100%)", minHeight: "100vh" }}>
         <SoundProvider>
           <ToastProvider>
             <AnnouncementProvider>

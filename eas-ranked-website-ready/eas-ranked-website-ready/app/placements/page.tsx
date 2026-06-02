@@ -35,9 +35,9 @@ export default async function PlacementsPage() {
         description="Players currently completing their 7 placement matches to earn a rank."
         iconAccent="orange"
         actions={
-          <div className="flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.04] px-4 py-2">
-            <span className="text-xs text-zinc-500">In placements:</span>
-            <span className="text-sm font-black text-orange-400">{totalPlayers}</span>
+          <div className="flex items-center gap-2 rounded-xl px-4 py-2" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(0,207,255,0.08)" }}>
+            <span className="text-xs" style={{ color: "rgba(168,255,246,0.55)" }}>In placements:</span>
+            <span className="text-sm font-black" style={{ color: "#FF7F50" }}>{totalPlayers}</span>
           </div>
         }
       />

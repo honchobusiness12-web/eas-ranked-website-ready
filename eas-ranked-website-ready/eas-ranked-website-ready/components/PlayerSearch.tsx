@@ -91,7 +91,8 @@ export default function PlayerSearch({
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-white/[0.07] bg-white/[0.04] py-2.5 pl-9 pr-8 text-sm text-white placeholder-zinc-600 outline-none transition-all duration-200 focus:border-purple-500/40 focus:bg-white/[0.06] focus:ring-1 focus:ring-purple-500/20 backdrop-blur-sm"
+          className="w-full rounded-xl py-2.5 pl-9 pr-8 text-sm outline-none transition-all duration-200 backdrop-blur-sm"
+          style={{ background: "rgba(6,43,69,0.75)", border: "1px solid rgba(0,207,255,0.22)", color: "#e0f7ff" }}
         />
         {query && (
           <button
@@ -104,20 +105,23 @@ export default function PlayerSearch({
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-30 mt-1 rounded-xl border border-white/[0.07] shadow-depth-lg overflow-hidden animate-scale-in" style={{ background: "rgba(11,11,31,0.97)", backdropFilter: "blur(20px)" }}>
+        <div className="absolute left-0 right-0 top-full z-30 mt-1 rounded-xl overflow-hidden animate-scale-in" style={{ background: "rgba(4,30,48,0.97)", border: "1px solid rgba(0,207,255,0.22)", backdropFilter: "blur(20px)", boxShadow: "0 16px 48px rgba(0,0,0,0.40)" }}>
           {results.map((player) => (
             <button
               key={player.user_id}
               onClick={() => handleSelect(player)}
-              className="group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-all duration-200 hover:bg-purple-500/[0.05] border-b border-white/[0.04] last:border-0"
+              className="group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-all duration-200"
+              style={{ borderBottom: "1px solid rgba(0,207,255,0.08)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,207,255,0.08)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               <PlayerAvatar name={player.name} avatar={player.avatar_url} size="h-8 w-8" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate group-hover:text-white transition-colors">{player.name}</p>
-                <p className="text-xs text-zinc-600 truncate">{player.username || "—"}</p>
+                <p className="text-sm font-semibold truncate transition-colors" style={{ color: "#e0f7ff" }}>{player.name}</p>
+                <p className="text-xs truncate" style={{ color: "rgba(168,255,246,0.50)" }}>{player.username || "—"}</p>
               </div>
               <RankBadge cr={Number(player.cr || 0)} size="sm" showLabel={false} />
-              <span className="text-xs font-black text-purple-400">{Number(player.cr).toLocaleString()}</span>
+              <span className="text-xs font-black" style={{ color: "#00CFFF" }}>{Number(player.cr).toLocaleString()}</span>
             </button>
           ))}
         </div>
