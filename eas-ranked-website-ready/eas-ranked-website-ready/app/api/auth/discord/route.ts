@@ -5,7 +5,6 @@ import {
   createSession,
 } from "@/lib/auth";
 import { syncPremiumFromDiscord } from "@/lib/discord-sync";
-import { updatePlayerAvatarUrl } from "@/lib/avatar-sync";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -33,17 +32,6 @@ export async function GET(req: NextRequest) {
     } catch (syncErr) {
       // Non-fatal — log and continue
       console.warn("[auth] Premium sync failed (non-fatal):", syncErr);
-    }
-
-    // Sync avatar from Discord on every login (non-fatal)
-    try {
-      await updatePlayerAvatarUrl(
-        discordUser.id,
-        discordUser.avatar ?? null,
-        discordUser.discriminator ?? "0"
-      );
-    } catch (avatarErr) {
-      console.warn("[auth] Avatar sync failed (non-fatal):", avatarErr);
     }
 
     // Redirect to the user's profile page
