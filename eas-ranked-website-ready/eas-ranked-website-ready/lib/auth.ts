@@ -78,12 +78,24 @@ export async function getDiscordUser(accessToken: string): Promise<DiscordUser> 
 }
 
 // ---------------------------------------------------------------------------
-// Avatar URL helper
+// Avatar URL helpers
 // ---------------------------------------------------------------------------
 
 export function getAvatarUrl(user: DiscordUser): string | null {
   if (!user.avatar) return null;
-  return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+  // Animated avatars use GIF; static ones use WebP for better quality.
+  const ext = user.avatar.startsWith("a_") ? "gif" : "webp";
+  return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=256`;
+}
+
+export function buildDefaultAvatarUrl(user: DiscordUser): string {
+  // New username system uses Snowflake-based index; legacy uses discriminator % 5.
+  const disc = user.discriminator;
+  const index =
+    !disc || disc === "0"
+      ? Number((BigInt(user.id) >> 22n) % 6n)
+      : parseInt(disc, 10) % 5;
+  return `https://cdn.discordapp.com/embed/avatars/${index}.png`;
 }
 
 // ---------------------------------------------------------------------------

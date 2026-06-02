@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import PlayerAvatar from "@/components/PlayerAvatar";
 
 interface PlayerResult {
   user_id: string;
@@ -136,19 +137,11 @@ export default function ProfileMenu() {
                 onClick={() => handleSelect(player.user_id)}
                 className="group flex w-full items-center gap-2.5 px-3 py-2.5 transition-all duration-200 hover:bg-purple-500/[0.05] text-left border-t border-white/[0.04] first:border-t-0"
               >
-                {player.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={player.avatar_url}
-                    alt={player.name}
-                    className="h-7 w-7 rounded-full shrink-0 ring-1 ring-white/10"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="h-7 w-7 rounded-full bg-white/[0.08] flex items-center justify-center text-xs shrink-0">
-                    👤
-                  </div>
-                )}
+                <PlayerAvatar
+                  name={player.name}
+                  avatar={player.avatar_url}
+                  size="h-7 w-7"
+                />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-white truncate group-hover:text-purple-200 transition-colors">{player.name}</p>
                   {player.username && (
