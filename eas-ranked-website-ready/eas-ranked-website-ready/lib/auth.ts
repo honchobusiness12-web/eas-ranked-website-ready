@@ -88,16 +88,6 @@ export function getAvatarUrl(user: DiscordUser): string | null {
   return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=256`;
 }
 
-export function buildDefaultAvatarUrl(user: DiscordUser): string {
-  // New username system uses Snowflake-based index; legacy uses discriminator % 5.
-  const disc = user.discriminator;
-  const index =
-    !disc || disc === "0"
-      ? Number((BigInt(user.id) >> BigInt(22)) % BigInt(6))
-      : parseInt(disc, 10) % 5;
-  return `https://cdn.discordapp.com/embed/avatars/${index}.png`;
-}
-
 // ---------------------------------------------------------------------------
 // Session cookie management (server-side)
 // ---------------------------------------------------------------------------
