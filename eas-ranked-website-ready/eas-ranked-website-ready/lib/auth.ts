@@ -93,7 +93,7 @@ export function buildDefaultAvatarUrl(user: DiscordUser): string {
   const disc = user.discriminator;
   const index =
     !disc || disc === "0"
-      ? Number((BigInt(user.id) >> 22n) % 6n)
+      ? Number((BigInt(user.id) >> BigInt(22)) % BigInt(6))
       : parseInt(disc, 10) % 5;
   return `https://cdn.discordapp.com/embed/avatars/${index}.png`;
 }
