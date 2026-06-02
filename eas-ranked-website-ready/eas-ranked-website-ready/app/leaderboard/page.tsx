@@ -206,6 +206,51 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
+      {/* ── Podium for Top 3 (only on page 1 with no search/filter) ── */}
+      {!loading && page === 1 && !searchQuery && rankFilter === "all" && winRateFilter === "all" && sorted.length >= 3 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+              style={{ background: "linear-gradient(135deg, rgba(234,179,8,0.18), rgba(255,127,80,0.12))", border: "1px solid rgba(234,179,8,0.30)" }}>
+              🏆
+            </div>
+            <h2 className="text-base font-black" style={{ color: "#e2f4ff" }}>Top 3 Players</h2>
+          </div>
+          <div className="podium-section">
+            {/* 2nd place */}
+            <SoundLink href={`/profile/${sorted[1].user_id}`} soundType="click" className="podium-silver p-5 flex flex-col items-center gap-3 text-center animate-card-entrance" style={{ animationDelay: "60ms" }}>
+              <div className="text-3xl animate-float-delayed">🥈</div>
+              <PlayerAvatar name={sorted[1].name} avatar={sorted[1].avatar_url} size="h-16 w-16" />
+              <div>
+                <p className="text-sm font-black truncate" style={{ color: "#e2f4ff" }}>{sorted[1].name}</p>
+                <p className="text-xs" style={{ color: "rgba(148,163,184,0.80)" }}>{(sorted[1].cr || 0).toLocaleString()} CR</p>
+              </div>
+              <RankBadge cr={Number(sorted[1].cr || 0)} size="sm" />
+            </SoundLink>
+            {/* 1st place — taller */}
+            <SoundLink href={`/profile/${sorted[0].user_id}`} soundType="click" className="podium-gold p-6 flex flex-col items-center gap-3 text-center animate-card-entrance" style={{ animationDelay: "0ms" }}>
+              <div className="text-4xl animate-float" style={{ filter: "drop-shadow(0 0 12px rgba(234,179,8,0.6))" }}>🥇</div>
+              <PlayerAvatar name={sorted[0].name} avatar={sorted[0].avatar_url} size="h-20 w-20" />
+              <div>
+                <p className="text-base font-black truncate" style={{ color: "#e2f4ff" }}>{sorted[0].name}</p>
+                <p className="text-sm font-bold" style={{ color: "rgba(234,179,8,0.90)" }}>{(sorted[0].cr || 0).toLocaleString()} CR</p>
+              </div>
+              <RankBadge cr={Number(sorted[0].cr || 0)} size="sm" />
+            </SoundLink>
+            {/* 3rd place */}
+            <SoundLink href={`/profile/${sorted[2].user_id}`} soundType="click" className="podium-bronze p-5 flex flex-col items-center gap-3 text-center animate-card-entrance" style={{ animationDelay: "120ms" }}>
+              <div className="text-3xl animate-float-delayed">🥉</div>
+              <PlayerAvatar name={sorted[2].name} avatar={sorted[2].avatar_url} size="h-16 w-16" />
+              <div>
+                <p className="text-sm font-black truncate" style={{ color: "#e2f4ff" }}>{sorted[2].name}</p>
+                <p className="text-xs" style={{ color: "rgba(180,83,9,0.90)" }}>{(sorted[2].cr || 0).toLocaleString()} CR</p>
+              </div>
+              <RankBadge cr={Number(sorted[2].cr || 0)} size="sm" />
+            </SoundLink>
+          </div>
+        </div>
+      )}
+
       {/* ── Table ── */}
       {loading ? (
         <SkeletonTable rows={10} />
@@ -217,22 +262,22 @@ export default function LeaderboardPage() {
               <span>#</span>
               <span>Player</span>
               <span>Rank</span>
-              <button onClick={() => handleSort("cr")} className="text-left transition-colors" style={{ color: "inherit" }}>
+              <button onClick={() => handleSort("cr")} className="text-left transition-colors hover:text-[#00CFFF]" style={{ color: "inherit" }}>
                 CR{sortIcon("cr")}
               </button>
-              <button onClick={() => handleSort("wins")} className="text-left transition-colors" style={{ color: "inherit" }}>
+              <button onClick={() => handleSort("wins")} className="text-left transition-colors hover:text-[#00CFFF]" style={{ color: "inherit" }}>
                 W / L{sortIcon("wins")}
               </button>
-              <button onClick={() => handleSort("kills")} className="text-left transition-colors" style={{ color: "inherit" }}>
+              <button onClick={() => handleSort("kills")} className="text-left transition-colors hover:text-[#00CFFF]" style={{ color: "inherit" }}>
                 Kills{sortIcon("kills")}
               </button>
             </div>
 
             {sorted.length === 0 ? (
               <div className="px-6 py-16 text-center">
-                <p className="text-4xl mb-4">🔍</p>
-                <p className="text-zinc-400 text-base font-black">No players match your search</p>
-                <p className="text-zinc-600 text-sm mt-1">Try adjusting your filters</p>
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl animate-float" style={{ background: "rgba(0,207,255,0.08)", border: "1px solid rgba(0,207,255,0.18)" }}>🔍</div>
+                <p className="text-base font-black" style={{ color: "#e2f4ff" }}>No players match your search</p>
+                <p className="text-sm mt-1" style={{ color: "rgba(168,255,246,0.55)" }}>Try adjusting your filters</p>
               </div>
             ) : (
               paginated.map((p: any, i: number) => {
@@ -249,11 +294,11 @@ export default function LeaderboardPage() {
                   >
                     <span className="text-xs font-black">
                       {globalIndex === 0 ? (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(242,217,166,0.18)", boxShadow: "0 0 12px rgba(242,217,166,0.2)" }}>🥇</span>
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(234,179,8,0.18)", boxShadow: "0 0 12px rgba(234,179,8,0.2)" }}>🥇</span>
                       ) : globalIndex === 1 ? (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(168,255,246,0.10)" }}>🥈</span>
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(148,163,184,0.14)" }}>🥈</span>
                       ) : globalIndex === 2 ? (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(255,127,80,0.15)" }}>🥉</span>
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base" style={{ background: "rgba(180,83,9,0.18)" }}>🥉</span>
                       ) : (
                         <span className="text-xs font-black" style={{ color: "rgba(168,255,246,0.5)" }}>#{globalIndex + 1}</span>
                       )}

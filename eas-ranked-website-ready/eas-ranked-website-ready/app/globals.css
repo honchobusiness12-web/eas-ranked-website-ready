@@ -1373,7 +1373,7 @@ p {
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: rgba(107,114,128,0.8);
+  color: rgba(168,255,246,0.55);
 }
 
 /* ── Hover row highlight ── */
@@ -2508,4 +2508,529 @@ p {
 a:hover .icon-wrap,
 button:hover .icon-wrap {
   transform: scale(1.12) rotate(5deg);
+}
+
+/* ============================================================
+   PREMIUM REDESIGN v5 — Typography, Contrast & Layout
+   ============================================================ */
+
+/* ── Global heading sizes ── */
+h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 800; }
+h2 { font-size: clamp(1.25rem, 3vw, 2rem);   font-weight: 700; }
+h3 { font-size: clamp(1rem, 2.5vw, 1.5rem);  font-weight: 600; }
+
+/* ── Body text minimum ── */
+body { font-size: 16px; }
+p    { font-size: 1rem; line-height: 1.65; }
+
+/* ── High-contrast text utilities ── */
+.text-primary   { color: #e2f4ff !important; }
+.text-secondary { color: rgba(168,255,246,0.80) !important; }
+.text-muted     { color: rgba(168,255,246,0.55) !important; }
+.text-faint     { color: rgba(168,255,246,0.40) !important; }
+
+/* ── Ocean-themed surface cards ── */
+.ocean-card {
+  background: rgba(6,43,69,0.80);
+  border: 1px solid rgba(0,207,255,0.20);
+  border-radius: 1rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.30), inset 0 1px 0 rgba(0,207,255,0.08);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.ocean-card:hover {
+  border-color: rgba(0,207,255,0.38);
+  box-shadow: 0 12px 48px rgba(0,207,255,0.16), inset 0 1px 0 rgba(0,207,255,0.12);
+  transform: translateY(-3px);
+}
+
+/* ── Podium cards for leaderboard top 3 ── */
+.podium-gold {
+  background: linear-gradient(135deg, rgba(234,179,8,0.18) 0%, rgba(6,43,69,0.85) 60%);
+  border: 1px solid rgba(234,179,8,0.40);
+  border-radius: 1.25rem;
+  box-shadow: 0 0 32px rgba(234,179,8,0.18), 0 8px 32px rgba(0,0,0,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.podium-gold::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(234,179,8,0.9), rgba(251,191,36,0.7), rgba(234,179,8,0.9));
+  box-shadow: 0 0 12px rgba(234,179,8,0.6);
+}
+.podium-silver {
+  background: linear-gradient(135deg, rgba(148,163,184,0.16) 0%, rgba(6,43,69,0.85) 60%);
+  border: 1px solid rgba(148,163,184,0.35);
+  border-radius: 1.25rem;
+  box-shadow: 0 0 24px rgba(148,163,184,0.12), 0 8px 32px rgba(0,0,0,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.podium-silver::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(148,163,184,0.8), rgba(203,213,225,0.6), rgba(148,163,184,0.8));
+  box-shadow: 0 0 10px rgba(148,163,184,0.4);
+}
+.podium-bronze {
+  background: linear-gradient(135deg, rgba(180,83,9,0.16) 0%, rgba(6,43,69,0.85) 60%);
+  border: 1px solid rgba(180,83,9,0.35);
+  border-radius: 1.25rem;
+  box-shadow: 0 0 24px rgba(180,83,9,0.12), 0 8px 32px rgba(0,0,0,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.podium-bronze::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(180,83,9,0.8), rgba(234,88,12,0.6), rgba(180,83,9,0.8));
+  box-shadow: 0 0 10px rgba(180,83,9,0.4);
+}
+
+/* ── Profile hero ── */
+.profile-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(0,207,255,0.22);
+  background: linear-gradient(135deg, rgba(0,207,255,0.12) 0%, rgba(6,43,69,0.95) 50%, rgba(77,238,234,0.08) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(0,207,255,0.12);
+}
+
+/* ── Admin panel card ── */
+.admin-card {
+  background: rgba(5,20,35,0.90);
+  border: 1px solid rgba(255,127,80,0.22);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,127,80,0.06);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.admin-card:hover {
+  border-color: rgba(255,127,80,0.40);
+  box-shadow: 0 8px 40px rgba(255,127,80,0.12), inset 0 1px 0 rgba(255,127,80,0.10);
+}
+
+/* ── Stat card ocean theme ── */
+.stat-card-ocean {
+  position: relative;
+  overflow: hidden;
+  background: rgba(6,43,69,0.82);
+  border: 1px solid rgba(0,207,255,0.18);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(0,207,255,0.07);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease, border-color 0.3s ease;
+  padding: 1.5rem;
+}
+.stat-card-ocean:hover {
+  transform: translateY(-5px) scale(1.01);
+  border-color: rgba(0,207,255,0.38);
+  box-shadow: 0 20px 60px rgba(0,207,255,0.20), inset 0 1px 0 rgba(0,207,255,0.12);
+}
+.stat-card-ocean .accent-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+  transition: opacity 0.3s ease, height 0.3s ease;
+  opacity: 0.65;
+}
+.stat-card-ocean:hover .accent-line {
+  opacity: 1;
+  height: 3px;
+}
+.stat-card-ocean .hover-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.stat-card-ocean:hover .hover-glow { opacity: 1; }
+.stat-card-ocean .icon-wrap {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+.stat-card-ocean:hover .icon-wrap {
+  transform: scale(1.15) rotate(6deg);
+}
+
+/* ── Player card ocean ── */
+.player-card-ocean {
+  position: relative;
+  overflow: hidden;
+  background: rgba(6,43,69,0.80);
+  border: 1px solid rgba(0,207,255,0.16);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s ease, border-color 0.25s ease;
+  padding: 1.25rem;
+}
+.player-card-ocean:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: rgba(0,207,255,0.38);
+  box-shadow: 0 16px 48px rgba(0,207,255,0.18);
+}
+.player-card-ocean .top-accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0,207,255,0.8), rgba(77,238,234,0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.player-card-ocean:hover .top-accent { opacity: 1; }
+
+/* ── Guide section card ── */
+.guide-section-card {
+  background: rgba(6,43,69,0.78);
+  border: 1px solid rgba(0,207,255,0.18);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.28);
+  padding: 1.5rem;
+  transition: border-color 0.25s ease;
+}
+.guide-section-card:hover {
+  border-color: rgba(0,207,255,0.30);
+}
+
+/* ── Comparison card ── */
+.compare-card {
+  background: rgba(6,43,69,0.80);
+  border: 1px solid rgba(0,207,255,0.18);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.28);
+  padding: 1.25rem;
+}
+
+/* ── Placement card ── */
+.placement-card {
+  background: rgba(6,43,69,0.80);
+  border: 1px solid rgba(0,207,255,0.16);
+  border-radius: 1rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: background 0.2s ease;
+}
+.placement-card:hover {
+  background: rgba(0,207,255,0.06);
+}
+
+/* ── Input ocean theme ── */
+.input-ocean {
+  background: rgba(6,43,69,0.75);
+  border: 1px solid rgba(0,207,255,0.22);
+  border-radius: 0.75rem;
+  color: #e2f4ff;
+  padding: 0.625rem 1rem;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+.input-ocean:focus {
+  outline: none;
+  border-color: rgba(0,207,255,0.55);
+  background: rgba(8,51,82,0.85);
+  box-shadow: 0 0 0 3px rgba(0,207,255,0.15);
+}
+.input-ocean::placeholder {
+  color: rgba(168,255,246,0.35);
+}
+
+/* ── Filter pill ocean ── */
+.filter-pill {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(0,207,255,0.18);
+  background: rgba(0,207,255,0.06);
+  color: rgba(168,255,246,0.65);
+  padding: 0.375rem 0.875rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-pill:hover {
+  border-color: rgba(0,207,255,0.35);
+  background: rgba(0,207,255,0.12);
+  color: #A8FFF6;
+}
+.filter-pill.active {
+  border-color: rgba(0,207,255,0.50);
+  background: rgba(0,207,255,0.18);
+  color: #00CFFF;
+  box-shadow: 0 0 16px rgba(0,207,255,0.20);
+}
+
+/* ── Rank distribution bar ── */
+.rank-dist-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0,207,255,0.10);
+  overflow: hidden;
+}
+.rank-dist-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── Profile stat card ── */
+.profile-stat-card {
+  position: relative;
+  overflow: hidden;
+  background: rgba(6,43,69,0.82);
+  border: 1px solid rgba(0,207,255,0.18);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.profile-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0,207,255,0.35);
+  box-shadow: 0 12px 40px rgba(0,207,255,0.15);
+}
+
+/* ── Match history item ── */
+.match-history-item {
+  background: rgba(6,43,69,0.70);
+  border: 1px solid rgba(0,207,255,0.12);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.match-history-item:hover {
+  background: rgba(0,207,255,0.07);
+  border-color: rgba(0,207,255,0.25);
+  transform: translateX(3px);
+}
+.match-history-item.win {
+  border-color: rgba(34,197,94,0.25);
+  background: rgba(34,197,94,0.06);
+}
+.match-history-item.win:hover {
+  background: rgba(34,197,94,0.10);
+  border-color: rgba(34,197,94,0.40);
+}
+.match-history-item.loss {
+  border-color: rgba(255,127,80,0.25);
+  background: rgba(255,127,80,0.06);
+}
+.match-history-item.loss:hover {
+  background: rgba(255,127,80,0.10);
+  border-color: rgba(255,127,80,0.40);
+}
+
+/* ── Responsive grid helpers ── */
+@media (max-width: 640px) {
+  .stat-card-ocean { padding: 1rem; }
+  .player-card-ocean { padding: 1rem; }
+  .guide-section-card { padding: 1.25rem; }
+}
+
+/* ── Leaderboard podium section ── */
+.podium-section {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1fr;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 640px) {
+  .podium-section {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+}
+
+/* ── Rank progress bar ── */
+.rank-progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0,207,255,0.10);
+  overflow: hidden;
+  position: relative;
+}
+.rank-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  transition: width 1s cubic-bezier(0.4,0,0.2,1);
+}
+.rank-progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -100%; bottom: 0;
+  width: 60%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  animation: shimmerSweep 2s ease-in-out infinite;
+}
+
+/* ── Achievement badge ── */
+.achievement-badge-unlocked {
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
+}
+.achievement-badge-unlocked:hover {
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,207,255,0.25);
+}
+
+/* ── Pagination button ── */
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(0,207,255,0.18);
+  background: rgba(0,207,255,0.06);
+  color: rgba(168,255,246,0.65);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.pagination-btn:hover {
+  border-color: rgba(0,207,255,0.38);
+  background: rgba(0,207,255,0.14);
+  color: #00CFFF;
+}
+.pagination-btn.active {
+  border-color: rgba(0,207,255,0.55);
+  background: rgba(0,207,255,0.20);
+  color: #00CFFF;
+  box-shadow: 0 0 16px rgba(0,207,255,0.20);
+}
+.pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Section divider ── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,207,255,0.25), transparent);
+  margin: 1.5rem 0;
+}
+
+/* ── Tooltip ocean ── */
+.tooltip-ocean {
+  background: rgba(5,31,53,0.97);
+  border: 1px solid rgba(0,207,255,0.28);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #e2f4ff;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 16px rgba(0,207,255,0.12);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Responsive overflow fixes ── */
+@media (max-width: 768px) {
+  .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+  .grid { min-width: 0; }
+  .grid > * { min-width: 0; }
+}
+
+/* ── Mobile nav improvements ── */
+@media (max-width: 767px) {
+  .mobile-nav-item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ── Smooth transitions for all interactive elements ── */
+.interactive {
+  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1),
+              box-shadow 0.2s ease,
+              border-color 0.2s ease,
+              background 0.2s ease;
+}
+.interactive:hover { transform: translateY(-2px); }
+.interactive:active { transform: scale(0.97); }
+
+/* ── Loading skeleton ocean ── */
+.skeleton-ocean {
+  background: linear-gradient(
+    90deg,
+    rgba(0,207,255,0.05) 25%,
+    rgba(77,238,234,0.12) 50%,
+    rgba(0,207,255,0.05) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmerLoad 1.8s infinite linear;
+  border-radius: 0.5rem;
+}
+
+/* ── Chart container ── */
+.chart-container {
+  background: rgba(6,43,69,0.75);
+  border: 1px solid rgba(0,207,255,0.15);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  overflow: hidden;
+}
+
+/* ── Win/Loss donut chart ── */
+.win-loss-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ── Rank distribution improved ── */
+.rank-dist-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 0;
+}
+.rank-dist-row:hover .rank-dist-bar-fill {
+  filter: brightness(1.15);
+}
+
+/* ── Comparison bar improved ── */
+.compare-bar-track {
+  flex: 1;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(0,207,255,0.08);
+  display: flex;
+}
+
+/* ── Page content padding ── */
+.page-content {
+  padding: 1.5rem;
+}
+@media (min-width: 768px) {
+  .page-content { padding: 2rem; }
+}
+@media (min-width: 1280px) {
+  .page-content { padding: 2.5rem; }
 }

@@ -23,35 +23,36 @@ export function WinLossChart({ wins, losses, matches }: WinLossChartProps) {
   const winArc = (winRate / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="win-loss-chart">
       <div className="relative">
-        <svg width="120" height="120" viewBox="0 0 120 120">
+        <svg width="140" height="140" viewBox="0 0 120 120">
           {/* Background ring */}
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#27272a" strokeWidth="14" />
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,207,255,0.12)" strokeWidth="14" />
           {/* Win arc */}
           <circle
             cx={cx} cy={cy} r={r}
             fill="none"
-            stroke="#f97316"
+            stroke="#00CFFF"
             strokeWidth="14"
             strokeDasharray={`${winArc} ${circumference - winArc}`}
             strokeLinecap="round"
             transform={`rotate(-90 ${cx} ${cy})`}
+            style={{ filter: "drop-shadow(0 0 6px rgba(0,207,255,0.5))" }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-black text-orange-400">{winRate}%</span>
-          <span className="text-xs text-zinc-500">Win Rate</span>
+          <span className="text-2xl font-black" style={{ color: "#00CFFF" }}>{winRate}%</span>
+          <span className="text-xs" style={{ color: "rgba(168,255,246,0.55)" }}>Win Rate</span>
         </div>
       </div>
       <div className="flex gap-6 text-sm">
         <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-orange-500 inline-block" />
-          <span className="text-zinc-300">{wins} Wins</span>
+          <span className="h-3 w-3 rounded-full inline-block" style={{ background: "#00CFFF", boxShadow: "0 0 6px rgba(0,207,255,0.5)" }} />
+          <span style={{ color: "#e2f4ff" }}>{wins} Wins</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-zinc-700 inline-block" />
-          <span className="text-zinc-300">{losses} Losses</span>
+          <span className="h-3 w-3 rounded-full inline-block" style={{ background: "rgba(255,127,80,0.7)" }} />
+          <span style={{ color: "rgba(168,255,246,0.70)" }}>{losses} Losses</span>
         </div>
       </div>
     </div>
@@ -139,27 +140,27 @@ interface RankDistributionChartProps {
 
 export function RankDistributionChart({ buckets, totalPlayers }: RankDistributionChartProps) {
   if (buckets.length === 0) {
-    return <p className="text-sm text-zinc-500">No data available.</p>;
+    return <p className="text-sm" style={{ color: "rgba(168,255,246,0.50)" }}>No data available.</p>;
   }
 
   const maxCount = Math.max(...buckets.map((b) => b.count));
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {buckets.map((bucket) => {
         const pct = totalPlayers ? Math.round((bucket.count / totalPlayers) * 100) : 0;
         const barWidth = maxCount ? Math.round((bucket.count / maxCount) * 100) : 0;
         return (
-          <div key={bucket.tier} className="flex items-center gap-3 text-sm">
-            <span className="w-32 shrink-0 text-xs text-zinc-400 truncate">{bucket.tier}</span>
-            <div className="flex-1 h-5 rounded-full bg-zinc-800 overflow-hidden">
+          <div key={bucket.tier} className="rank-dist-row">
+            <span className="w-32 shrink-0 text-xs truncate" style={{ color: "rgba(168,255,246,0.70)" }}>{bucket.tier}</span>
+            <div className="rank-dist-bar flex-1">
               <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${barWidth}%`, backgroundColor: bucket.color }}
+                className="rank-dist-bar-fill"
+                style={{ width: `${barWidth}%`, backgroundColor: bucket.color, boxShadow: `0 0 8px ${bucket.color}60` }}
               />
             </div>
-            <span className="w-16 text-right text-xs text-zinc-400">
-              {bucket.count} <span className="text-zinc-600">({pct}%)</span>
+            <span className="w-16 text-right text-xs" style={{ color: "rgba(168,255,246,0.60)" }}>
+              {bucket.count} <span style={{ color: "rgba(168,255,246,0.35)" }}>({pct}%)</span>
             </span>
           </div>
         );
@@ -194,48 +195,48 @@ export function CompareBar({ label, valueA, valueB, nameA, nameB, format }: Comp
     <div className="space-y-1.5">
       {/* Label row */}
       <div className="flex items-center justify-center">
-        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">{label}</span>
+        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(168,255,246,0.50)" }}>{label}</span>
       </div>
       {/* Value + bar row */}
       <div className="flex items-center gap-2">
         {/* Player A value */}
         <span
-          className={`w-16 text-right text-sm font-black tabular-nums ${
-            aWins ? "text-orange-400" : "text-zinc-400"
-          }`}
+          className="w-16 text-right text-sm font-black tabular-nums"
+          style={{ color: aWins ? "#00CFFF" : "rgba(168,255,246,0.55)" }}
         >
           {fmt(valueA)}
         </span>
         {/* Bar */}
-        <div className="flex flex-1 h-4 rounded-full overflow-hidden bg-zinc-800/60">
+        <div className="compare-bar-track">
           <div
             className="h-full rounded-l-full transition-all duration-500"
             style={{
               width: `${pctA}%`,
-              background: "linear-gradient(90deg, #f97316, #fb923c)",
+              background: "linear-gradient(90deg, #00CFFF, #4DEEEA)",
+              boxShadow: aWins ? "0 0 8px rgba(0,207,255,0.4)" : "none",
             }}
           />
           <div
             className="h-full rounded-r-full transition-all duration-500"
             style={{
               width: `${pctB}%`,
-              background: "linear-gradient(90deg, #f97316, #ef4444)",
+              background: "linear-gradient(90deg, #4DEEEA, #A8FFF6)",
+              boxShadow: bWins ? "0 0 8px rgba(77,238,234,0.4)" : "none",
             }}
           />
         </div>
         {/* Player B value */}
         <span
-          className={`w-16 text-left text-sm font-black tabular-nums ${
-            bWins ? "text-orange-400" : "text-zinc-400"
-          }`}
+          className="w-16 text-left text-sm font-black tabular-nums"
+          style={{ color: bWins ? "#4DEEEA" : "rgba(168,255,246,0.55)" }}
         >
           {fmt(valueB)}
         </span>
       </div>
       {/* Name labels */}
-      <div className="flex justify-between px-[4.5rem] text-xs text-zinc-500">
-        <span className="font-medium text-orange-400/70 truncate max-w-[45%]">{nameA}</span>
-        <span className="font-medium text-yellow-400/70 truncate max-w-[45%] text-right">{nameB}</span>
+      <div className="flex justify-between px-[4.5rem] text-xs">
+        <span className="font-medium truncate max-w-[45%]" style={{ color: "rgba(0,207,255,0.70)" }}>{nameA}</span>
+        <span className="font-medium truncate max-w-[45%] text-right" style={{ color: "rgba(77,238,234,0.70)" }}>{nameB}</span>
       </div>
     </div>
   );
@@ -252,19 +253,19 @@ interface CompareLegendProps {
 
 export function CompareLegend({ nameA, nameB }: CompareLegendProps) {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5 text-xs font-bold">
+    <div className="flex items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold" style={{ background: "rgba(0,207,255,0.06)", border: "1px solid rgba(0,207,255,0.15)" }}>
       <div className="flex items-center gap-2">
         <span
           className="inline-block h-3 w-8 rounded-full"
-          style={{ background: "linear-gradient(90deg, #f97316, #fb923c)" }}
+          style={{ background: "linear-gradient(90deg, #00CFFF, #4DEEEA)", boxShadow: "0 0 6px rgba(0,207,255,0.4)" }}
         />
-        <span className="text-orange-400">{nameA}</span>
+        <span style={{ color: "#00CFFF" }}>{nameA}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-orange-400">{nameB}</span>
+        <span style={{ color: "#4DEEEA" }}>{nameB}</span>
         <span
           className="inline-block h-3 w-8 rounded-full"
-          style={{ background: "linear-gradient(90deg, #f97316, #ef4444)" }}
+          style={{ background: "linear-gradient(90deg, #4DEEEA, #A8FFF6)", boxShadow: "0 0 6px rgba(77,238,234,0.4)" }}
         />
       </div>
     </div>

@@ -7,24 +7,33 @@ export default function GuidePage() {
   return (
     <Shell>
       {/* Hero */}
-      <section className="rounded-3xl border border-orange-700/40 bg-gradient-to-r from-black via-[#1a0e05] to-orange-950 p-8 shadow-2xl">
-        <p className="mb-2 text-sm font-bold uppercase tracking-[0.3em] text-orange-300">
-          EAS Arena
-        </p>
-        <h1 className="text-4xl font-black md:text-5xl">📖 How Ranked Works</h1>
-        <p className="mt-3 max-w-2xl text-zinc-300">
-          Everything you need to know about the EAS competitive ranking system — from your first placement match to Hall of Fame.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-orange-600/60 bg-orange-950/30 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-orange-950/60 transition">
-            🏷️ View All Ranks
-          </SoundLink>
-          <SoundLink href="/placements" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold hover:bg-white/10 transition">
-            📋 Placements Tracker
-          </SoundLink>
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold hover:bg-white/10 transition">
-            🏆 Leaderboard
-          </SoundLink>
+      <section className="hero-section-v2 mb-6 p-8 md:p-10">
+        {/* Top accent */}
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(0,207,255,0.7), rgba(77,238,234,0.5), transparent)" }} />
+        {/* Glow orb */}
+        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, rgba(0,207,255,0.7), transparent 70%)", filter: "blur(40px)" }} />
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-4"
+            style={{ border: "1px solid rgba(0,207,255,0.30)", background: "rgba(0,207,255,0.10)" }}>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#00CFFF" }}>EAS Arena</span>
+          </div>
+          <h1 className="text-4xl font-black md:text-5xl" style={{ color: "#e2f4ff" }}>📖 How Ranked Works</h1>
+          <p className="mt-3 max-w-2xl text-base leading-relaxed" style={{ color: "rgba(168,255,246,0.70)" }}>
+            Everything you need to know about the EAS competitive ranking system — from your first placement match to Hall of Fame.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <SoundLink href="/ranks" soundType="success" className="btn-press rounded-xl px-4 py-2.5 text-sm font-bold transition-all" style={{ border: "1px solid rgba(0,207,255,0.35)", background: "rgba(0,207,255,0.12)", color: "#00CFFF" }}>
+              🏷️ View All Ranks
+            </SoundLink>
+            <SoundLink href="/placements" soundType="success" className="btn-press rounded-xl px-4 py-2.5 text-sm font-bold transition-all" style={{ border: "1px solid rgba(77,238,234,0.30)", background: "rgba(77,238,234,0.08)", color: "#4DEEEA" }}>
+              📋 Placements Tracker
+            </SoundLink>
+            <SoundLink href="/leaderboard" soundType="success" className="btn-press rounded-xl px-4 py-2.5 text-sm font-bold transition-all" style={{ border: "1px solid rgba(168,255,246,0.20)", background: "rgba(168,255,246,0.06)", color: "rgba(168,255,246,0.75)" }}>
+              🏆 Leaderboard
+            </SoundLink>
+          </div>
         </div>
       </section>
 
@@ -35,12 +44,12 @@ export default function GuidePage() {
           { emoji: "📈", label: "Starting CR",       value: "0", sub: "after placements" },
           { emoji: "🏷️", label: "Total Tiers",       value: "30", sub: "across 10 divisions" },
           { emoji: "🔝", label: "Max CR",            value: "5,300+", sub: "Hall of Fame High" },
-        ].map(({ emoji, label, value, sub }) => (
-          <div key={label} className="rounded-2xl border border-white/10 bg-[#0d0d14] p-5 text-center">
+        ].map(({ emoji, label, value, sub }, idx) => (
+          <div key={label} className="rounded-2xl p-5 text-center animate-card-entrance" style={{ animationDelay: `${idx * 60}ms`, border: "1px solid rgba(0,207,255,0.18)", background: "rgba(6,43,69,0.80)", backdropFilter: "blur(16px)" }}>
             <span className="text-2xl">{emoji}</span>
-            <p className="mt-2 text-2xl font-black text-orange-300">{value}</p>
-            <p className="mt-0.5 text-xs font-bold text-white">{label}</p>
-            <p className="text-xs text-zinc-500">{sub}</p>
+            <p className="mt-2 text-2xl font-black" style={{ color: "#FF7F50" }}>{value}</p>
+            <p className="mt-0.5 text-xs font-bold" style={{ color: "#e2f4ff" }}>{label}</p>
+            <p className="text-xs" style={{ color: "rgba(168,255,246,0.50)" }}>{sub}</p>
           </div>
         ))}
       </section>
@@ -53,11 +62,11 @@ export default function GuidePage() {
           title="What is Ranked Mode?"
           color="purple"
         >
-          <p className="text-zinc-300 leading-relaxed">
+          <p className="text-base leading-relaxed" style={{ color: "rgba(168,255,246,0.75)" }}>
             Ranked mode is EAS Arena's competitive ladder — a structured system where every match you play directly impacts your standing in the league. Unlike casual play, ranked matches carry real stakes: wins push you up the ladder, losses pull you down, and your final position at the end of a season reflects your true skill level.
           </p>
-          <p className="mt-3 text-zinc-300 leading-relaxed">
-            The ranked system uses <strong className="text-white">Competitive Rating (CR)</strong> as its core metric. Every player starts at 0 CR after completing placements, and your CR rises or falls based on match outcomes, opponent strength, and performance. Your CR determines your rank tier, which ranges from <strong className="text-white">R1 Rookie</strong> all the way up to <strong className="text-white">R10 Hall of Fame</strong>.
+          <p className="mt-3 text-base leading-relaxed" style={{ color: "rgba(168,255,246,0.75)" }}>
+            The ranked system uses <strong style={{ color: "#e2f4ff" }}>Competitive Rating (CR)</strong> as its core metric. Every player starts at 0 CR after completing placements, and your CR rises or falls based on match outcomes, opponent strength, and performance. Your CR determines your rank tier, which ranges from <strong style={{ color: "#e2f4ff" }}>R1 Rookie</strong> all the way up to <strong style={{ color: "#e2f4ff" }}>R10 Hall of Fame</strong>.
           </p>
         </GuideSection>
 
@@ -162,8 +171,8 @@ export default function GuidePage() {
                 desc: "At certain thresholds, you may have demotion protection — preventing you from dropping below a tier boundary on a single loss.",
               },
             ].map(({ icon, title, desc }) => (
-              <div key={title} className="rounded-xl border border-white/10 bg-[#0d0d14] p-4">
-                <p className="flex items-center gap-2 font-bold text-white">
+              <div key={title} className="rounded-xl p-4" style={{ border: "1px solid rgba(0,207,255,0.15)", background: "rgba(6,43,69,0.70)" }}>
+                <p className="flex items-center gap-2 font-bold" style={{ color: "#e2f4ff" }}>
                   <span>{icon}</span> {title}
                 </p>
                 <p className="mt-1 text-sm text-zinc-400">{desc}</p>
@@ -236,7 +245,7 @@ export default function GuidePage() {
               { tier: "R9", name: "Unreal",      range: "3,550 – 4,499", emoji: "🌌", color: "text-teal-300" },
               { tier: "R10", name: "Hall of Fame", range: "4,500+",   emoji: "🏛️", color: "text-amber-300" },
             ].map(({ tier, name, range, emoji, color }) => (
-              <div key={tier} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3">
+              <div key={tier} className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ border: "1px solid rgba(0,207,255,0.15)", background: "rgba(6,43,69,0.70)" }}>
                 <span className="text-xl">{emoji}</span>
                 <div className="flex-1 min-w-0">
                   <p className={`font-bold text-sm ${color}`}>{tier} · {name}</p>
@@ -285,7 +294,7 @@ export default function GuidePage() {
                 scenario: "You beat a team at similar CR",
                 result: "Standard CR gain",
                 icon: "✅",
-                color: "border-white/10 bg-[#0d0d14]",
+                color: "border-[rgba(0,207,255,0.15)] bg-[rgba(6,43,69,0.70)]",
                 resultColor: "text-white",
               },
               {
@@ -306,7 +315,7 @@ export default function GuidePage() {
                 scenario: "You lose to a team at similar CR",
                 result: "Standard CR loss",
                 icon: "❌",
-                color: "border-white/10 bg-[#0d0d14]",
+                color: "border-[rgba(0,207,255,0.15)] bg-[rgba(6,43,69,0.70)]",
                 resultColor: "text-zinc-300",
               },
               {
@@ -383,8 +392,8 @@ export default function GuidePage() {
                 desc: "Rather than fixating on the top, aim for the next sub-tier. Small, achievable goals keep you motivated and moving forward.",
               },
             ].map(({ icon, title, desc }) => (
-              <div key={title} className="rounded-xl border border-white/10 bg-[#0d0d14] p-4">
-                <p className="flex items-center gap-2 font-bold text-white">
+              <div key={title} className="rounded-xl p-4" style={{ border: "1px solid rgba(0,207,255,0.15)", background: "rgba(6,43,69,0.70)" }}>
+                <p className="flex items-center gap-2 font-bold" style={{ color: "#e2f4ff" }}>
                   <span className="text-lg">{icon}</span> {title}
                 </p>
                 <p className="mt-1 text-sm text-zinc-400">{desc}</p>
@@ -440,10 +449,10 @@ export default function GuidePage() {
                 desc: "Between seasons, ranked matches are paused. Use this time to review your performance, practice, and prepare for the next season.",
               },
             ].map(({ icon, title, desc }) => (
-              <div key={title} className="flex gap-3 rounded-xl border border-white/10 bg-[#0d0d14] px-4 py-3">
+              <div key={title} className="flex gap-3 rounded-xl px-4 py-3" style={{ border: "1px solid rgba(0,207,255,0.15)", background: "rgba(6,43,69,0.70)" }}>
                 <span className="mt-0.5 text-lg">{icon}</span>
                 <div>
-                  <p className="font-bold text-sm text-white">{title}</p>
+                  <p className="font-bold text-sm" style={{ color: "#e2f4ff" }}>{title}</p>
                   <p className="mt-0.5 text-sm text-zinc-400">{desc}</p>
                 </div>
               </div>
@@ -454,19 +463,19 @@ export default function GuidePage() {
       </div>
 
       {/* Footer CTA */}
-      <div className="mt-10 rounded-2xl border border-orange-700/40 bg-orange-950/20 p-8 text-center">
-        <p className="text-2xl font-black">Ready to compete?</p>
-        <p className="mt-2 text-zinc-400 max-w-lg mx-auto">
+      <div className="mt-10 rounded-2xl p-8 text-center animate-card-entrance" style={{ border: "1px solid rgba(0,207,255,0.22)", background: "linear-gradient(135deg, rgba(0,207,255,0.10), rgba(6,43,69,0.90))", backdropFilter: "blur(20px)" }}>
+        <p className="text-2xl font-black" style={{ color: "#e2f4ff" }}>Ready to compete?</p>
+        <p className="mt-2 max-w-lg mx-auto text-base" style={{ color: "rgba(168,255,246,0.65)" }}>
           Check the leaderboard to see where you stand, view all rank tiers, or track players currently in placements.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-5 py-2.5 text-sm font-bold hover:from-orange-400 hover:to-red-400 transition-all">
+          <SoundLink href="/leaderboard" soundType="success" className="btn-press rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all" style={{ background: "linear-gradient(135deg, #FF7F50, #FF8C42)", boxShadow: "0 4px 16px rgba(255,127,80,0.35)" }}>
             🏆 Leaderboard
           </SoundLink>
-          <SoundLink href="/ranks" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition">
+          <SoundLink href="/ranks" soundType="success" className="btn-press rounded-xl px-5 py-2.5 text-sm font-bold transition-all" style={{ border: "1px solid rgba(0,207,255,0.30)", background: "rgba(0,207,255,0.10)", color: "#00CFFF" }}>
             🏷️ Rank Guide
           </SoundLink>
-          <SoundLink href="/placements" soundType="success" className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition">
+          <SoundLink href="/placements" soundType="success" className="btn-press rounded-xl px-5 py-2.5 text-sm font-bold transition-all" style={{ border: "1px solid rgba(77,238,234,0.25)", background: "rgba(77,238,234,0.08)", color: "#4DEEEA" }}>
             📋 Placements
           </SoundLink>
         </div>
@@ -488,33 +497,42 @@ function GuideSection({
   color: "purple" | "blue" | "yellow" | "green" | "orange";
   children: React.ReactNode;
 }) {
-  const borderColors = {
-    purple: "border-orange-700/40",
-    blue:   "border-teal-700/40",
-    yellow: "border-yellow-600/40",
-    green:  "border-green-700/40",
-    orange: "border-orange-700/40",
+  const accentColors = {
+    purple: "rgba(0,207,255,0.9), rgba(77,238,234,0.6)",
+    blue:   "rgba(77,238,234,0.9), rgba(0,207,255,0.6)",
+    yellow: "rgba(251,191,36,0.9), rgba(255,127,80,0.6)",
+    green:  "rgba(34,197,94,0.9), rgba(77,238,234,0.5)",
+    orange: "rgba(255,127,80,0.9), rgba(255,140,66,0.6)",
   };
-  const bgColors = {
-    purple: "bg-orange-950/10",
-    blue:   "bg-teal-950/10",
-    yellow: "bg-yellow-950/10",
-    green:  "bg-green-950/10",
-    orange: "bg-orange-950/10",
+  const iconColors = {
+    purple: { bg: "rgba(0,207,255,0.15)", border: "rgba(0,207,255,0.30)" },
+    blue:   { bg: "rgba(77,238,234,0.15)", border: "rgba(77,238,234,0.30)" },
+    yellow: { bg: "rgba(251,191,36,0.15)", border: "rgba(251,191,36,0.30)" },
+    green:  { bg: "rgba(34,197,94,0.15)", border: "rgba(34,197,94,0.30)" },
+    orange: { bg: "rgba(255,127,80,0.15)", border: "rgba(255,127,80,0.30)" },
   };
   const headingColors = {
-    purple: "text-orange-300",
-    blue:   "text-teal-300",
-    yellow: "text-yellow-300",
-    green:  "text-green-300",
-    orange: "text-orange-300",
+    purple: "#00CFFF",
+    blue:   "#4DEEEA",
+    yellow: "#fbbf24",
+    green:  "#4ade80",
+    orange: "#FF7F50",
   };
 
   return (
-    <div className={`rounded-2xl border ${borderColors[color]} ${bgColors[color]} p-6`}>
-      <h2 className={`flex items-center gap-2 text-xl font-black ${headingColors[color]}`}>
-        <span>{emoji}</span> {title}
-      </h2>
+    <div className="guide-section-card animate-card-entrance" style={{ position: "relative" }}>
+      {/* Top accent */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.25rem]"
+        style={{ background: `linear-gradient(90deg, ${accentColors[color]}, transparent)` }} />
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl text-xl"
+          style={{ background: iconColors[color].bg, border: `1px solid ${iconColors[color].border}` }}>
+          {emoji}
+        </div>
+        <h2 className="text-xl font-black" style={{ color: headingColors[color] }}>
+          {title}
+        </h2>
+      </div>
       <div className="mt-4">{children}</div>
     </div>
   );

@@ -272,16 +272,24 @@ export default function CRAdminPage() {
   return (
     <Shell>
       <div className="mb-6">
-        <h1 className="text-4xl font-black">⚙️ CR Admin Panel</h1>
-        <p className="mt-2 text-zinc-400">
-          Update player Competitive Rating with full audit logging. Developer access only.
-        </p>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl text-xl"
+            style={{ background: "rgba(255,127,80,0.15)", border: "1px solid rgba(255,127,80,0.30)", boxShadow: "0 0 20px rgba(255,127,80,0.15)" }}>
+            ⚙️
+          </div>
+          <div>
+            <h1 className="text-2xl font-black" style={{ color: "#e2f4ff" }}>CR Admin Panel</h1>
+            <p className="text-sm" style={{ color: "rgba(168,255,246,0.55)" }}>
+              Update player Competitive Rating with full audit logging. Developer access only.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}
       {/* Section 1: Update Player CR                                         */}
       {/* ------------------------------------------------------------------ */}
-      <div className="rounded-2xl border border-orange-700/30 bg-gradient-to-br from-orange-950/20 to-black p-6 mb-8">
+      <div className="admin-card p-6 mb-8">
         <h2 className="mb-5 text-xl font-black text-orange-300">🎯 Update Player CR</h2>
 
         {/* Player lookup */}
@@ -291,7 +299,8 @@ export default function CRAdminPage() {
             value={lookupId}
             onChange={(e) => setLookupId(e.target.value)}
             placeholder="Discord User ID (e.g. 123456789012345678)"
-            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 font-mono text-sm text-white placeholder-zinc-600 focus:border-orange-600/60 focus:outline-none"
+            className="flex-1 rounded-xl font-mono text-sm focus:outline-none"
+            style={{ border: "1px solid rgba(255,127,80,0.25)", background: "rgba(6,43,69,0.80)", color: "#e2f4ff", padding: "0.625rem 1rem" }}
           />
           <button
             type="submit"
@@ -406,9 +415,9 @@ export default function CRAdminPage() {
       {/* ------------------------------------------------------------------ */}
       {/* Section 2: Audit Logs                                               */}
       {/* ------------------------------------------------------------------ */}
-      <div className="rounded-2xl border border-white/10 bg-[#0d0d14] overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-white/10">
-          <h2 className="text-xl font-black">📋 Audit Logs</h2>
+      <div className="admin-card overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4" style={{ borderBottom: "1px solid rgba(255,127,80,0.15)" }}>
+          <h2 className="text-xl font-black" style={{ color: "#e2f4ff" }}>📋 Audit Logs</h2>
 
           {/* Filter + refresh */}
           <form onSubmit={handleLogsFilter} className="flex gap-2">
@@ -441,15 +450,15 @@ export default function CRAdminPage() {
         </div>
 
         {loadingLogs && logs.length === 0 ? (
-          <div className="p-10 text-center text-zinc-500 animate-pulse">Loading logs…</div>
+          <div className="p-10 text-center animate-pulse" style={{ color: "rgba(168,255,246,0.55)" }}>Loading logs…</div>
         ) : logs.length === 0 ? (
-          <div className="p-10 text-center text-zinc-500">No audit logs found.</div>
+          <div className="p-10 text-center" style={{ color: "rgba(168,255,246,0.55)" }}>No audit logs found.</div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 text-xs font-black uppercase tracking-wider text-zinc-500">
+                  <tr className="text-[10px] font-black uppercase tracking-wider" style={{ borderBottom: "1px solid rgba(255,127,80,0.15)", color: "rgba(168,255,246,0.50)" }}>
                     <th className="px-6 py-3 text-left">Player</th>
                     <th className="px-4 py-3 text-left">Player ID</th>
                     <th className="px-4 py-3 text-left">Old CR</th>
@@ -463,35 +472,33 @@ export default function CRAdminPage() {
                   {logs.map((log) => {
                     const delta = log.new_cr - log.old_cr;
                     return (
-                      <tr key={log.id} className="border-b border-white/5 hover:bg-white/5 transition">
-                        <td className="px-6 py-3 font-bold text-white">
+                      <tr key={log.id} className="transition-colors" style={{ borderBottom: "1px solid rgba(255,127,80,0.08)" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,127,80,0.05)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <td className="px-6 py-3 font-bold" style={{ color: "#e2f4ff" }}>
                           {log.player_name ?? log.player_id}
                         </td>
-                        <td className="px-4 py-3 font-mono text-xs text-zinc-500">
+                        <td className="px-4 py-3 font-mono text-xs" style={{ color: "rgba(168,255,246,0.45)" }}>
                           {log.player_id}
                         </td>
-                        <td className="px-4 py-3 text-zinc-400">{log.old_cr}</td>
+                        <td className="px-4 py-3" style={{ color: "rgba(168,255,246,0.60)" }}>{log.old_cr}</td>
                         <td className="px-4 py-3">
-                          <span className="font-black text-white">{log.new_cr}</span>
+                          <span className="font-black" style={{ color: "#e2f4ff" }}>{log.new_cr}</span>
                           <span
-                            className={`ml-2 text-xs font-bold ${
-                              delta > 0
-                                ? "text-green-400"
-                                : delta < 0
-                                ? "text-red-400"
-                                : "text-zinc-500"
-                            }`}
+                            className="ml-2 text-xs font-bold"
+                            style={{ color: delta > 0 ? "#4ade80" : delta < 0 ? "#FF7F50" : "rgba(168,255,246,0.45)" }}
                           >
                             {delta > 0 ? `+${delta}` : delta < 0 ? String(delta) : "±0"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-mono text-xs text-zinc-400">
+                        <td className="px-4 py-3 font-mono text-xs" style={{ color: "rgba(168,255,246,0.55)" }}>
                           {log.edited_by}
                         </td>
-                        <td className="px-4 py-3 text-zinc-300 max-w-xs truncate" title={log.reason}>
+                        <td className="px-4 py-3 max-w-xs truncate" title={log.reason} style={{ color: "rgba(168,255,246,0.70)" }}>
                           {log.reason}
                         </td>
-                        <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">
+                        <td className="px-4 py-3 whitespace-nowrap" style={{ color: "rgba(168,255,246,0.45)" }}>
                           {fmtTs(log.edited_at)}
                         </td>
                       </tr>
