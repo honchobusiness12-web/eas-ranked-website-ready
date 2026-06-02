@@ -126,11 +126,11 @@ export default function RanksPage() {
           { label: "Rank Tiers",        value: "10",    note: "R1 → R10" },
           { label: "Sub-tiers",         value: "30",    note: "Low / Mid / High" },
           { label: "Max CR",            value: "5300+", note: "Hall of Fame High" },
-        ].map(({ label, value, note }) => (
-          <div key={label} className="rounded-xl px-4 py-4 animate-card-entrance" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(6,43,69,0.75)", boxShadow: "0 4px 20px rgba(0,0,0,0.25)" }}>
-            <p className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "rgba(168,255,246,0.5)" }}>{label}</p>
-            <p className="mt-1.5 text-xl font-black" style={{ color: "#FF7F50" }}>{value}</p>
-            <p className="mt-0.5 text-[11px]" style={{ color: "rgba(168,255,246,0.4)" }}>{note}</p>
+        ].map(({ label, value, note }, idx) => (
+          <div key={label} className="rounded-xl px-4 py-4 animate-card-entrance" style={{ animationDelay: `${idx * 60}ms`, border: "1px solid rgba(0,207,255,0.20)", background: "rgba(6,43,69,0.82)", backdropFilter: "blur(16px)", boxShadow: "0 4px 20px rgba(0,0,0,0.25)" }}>
+            <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "rgba(168,255,246,0.55)" }}>{label}</p>
+            <p className="mt-1.5 text-2xl font-black" style={{ color: "#FF7F50" }}>{value}</p>
+            <p className="mt-0.5 text-[11px]" style={{ color: "rgba(168,255,246,0.45)" }}>{note}</p>
           </div>
         ))}
       </div>
@@ -201,16 +201,16 @@ export default function RanksPage() {
       </div>
 
       {/* ── Footer CTA ── */}
-      <div className="mt-6 rounded-2xl p-6 text-center animate-card-entrance" style={{ border: "1px solid rgba(255,127,80,0.25)", background: "rgba(255,127,80,0.07)" }}>
-        <p className="text-base font-black" style={{ color: "#e2f4ff" }}>Ready to climb?</p>
-        <p className="mt-1 text-sm" style={{ color: "rgba(168,255,246,0.6)" }}>
+      <div className="mt-6 rounded-2xl p-6 text-center animate-card-entrance" style={{ border: "1px solid rgba(0,207,255,0.22)", background: "linear-gradient(135deg, rgba(0,207,255,0.10), rgba(6,43,69,0.90))", backdropFilter: "blur(20px)" }}>
+        <p className="text-xl font-black" style={{ color: "#e2f4ff" }}>Ready to climb?</p>
+        <p className="mt-2 text-base" style={{ color: "rgba(168,255,246,0.65)" }}>
           Complete your 7 placement matches to earn your starting rank, then grind your way to Hall of Fame.
         </p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-lg px-4 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg, #FF7F50, #FF8C42)", boxShadow: "0 4px 16px rgba(255,127,80,0.35)" }}>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <SoundLink href="/leaderboard" soundType="success" className="btn-press rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all" style={{ background: "linear-gradient(135deg, #FF7F50, #FF8C42)", boxShadow: "0 4px 16px rgba(255,127,80,0.35)" }}>
             🏆 View Leaderboard
           </SoundLink>
-          <SoundLink href="/guide" soundType="success" className="rounded-lg px-4 py-2.5 text-sm font-bold transition-colors" style={{ border: "1px solid rgba(0,207,255,0.25)", background: "rgba(0,207,255,0.08)", color: "#00CFFF" }}>
+          <SoundLink href="/guide" soundType="success" className="btn-press rounded-xl px-5 py-2.5 text-sm font-bold transition-all" style={{ border: "1px solid rgba(0,207,255,0.30)", background: "rgba(0,207,255,0.10)", color: "#00CFFF" }}>
             📖 How Ranked Works
           </SoundLink>
         </div>

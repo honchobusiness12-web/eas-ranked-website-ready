@@ -194,7 +194,8 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             <SoundLink
               href={`/compare?a=${p.user_id}`}
               soundType="success"
-              className="flex items-center gap-2 rounded-xl border border-purple-600/40 bg-purple-950/20 px-4 py-2.5 text-sm font-bold text-purple-300 hover:bg-purple-950/40 hover:border-purple-500/60 transition-all hover:scale-[1.02]"
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all hover:scale-[1.02] btn-press"
+              style={{ border: "1px solid rgba(0,207,255,0.30)", background: "rgba(0,207,255,0.12)", color: "#00CFFF" }}
             >
               <span>⚔️</span>
               <span>Compare</span>
@@ -202,7 +203,8 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
             <SoundLink
               href="/leaderboard"
               soundType="click"
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-bold text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200 transition-all hover:scale-[1.02]"
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all hover:scale-[1.02] btn-press"
+              style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(0,207,255,0.06)", color: "rgba(168,255,246,0.70)" }}
             >
               <span>🏆</span>
               <span>Leaderboard</span>
@@ -312,14 +314,23 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
           <CrProgressionSection crPoints={crPoints} />
 
           {/* Rank Progress */}
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-4 text-sm font-black">🎯 Rank Progress</h2>
+          <div className="glass-card-premium gradient-border-animated p-5">
+            {/* Top accent */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+              style={{ background: `linear-gradient(90deg, ${rankColor}90, rgba(77,238,234,0.5), transparent)` }} />
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                style={{ background: `${rankColor}20`, border: `1px solid ${rankColor}40` }}>
+                🎯
+              </div>
+              <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>Rank Progress</h2>
+            </div>
             {next ? (
               <>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <RankBadge cr={cr} size="sm" />
-                    <span className="text-xs text-zinc-500">→</span>
+                    <span className="text-xs" style={{ color: "rgba(168,255,246,0.45)" }}>→</span>
                     <span
                       className="rounded-lg border px-2 py-0.5 text-xs font-bold"
                       style={{
@@ -331,7 +342,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                       {next.name}
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-orange-400">
+                  <span className="text-xs font-bold" style={{ color: "#FF7F50" }}>
                     {(next.min - cr).toLocaleString()} CR to go
                   </span>
                 </div>
@@ -341,40 +352,58 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                   glowColor={`${rankColor}60`}
                   height="h-3"
                 />
-                <div className="mt-2 flex justify-between text-[11px] text-zinc-600">
+                <div className="mt-2 flex justify-between text-[11px]" style={{ color: "rgba(168,255,246,0.45)" }}>
                   <span>{currentRankMin.toLocaleString()} CR</span>
-                  <span className="text-zinc-400 font-bold">{progressPct}%</span>
+                  <span className="font-bold" style={{ color: "rgba(168,255,246,0.70)" }}>{progressPct}%</span>
                   <span>{next.min.toLocaleString()} CR</span>
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-4 rounded-xl border border-yellow-600/30 bg-yellow-950/15 p-4">
+              <div className="flex items-center gap-4 rounded-xl p-4" style={{ border: "1px solid rgba(251,191,36,0.30)", background: "rgba(251,191,36,0.08)" }}>
                 <span className="text-3xl">🏆</span>
                 <div>
-                  <p className="font-black text-yellow-400">Maximum Rank Achieved!</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">You&apos;ve reached the pinnacle of the ladder.</p>
+                  <p className="font-black" style={{ color: "#fbbf24" }}>Maximum Rank Achieved!</p>
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(168,255,246,0.55)" }}>You&apos;ve reached the pinnacle of the ladder.</p>
                 </div>
               </div>
             )}
           </div>
 
           {/* Match Timeline */}
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
+          <div className="glass-card-premium gradient-border-animated p-5">
+            {/* Top accent */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+              style={{ background: "linear-gradient(90deg, rgba(77,238,234,0.9), rgba(0,207,255,0.6), transparent)" }} />
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-black">📜 Match History</h2>
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                  style={{ background: "linear-gradient(135deg, rgba(77,238,234,0.18), rgba(0,207,255,0.12))", border: "1px solid rgba(77,238,234,0.28)" }}>
+                  📜
+                </div>
+                <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>Match History</h2>
+              </div>
               {crPoints.length > 0 && (
-                <span className="text-xs text-zinc-600">{crPoints.length} entries</span>
+                <span className="text-xs font-medium" style={{ color: "rgba(168,255,246,0.50)" }}>{crPoints.length} entries</span>
               )}
             </div>
             <MatchPagination points={crPoints} itemsPerPage={5} />
           </div>
 
           {/* ── Achievements ── */}
-          <section className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
+          <section className="glass-card-premium gradient-border-animated p-5">
+            {/* Top accent */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+              style={{ background: "linear-gradient(90deg, rgba(242,217,166,0.9), rgba(255,127,80,0.6), transparent)" }} />
             <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-base font-black">🏅 Achievements</h2>
-                <p className="text-xs text-zinc-600 mt-0.5">Milestones earned through gameplay</p>
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                  style={{ background: "linear-gradient(135deg, rgba(242,217,166,0.18), rgba(255,127,80,0.12))", border: "1px solid rgba(242,217,166,0.28)" }}>
+                  🏅
+                </div>
+                <div>
+                  <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>Achievements</h2>
+                  <p className="text-[10px]" style={{ color: "rgba(168,255,246,0.50)" }}>Milestones earned through gameplay</p>
+                </div>
               </div>
               <AchievementProgress unlocked={unlockedCount} total={achievements.length} />
             </div>
@@ -387,31 +416,34 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
           {/* ── MVP History ── */}
           {mvpHistory.length > 0 && (
-            <section className="rounded-2xl border border-yellow-500/[0.18] bg-[#0d0d18] p-5 animate-fadeInUp">
+            <section className="glass-card-premium gradient-border-animated p-5 animate-fadeInUp">
+              {/* Top accent */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+                style={{ background: "linear-gradient(90deg, rgba(251,191,36,0.9), rgba(255,127,80,0.6), transparent)" }} />
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
                   <div
                     className="flex h-9 w-9 items-center justify-center rounded-xl text-lg mvp-glow"
-                    style={{ background: "rgba(234,179,8,0.14)", border: "1px solid rgba(234,179,8,0.25)" }}
+                    style={{ background: "rgba(251,191,36,0.14)", border: "1px solid rgba(251,191,36,0.28)" }}
                   >
                     🌟
                   </div>
                   <div>
-                    <h2 className="text-sm font-black">MVP History</h2>
-                    <p className="text-[10px] text-zinc-600 mt-0.5">Last {mvpHistory.length} MVP awards</p>
+                    <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>MVP History</h2>
+                    <p className="text-[10px] mt-0.5" style={{ color: "rgba(168,255,246,0.50)" }}>Last {mvpHistory.length} MVP awards</p>
                   </div>
                 </div>
-                <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                <span className="rounded-full border px-3 py-1 text-xs font-black" style={{ borderColor: "rgba(251,191,36,0.30)", background: "rgba(251,191,36,0.10)", color: "#fbbf24" }}>
                   {mvpHistory.length} total
                 </span>
               </div>
 
               {/* Stats row */}
               <div className="grid grid-cols-1 gap-2 mb-4">
-                <div className="flex items-center justify-between rounded-xl bg-yellow-500/[0.06] border border-yellow-500/[0.12] px-4 py-3">
-                  <span className="text-xs text-zinc-400">Total MVPs on record</span>
-                  <span className="text-lg font-black text-yellow-300">{mvpHistory.length}</span>
+                <div className="flex items-center justify-between rounded-xl px-4 py-3" style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.15)" }}>
+                  <span className="text-xs" style={{ color: "rgba(168,255,246,0.65)" }}>Total MVPs on record</span>
+                  <span className="text-lg font-black" style={{ color: "#fbbf24" }}>{mvpHistory.length}</span>
                 </div>
               </div>
 
@@ -420,17 +452,17 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                 {mvpHistory.map((entry, idx) => (
                   <div
                     key={entry.id}
-                    className="history-item-enter flex items-center justify-between rounded-xl bg-white/[0.03] border border-white/[0.05] px-4 py-2.5 hover:bg-yellow-500/[0.05] hover:border-yellow-500/[0.12] transition-all duration-200"
-                    style={{ animationDelay: `${idx * 50}ms` }}
+                    className="history-item-enter flex items-center justify-between rounded-xl px-4 py-2.5 transition-all duration-200"
+                    style={{ background: "rgba(6,43,69,0.70)", border: "1px solid rgba(0,207,255,0.12)", animationDelay: `${idx * 50}ms` }}
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">🌟</span>
                       <div>
-                        <p className="text-xs font-bold text-yellow-300">MVP Awarded</p>
-                        <p className="text-[10px] text-zinc-600 font-mono">Match: {entry.match_id.slice(0, 12)}…</p>
+                        <p className="text-xs font-bold" style={{ color: "#fbbf24" }}>MVP Awarded</p>
+                        <p className="text-[10px] font-mono" style={{ color: "rgba(168,255,246,0.45)" }}>Match: {entry.match_id.slice(0, 12)}…</p>
                       </div>
                     </div>
-                    <span className="text-[10px] text-zinc-600 tabular-nums">
+                    <span className="text-[10px] tabular-nums" style={{ color: "rgba(168,255,246,0.45)" }}>
                       {new Date(entry.awarded_at).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -454,35 +486,38 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               : 0;
 
             return (
-              <section className="rounded-2xl border border-purple-500/[0.18] bg-[#0d0d18] p-5 animate-fadeInUp delay-60">
+              <section className="glass-card-premium gradient-border-animated p-5 animate-fadeInUp delay-60">
+                {/* Top accent */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+                  style={{ background: "linear-gradient(90deg, rgba(0,207,255,0.9), rgba(77,238,234,0.6), transparent)" }} />
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2.5">
                     <div
                       className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
-                      style={{ background: "rgba(168,85,247,0.14)", border: "1px solid rgba(168,85,247,0.25)" }}
+                      style={{ background: "rgba(0,207,255,0.14)", border: "1px solid rgba(0,207,255,0.28)" }}
                     >
                       ⚡
                     </div>
                     <div>
-                      <h2 className="text-sm font-black">CR History</h2>
-                      <p className="text-[10px] text-zinc-600 mt-0.5">Last {crHistory.length} CR changes</p>
+                      <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>CR History</h2>
+                      <p className="text-[10px] mt-0.5" style={{ color: "rgba(168,255,246,0.50)" }}>Last {crHistory.length} CR changes</p>
                     </div>
                   </div>
-                  <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-black text-purple-300">
+                  <span className="rounded-full border px-3 py-1 text-xs font-black" style={{ borderColor: "rgba(0,207,255,0.28)", background: "rgba(0,207,255,0.10)", color: "#00CFFF" }}>
                     {crHistory.length} entries
                   </span>
                 </div>
 
                 {/* Stats row */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="rounded-xl bg-green-500/[0.06] border border-green-500/[0.12] px-3 py-2.5 text-center">
-                    <p className="text-lg font-black text-green-300">+{avgGain}</p>
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-0.5">Avg CR Gain</p>
+                  <div className="rounded-xl px-3 py-2.5 text-center" style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.18)" }}>
+                    <p className="text-lg font-black" style={{ color: "#4ade80" }}>+{avgGain}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider mt-0.5" style={{ color: "rgba(168,255,246,0.50)" }}>Avg CR Gain</p>
                   </div>
-                  <div className="rounded-xl bg-yellow-500/[0.06] border border-yellow-500/[0.12] px-3 py-2.5 text-center">
-                    <p className="text-lg font-black text-yellow-300">+{highestGain}</p>
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-0.5">Best Single Match</p>
+                  <div className="rounded-xl px-3 py-2.5 text-center" style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.18)" }}>
+                    <p className="text-lg font-black" style={{ color: "#fbbf24" }}>+{highestGain}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider mt-0.5" style={{ color: "rgba(168,255,246,0.50)" }}>Best Single Match</p>
                   </div>
                 </div>
 
@@ -494,8 +529,8 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                     return (
                       <div
                         key={entry.id}
-                        className="history-item-enter flex items-center justify-between rounded-xl bg-white/[0.03] border border-white/[0.05] px-4 py-2.5 hover:bg-purple-500/[0.04] hover:border-purple-500/[0.10] transition-all duration-200"
-                        style={{ animationDelay: `${idx * 40}ms` }}
+                        className="history-item-enter flex items-center justify-between rounded-xl px-4 py-2.5 transition-all duration-200"
+                        style={{ background: "rgba(6,43,69,0.70)", border: "1px solid rgba(0,207,255,0.12)", animationDelay: `${idx * 40}ms` }}
                       >
                         <div className="flex items-center gap-2.5">
                           <span className="text-base">
@@ -505,12 +540,12 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                             <p className={`text-xs font-bold ${isGain ? "cr-gain" : isLoss ? "cr-loss" : "cr-neutral"}`}>
                               {isGain ? "+" : ""}{entry.change} CR
                             </p>
-                            <p className="text-[10px] text-zinc-600">
+                            <p className="text-[10px]" style={{ color: "rgba(168,255,246,0.45)" }}>
                               {entry.old_cr.toLocaleString()} → {entry.new_cr.toLocaleString()}
                             </p>
                           </div>
                         </div>
-                        <span className="text-[10px] text-zinc-600 tabular-nums">
+                        <span className="text-[10px] tabular-nums" style={{ color: "rgba(168,255,246,0.45)" }}>
                           {new Date(entry.recorded_at).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -531,7 +566,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
           {/* Player Card */}
           <div>
-            <h2 className="mb-2 text-sm font-black text-zinc-400 uppercase tracking-widest px-1">🃏 Player Card</h2>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest px-1" style={{ color: "rgba(168,255,246,0.50)" }}>🃏 Player Card</p>
             <PlayerCard
               name={p.name}
               username={p.username}
@@ -546,14 +581,30 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
           </div>
 
           {/* Win/Loss donut */}
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-4 text-sm font-black">🎯 Win / Loss Ratio</h2>
+          <div className="glass-card-premium gradient-border-animated p-5">
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+              style={{ background: "linear-gradient(90deg, rgba(0,207,255,0.9), rgba(77,238,234,0.6), transparent)" }} />
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                style={{ background: "linear-gradient(135deg, rgba(0,207,255,0.18), rgba(77,238,234,0.12))", border: "1px solid rgba(0,207,255,0.28)" }}>
+                🎯
+              </div>
+              <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>Win / Loss Ratio</h2>
+            </div>
             <WinLossChart wins={wins} losses={losses} matches={matches} />
           </div>
 
           {/* Detailed stats */}
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-3 text-sm font-black">📊 Detailed Stats</h2>
+          <div className="glass-card-premium gradient-border-animated p-5">
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+              style={{ background: "linear-gradient(90deg, rgba(77,238,234,0.9), rgba(0,207,255,0.6), transparent)" }} />
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                style={{ background: "linear-gradient(135deg, rgba(77,238,234,0.18), rgba(0,207,255,0.12))", border: "1px solid rgba(77,238,234,0.28)" }}>
+                📊
+              </div>
+              <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>Detailed Stats</h2>
+            </div>
             <div className="space-y-2">
               <StatRow icon="🎮" label="Total Matches" value={matches.toLocaleString()} />
               <StatRow icon="🏆" label="Wins" value={wins.toLocaleString()} highlight="green" />
@@ -568,8 +619,16 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
           </div>
 
           {/* Account Status */}
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-3 text-sm font-black">🔖 Account Status</h2>
+          <div className="glass-card-premium gradient-border-animated p-5">
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+              style={{ background: "linear-gradient(90deg, rgba(168,255,246,0.6), rgba(0,207,255,0.4), transparent)" }} />
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                style={{ background: "rgba(168,255,246,0.10)", border: "1px solid rgba(168,255,246,0.20)" }}>
+                🔖
+              </div>
+              <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>Account Status</h2>
+            </div>
             <div className="space-y-2">
               <StatusRow label="Registered" active={p.registered} icon="📝" />
               <StatusRow label="Ranked" active={p.ranked} icon="🏅" />
@@ -578,11 +637,19 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
           </div>
 
           {/* CR Breakdown */}
-          <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5">
-            <h2 className="mb-3 text-sm font-black">⚡ CR Breakdown</h2>
+          <div className="glass-card-premium gradient-border-animated p-5">
+            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+              style={{ background: `linear-gradient(90deg, ${rankColor}90, rgba(0,207,255,0.5), transparent)` }} />
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                style={{ background: `${rankColor}20`, border: `1px solid ${rankColor}40` }}>
+                ⚡
+              </div>
+              <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>CR Breakdown</h2>
+            </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-500">Current CR</span>
+              <div className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "rgba(0,207,255,0.06)", border: "1px solid rgba(0,207,255,0.15)" }}>
+                <span className="text-xs" style={{ color: "rgba(168,255,246,0.60)" }}>Current CR</span>
                 <span className="text-lg font-black" style={{ color: rankColor }}>
                   {cr.toLocaleString()}
                 </span>
@@ -590,17 +657,17 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               {next && (
                 <>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-500">Next rank at</span>
-                    <span className="text-sm font-bold text-zinc-300">{next.min.toLocaleString()} CR</span>
+                    <span className="text-xs" style={{ color: "rgba(168,255,246,0.55)" }}>Next rank at</span>
+                    <span className="text-sm font-bold" style={{ color: "#e2f4ff" }}>{next.min.toLocaleString()} CR</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-500">CR needed</span>
-                    <span className="text-sm font-bold text-orange-400">{(next.min - cr).toLocaleString()}</span>
+                    <span className="text-xs" style={{ color: "rgba(168,255,246,0.55)" }}>CR needed</span>
+                    <span className="text-sm font-bold" style={{ color: "#FF7F50" }}>{(next.min - cr).toLocaleString()}</span>
                   </div>
                 </>
               )}
               <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-500">Current rank</span>
+                <span className="text-xs" style={{ color: "rgba(168,255,246,0.55)" }}>Current rank</span>
                 <span className="text-xs font-bold" style={{ color: rankColor }}>{rank}</span>
               </div>
             </div>
@@ -625,19 +692,19 @@ function StatRow({
   value: string;
   highlight?: "green" | "red" | "yellow" | "orange";
 }) {
-  const highlightColors = {
-    green:  "text-green-400",
-    red:    "text-red-400",
-    yellow: "text-yellow-400",
-    orange: "text-orange-400",
+  const highlightColors: Record<string, string> = {
+    green:  "#4ade80",
+    red:    "#FF7F50",
+    yellow: "#fbbf24",
+    orange: "#FF8C42",
   };
   return (
-    <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5">
+    <div className="flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors" style={{ background: "rgba(0,207,255,0.05)", border: "1px solid rgba(0,207,255,0.10)" }}>
       <div className="flex items-center gap-2">
         <span className="text-sm">{icon}</span>
-        <span className="text-xs text-zinc-500">{label}</span>
+        <span className="text-xs" style={{ color: "rgba(168,255,246,0.60)" }}>{label}</span>
       </div>
-      <span className={`text-xs font-bold ${highlight ? highlightColors[highlight] : "text-white"}`}>
+      <span className="text-xs font-bold" style={{ color: highlight ? highlightColors[highlight] : "#e2f4ff" }}>
         {value}
       </span>
     </div>
@@ -655,23 +722,22 @@ function StatusRow({
   active: boolean;
   danger?: boolean;
 }) {
+  const dotColor = danger
+    ? active ? "#ef4444" : "rgba(168,255,246,0.20)"
+    : active ? "#22c55e" : "rgba(168,255,246,0.20)";
+  const textColor = danger
+    ? active ? "#FF7F50" : "rgba(168,255,246,0.40)"
+    : active ? "#4ade80" : "rgba(168,255,246,0.40)";
   return (
-    <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5">
+    <div className="flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors" style={{ background: "rgba(0,207,255,0.05)", border: "1px solid rgba(0,207,255,0.10)" }}>
       <div className="flex items-center gap-2">
         <span className="text-sm">{icon}</span>
-        <span className="text-xs text-zinc-400">{label}</span>
+        <span className="text-xs" style={{ color: "rgba(168,255,246,0.60)" }}>{label}</span>
       </div>
-      <span
-        className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-          active
-            ? danger
-              ? "bg-red-600/20 text-red-400 border border-red-600/30"
-              : "bg-green-600/20 text-green-400 border border-green-600/30"
-            : "bg-zinc-800 text-zinc-500 border border-zinc-700/50"
-        }`}
-      >
-        {active ? "YES" : "NO"}
-      </span>
+      <div className="flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full" style={{ background: dotColor }} />
+        <span className="text-xs font-bold" style={{ color: textColor }}>{active ? "Yes" : "No"}</span>
+      </div>
     </div>
   );
 }

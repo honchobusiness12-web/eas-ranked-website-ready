@@ -106,12 +106,12 @@ interface AnimatedStatCardProps {
 }
 
 const colorMap = {
-  orange: { text: "text-orange-400", border: "border-orange-500/20", bg: "bg-orange-500/10", glow: "#f97316" },
-  purple: { text: "text-purple-400", border: "border-purple-500/20", bg: "bg-purple-500/10", glow: "#a855f7" },
-  green:  { text: "text-green-400",  border: "border-green-500/20",  bg: "bg-green-500/10",  glow: "#22c55e" },
-  red:    { text: "text-red-400",    border: "border-red-500/20",    bg: "bg-red-500/10",    glow: "#ef4444" },
-  blue:   { text: "text-teal-400",   border: "border-teal-500/20",   bg: "bg-teal-500/10",   glow: "#14b8a6" },
-  yellow: { text: "text-yellow-400", border: "border-yellow-500/20", bg: "bg-yellow-500/10", glow: "#eab308" },
+  orange: { text: "#FF7F50",  border: "rgba(255,127,80,0.28)",  bg: "rgba(255,127,80,0.12)",  glow: "#f97316" },
+  purple: { text: "#00CFFF",  border: "rgba(0,207,255,0.28)",   bg: "rgba(0,207,255,0.12)",   glow: "#00CFFF" },
+  green:  { text: "#4ade80",  border: "rgba(34,197,94,0.28)",   bg: "rgba(34,197,94,0.12)",   glow: "#22c55e" },
+  red:    { text: "#FF7F50",  border: "rgba(255,127,80,0.28)",  bg: "rgba(255,127,80,0.12)",  glow: "#ef4444" },
+  blue:   { text: "#4DEEEA",  border: "rgba(77,238,234,0.28)",  bg: "rgba(77,238,234,0.12)",  glow: "#14b8a6" },
+  yellow: { text: "#fbbf24",  border: "rgba(251,191,36,0.28)",  bg: "rgba(251,191,36,0.12)",  glow: "#eab308" },
 };
 
 export function AnimatedStatCard({
@@ -139,34 +139,33 @@ export function AnimatedStatCard({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl border bg-[#0d0d18] px-4 py-4 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg ${c.border}`}
+      className="group relative overflow-hidden rounded-xl profile-stat-card"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(12px)",
-        transition: `opacity 0.45s ease ${delay}ms, transform 0.45s ease ${delay}ms, box-shadow 0.2s ease, scale 0.2s ease`,
-        boxShadow: `0 0 0 0 ${glowColor}`,
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${glowColor}22`;
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "";
+        transition: `opacity 0.45s ease ${delay}ms, transform 0.45s ease ${delay}ms`,
+        borderColor: c.border,
       }}
     >
       {/* Top accent line */}
       <div
-        className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl opacity-50 group-hover:opacity-100 transition-opacity duration-200"
-        style={{ background: glowColor }}
+        className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl opacity-60 group-hover:opacity-100 transition-opacity duration-200"
+        style={{ background: accent ?? glowColor }}
       />
-      <div className="flex items-start justify-between mb-2">
-        <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm ${c.bg}`}>
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-xl"
+        style={{ background: `radial-gradient(ellipse at top left, ${c.bg}, transparent 65%)` }}
+      />
+      <div className="relative flex items-start justify-between mb-2">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg text-base" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
           {icon}
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{title}</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(168,255,246,0.50)" }}>{title}</span>
       </div>
       <p
-        className={`text-2xl font-black tracking-tight tabular-nums ${c.text}`}
-        style={accent ? { color: accent } : {}}
+        className="relative text-2xl font-black tracking-tight tabular-nums"
+        style={{ color: accent ?? c.text }}
       >
         {isPct ? (
           <>
@@ -180,7 +179,7 @@ export function AnimatedStatCard({
         )}
       </p>
       {sub && (
-        <p className="mt-0.5 text-[10px] text-zinc-600 truncate font-medium">{sub}</p>
+        <p className="relative mt-1 text-xs truncate font-medium" style={{ color: "rgba(168,255,246,0.55)" }}>{sub}</p>
       )}
     </div>
   );
@@ -204,16 +203,25 @@ export function CrProgressionSection({ crPoints }: CrProgressionSectionProps) {
 
   return (
     <div
-      className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] p-5"
+      className="glass-card-premium gradient-border-animated p-5"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(16px)",
         transition: "opacity 0.5s ease 200ms, transform 0.5s ease 200ms",
       }}
     >
+      {/* Top accent */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+        style={{ background: "linear-gradient(90deg, rgba(0,207,255,0.9), rgba(77,238,234,0.6), transparent)" }} />
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-black tracking-tight">📈 CR Progression</h2>
-        <span className="text-xs text-zinc-600 font-medium">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+            style={{ background: "linear-gradient(135deg, rgba(0,207,255,0.18), rgba(77,238,234,0.12))", border: "1px solid rgba(0,207,255,0.28)" }}>
+            📈
+          </div>
+          <h2 className="text-sm font-black tracking-tight" style={{ color: "#e2f4ff" }}>CR Progression</h2>
+        </div>
+        <span className="text-xs font-medium" style={{ color: "rgba(168,255,246,0.50)" }}>
           Last {Math.min(crPoints.length, 20)} matches
         </span>
       </div>
@@ -302,12 +310,8 @@ export function MatchHistoryList({ history }: MatchHistoryListProps) {
         return (
           <div
             key={index}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs border transition-all duration-200 hover:scale-[1.01] ${
-              isWin
-                ? "border-green-800/20 bg-green-950/15 text-green-300"
-                : isLoss
-                ? "border-red-800/20 bg-red-950/15 text-red-300"
-                : "border-white/[0.05] bg-white/[0.03] text-zinc-400"
+            className={`match-history-item flex items-center gap-2 text-xs transition-all duration-200 ${
+              isWin ? "win" : isLoss ? "loss" : ""
             }`}
             style={{
               opacity: index < visibleCount ? 1 : 0,
@@ -316,7 +320,7 @@ export function MatchHistoryList({ history }: MatchHistoryListProps) {
             }}
           >
             <span className="shrink-0">{isWin ? "✅" : isLoss ? "❌" : "➖"}</span>
-            <span className="flex-1">{item}</span>
+            <span className="flex-1" style={{ color: isWin ? "#4ade80" : isLoss ? "#FF7F50" : "rgba(168,255,246,0.65)" }}>{item}</span>
           </div>
         );
       })}

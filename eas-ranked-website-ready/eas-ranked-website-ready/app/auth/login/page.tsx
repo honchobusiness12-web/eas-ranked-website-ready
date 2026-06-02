@@ -52,12 +52,12 @@ export default async function LoginPage({
           </a>
 
           {/* Info */}
-          <div className="mt-8 space-y-3 rounded-2xl p-5 text-left text-sm" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(0,207,255,0.06)", color: "rgba(168,255,246,0.65)" }}>
-            <p className="font-bold" style={{ color: "#A8FFF6" }}>🔒 What we collect</p>
-            <p>• Your Discord user ID, username, and avatar</p>
-            <p>• We do <span className="font-semibold" style={{ color: "#e2f4ff" }}>not</span> collect your email or messages</p>
-            <p>• Your session is stored in a secure cookie and expires in 7 days</p>
-            <p>• You can log out at any time</p>
+          <div className="mt-8 space-y-2.5 rounded-2xl p-5 text-left" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(0,207,255,0.06)" }}>
+            <p className="text-sm font-bold" style={{ color: "#A8FFF6" }}>🔒 What we collect</p>
+            <p className="text-sm" style={{ color: "rgba(168,255,246,0.70)" }}>• Your Discord user ID, username, and avatar</p>
+            <p className="text-sm" style={{ color: "rgba(168,255,246,0.70)" }}>• We do <span className="font-semibold" style={{ color: "#e2f4ff" }}>not</span> collect your email or messages</p>
+            <p className="text-sm" style={{ color: "rgba(168,255,246,0.70)" }}>• Your session is stored in a secure cookie and expires in 7 days</p>
+            <p className="text-sm" style={{ color: "rgba(168,255,246,0.70)" }}>• You can log out at any time</p>
           </div>
         </div>
       </div>
