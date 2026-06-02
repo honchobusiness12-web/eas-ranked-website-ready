@@ -435,6 +435,9 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
     const now = Date.now();
     if (end > start) {
       progressPct = Math.round((Math.max(0, Math.min(now - start, end - start)) / (end - start)) * 100);
+    }
+  }
+
   return (
     <div
       className="season-card-premium glass-card-premium gradient-border-animated p-5 animate-card-entrance"
