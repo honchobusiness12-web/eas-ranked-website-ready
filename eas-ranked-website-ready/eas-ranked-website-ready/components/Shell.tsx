@@ -161,15 +161,15 @@ export default function Shell({
   }, []);
 
   const sidebarW = sidebarCollapsed ? "w-[68px]" : "w-64";
-  const contentML = sidebarCollapsed ? "md:ml-[68px]" : "md:ml-64";
 
   return (
     <main className="min-h-screen" style={{ background: "#062B45", color: "#e2f4ff" }}>
-      <div className="flex">
+      <div className="flex items-start">
 
         {/* ── Sidebar — desktop ── */}
         <aside
-          className={`fixed left-0 top-0 hidden h-screen flex-col md:flex transition-all duration-300 ${sidebarW} z-40 overflow-y-auto sidebar-premium`}
+          className={`hidden md:flex flex-col sticky top-0 h-screen transition-all duration-300 ${sidebarW} z-40 shrink-0 sidebar-premium`}
+          style={{ overflowY: "auto" }}
         >
           {/* Logo + collapse */}
           <div className="flex items-center justify-between px-3 py-4" style={{ borderBottom: "1px solid rgba(0,207,255,0.15)" }}>
@@ -383,7 +383,7 @@ export default function Shell({
         </aside>
 
         {/* ── Main content area ── */}
-        <section className={`w-full min-w-0 transition-all duration-300 ${contentML}`}>
+        <section className="flex-1 min-w-0 w-full">
 
           <LoadingOverlay />
 

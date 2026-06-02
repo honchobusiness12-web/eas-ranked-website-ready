@@ -3034,3 +3034,8 @@ p    { font-size: 1rem; line-height: 1.65; }
 @media (min-width: 1280px) {
   .page-content { padding: 2.5rem; }
 }
+
+/* ── Player search input placeholder ── */
+.player-search-input::placeholder {
+  color: rgba(168,255,246,0.40);
+}
