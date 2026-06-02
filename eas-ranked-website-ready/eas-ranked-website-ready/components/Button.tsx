@@ -16,19 +16,19 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-gradient-to-r from-[#7C3AED] to-[#4F8EF7] text-white border-transparent shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:shadow-[0_8px_24px_rgba(124,58,237,0.5)] hover:opacity-92 hover:-translate-y-0.5",
+    "bg-gradient-to-r from-[#FF6B6B] to-[#FF8C42] text-white border-transparent shadow-[0_4px_16px_rgba(255,107,107,0.35)] hover:shadow-[0_8px_24px_rgba(255,107,107,0.5)] hover:opacity-92 hover:-translate-y-0.5",
   secondary:
-    "bg-white/[0.05] text-zinc-300 border-white/[0.09] hover:bg-white/[0.09] hover:border-white/[0.15] hover:text-white hover:-translate-y-0.5",
+    "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 hover:border-sky-300 hover:text-sky-800 hover:-translate-y-0.5",
   ghost:
-    "bg-transparent text-zinc-400 border-transparent hover:bg-white/[0.05] hover:text-zinc-200",
+    "bg-transparent text-gray-500 border-transparent hover:bg-sky-50 hover:text-sky-700",
   danger:
-    "bg-red-950/20 text-red-400 border-red-700/30 hover:bg-red-950/40 hover:border-red-600/50 hover:text-red-300 hover:-translate-y-0.5",
+    "bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 hover:text-red-700 hover:-translate-y-0.5",
   gold:
-    "bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-transparent shadow-[0_4px_16px_rgba(255,215,0,0.25)] hover:shadow-[0_8px_24px_rgba(255,215,0,0.4)] hover:opacity-92 hover:-translate-y-0.5",
+    "bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-transparent shadow-[0_4px_16px_rgba(255,165,0,0.25)] hover:shadow-[0_8px_24px_rgba(255,165,0,0.4)] hover:opacity-92 hover:-translate-y-0.5",
   success:
-    "bg-gradient-to-r from-green-600 to-emerald-500 text-white border-transparent shadow-[0_4px_16px_rgba(34,197,94,0.25)] hover:shadow-[0_8px_24px_rgba(34,197,94,0.4)] hover:opacity-92 hover:-translate-y-0.5",
+    "bg-gradient-to-r from-green-500 to-emerald-400 text-white border-transparent shadow-[0_4px_16px_rgba(34,197,94,0.25)] hover:shadow-[0_8px_24px_rgba(34,197,94,0.4)] hover:opacity-92 hover:-translate-y-0.5",
   outline:
-    "bg-transparent text-purple-300 border-purple-500/30 hover:bg-purple-500/[0.08] hover:border-purple-400/50 hover:text-purple-200 hover:-translate-y-0.5",
+    "bg-transparent text-sky-600 border-sky-300 hover:bg-sky-50 hover:border-sky-400 hover:text-sky-700 hover:-translate-y-0.5",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -58,7 +58,7 @@ export default function Button({
       className={`
         inline-flex items-center justify-center font-bold border
         transition-all duration-200 active:scale-[0.97] active:translate-y-0
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#04040e]
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white
         disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
         ${variantClasses[variant]}
         ${sizeClasses[size]}

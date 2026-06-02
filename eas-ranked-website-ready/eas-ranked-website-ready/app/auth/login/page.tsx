@@ -19,17 +19,17 @@ export default async function LoginPage({
   return (
     <Shell>
       <div className="flex min-h-[70vh] items-center justify-center">
-        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#0d0d14] p-10 text-center shadow-2xl">
+        <div className="w-full max-w-md rounded-3xl border border-sky-200 bg-white p-10 text-center shadow-xl shadow-sky-100/50">
           {/* Logo */}
-          <div className="mb-6 text-6xl">☀️</div>
-          <h1 className="text-3xl font-black">
+          <div className="mb-6 text-6xl">🏖️</div>
+          <h1 className="text-3xl font-black text-gray-800">
             EAS <span className="summer-text-gradient">ARENA</span>
           </h1>
-          <p className="mt-2 text-zinc-400">Sign in to access your profile and stats</p>
+          <p className="mt-2 text-gray-500">Sign in to access your profile and stats</p>
 
           {/* Error */}
           {errorMsg && (
-            <div className="mt-4 rounded-xl border border-red-600/40 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
               ⚠️ {errorMsg}
             </div>
           )}
@@ -51,10 +51,10 @@ export default async function LoginPage({
           </a>
 
           {/* Info */}
-          <div className="mt-8 space-y-3 rounded-2xl border border-white/5 bg-white/5 p-5 text-left text-sm text-zinc-400">
-            <p className="font-bold text-zinc-300">🔒 What we collect</p>
+          <div className="mt-8 space-y-3 rounded-2xl border border-sky-100 bg-sky-50 p-5 text-left text-sm text-gray-500">
+            <p className="font-bold text-gray-700">🔒 What we collect</p>
             <p>• Your Discord user ID, username, and avatar</p>
-            <p>• We do <span className="text-white font-semibold">not</span> collect your email or messages</p>
+            <p>• We do <span className="text-gray-800 font-semibold">not</span> collect your email or messages</p>
             <p>• Your session is stored in a secure cookie and expires in 7 days</p>
             <p>• You can log out at any time</p>
           </div>

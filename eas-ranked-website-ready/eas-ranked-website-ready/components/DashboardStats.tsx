@@ -45,7 +45,7 @@ function MiniLeaderboard({
           style={{ background: accentLine }} />
       )}
       <div
-        className="border-b border-white/[0.06] px-5 py-4"
+        className="border-b border-sky-100 px-5 py-4"
         style={{ background: headerGradient }}
       >
         <div className="flex items-center gap-2.5">
@@ -56,15 +56,15 @@ function MiniLeaderboard({
             {icon}
           </div>
           <div>
-            <h3 className="text-sm font-black tracking-tight">{title}</h3>
-            <p className="text-[10px] text-zinc-500">{subtitle}</p>
+            <h3 className="text-sm font-black tracking-tight text-gray-800">{title}</h3>
+            <p className="text-[10px] text-gray-400">{subtitle}</p>
           </div>
         </div>
       </div>
-      <div className="divide-y divide-white/[0.04]">
+      <div className="divide-y divide-sky-50">
         {rows.length === 0 ? (
           <div className="px-5 py-8 text-center">
-            <p className="text-xs text-zinc-600">No data yet.</p>
+            <p className="text-xs text-gray-400">No data yet.</p>
           </div>
         ) : (
           rows.map((row, i) => (
@@ -74,7 +74,7 @@ function MiniLeaderboard({
               soundType="click"
               className={`lb-row-premium table-row-stagger group flex items-center gap-2.5 px-4 py-3 ${hoverColor}`}
             >
-              <span className="w-5 text-center text-xs font-black text-zinc-700">
+              <span className="w-5 text-center text-xs font-black text-gray-400">
                 {i === 0 ? (
                   <span style={{ filter: "drop-shadow(0 0 4px rgba(234,179,8,0.4))" }}>🥇</span>
                 ) : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
@@ -82,7 +82,7 @@ function MiniLeaderboard({
               <div className="player-avatar-wrap">
                 <PlayerAvatar name={row.name} avatar={row.avatar_url} size="h-7 w-7" />
               </div>
-              <span className="flex-1 text-xs font-semibold truncate transition-colors duration-200 group-hover:text-white text-zinc-300">
+              <span className="flex-1 text-xs font-semibold truncate transition-colors duration-200 group-hover:text-sky-700 text-gray-700">
                 {row.name}
               </span>
               <span className={`text-xs font-black tabular-nums transition-all duration-200 ${valueColor}`}>{row.value}</span>
@@ -134,18 +134,18 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
       >
         {/* Top accent line */}
         <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.25rem]"
-          style={{ background: "linear-gradient(90deg, rgba(6,182,212,0.8), rgba(79,142,247,0.6), rgba(168,85,247,0.4), transparent)" }} />
+          style={{ background: "linear-gradient(90deg, rgba(6,182,212,0.8), rgba(14,165,233,0.6), rgba(20,184,166,0.4), transparent)" }} />
 
         <div className="flex items-center gap-3 mb-5">
           <div
             className="icon-wrap flex h-9 w-9 items-center justify-center rounded-xl text-base"
-            style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.2), rgba(79,142,247,0.12))", border: "1px solid rgba(6,182,212,0.25)", boxShadow: "0 0 16px rgba(6,182,212,0.1)" }}
+            style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.15), rgba(14,165,233,0.10))", border: "1px solid rgba(6,182,212,0.2)", boxShadow: "0 0 16px rgba(6,182,212,0.08)" }}
           >
             📊
           </div>
           <div>
-            <h3 className="text-sm font-black tracking-tight">Rank Distribution</h3>
-            <p className="text-[10px] text-zinc-500">{ranked.length} ranked players across all tiers</p>
+            <h3 className="text-sm font-black tracking-tight text-gray-800">Rank Distribution</h3>
+            <p className="text-[10px] text-gray-400">{ranked.length} ranked players across all tiers</p>
           </div>
         </div>
         <RankDistributionChart buckets={buckets} totalPlayers={ranked.length} />
@@ -157,36 +157,36 @@ export default function DashboardStats({ players }: DashboardStatsProps) {
           title="Top CR"
           subtitle="Highest rated players"
           icon="🏆"
-          iconBg="linear-gradient(135deg, rgba(168,85,247,0.2), rgba(124,58,237,0.12))"
-          iconBorder="rgba(168,85,247,0.25)"
-          headerGradient="linear-gradient(90deg, rgba(124,58,237,0.10), rgba(79,142,247,0.04), transparent)"
+          iconBg="linear-gradient(135deg, rgba(14,165,233,0.15), rgba(6,182,212,0.10))"
+          iconBorder="rgba(14,165,233,0.25)"
+          headerGradient="linear-gradient(90deg, rgba(14,165,233,0.07), rgba(6,182,212,0.03), transparent)"
           rows={topPlayers}
-          valueColor="text-purple-300"
-          hoverColor="hover:bg-purple-500/[0.05]"
-          accentLine="linear-gradient(90deg, rgba(168,85,247,0.8), rgba(79,142,247,0.5), transparent)"
+          valueColor="text-sky-600"
+          hoverColor="hover:bg-sky-50"
+          accentLine="linear-gradient(90deg, rgba(14,165,233,0.8), rgba(6,182,212,0.5), transparent)"
         />
         <MiniLeaderboard
           title="Top MVPs"
           subtitle="Most valuable players"
           icon="🌟"
-          iconBg="linear-gradient(135deg, rgba(234,179,8,0.2), rgba(245,158,11,0.12))"
-          iconBorder="rgba(234,179,8,0.25)"
-          headerGradient="linear-gradient(90deg, rgba(234,179,8,0.10), rgba(245,158,11,0.04), transparent)"
+          iconBg="linear-gradient(135deg, rgba(255,140,66,0.15), rgba(255,215,0,0.10))"
+          iconBorder="rgba(255,140,66,0.25)"
+          headerGradient="linear-gradient(90deg, rgba(255,140,66,0.07), rgba(255,215,0,0.03), transparent)"
           rows={topMvps}
-          valueColor="text-yellow-300"
-          hoverColor="hover:bg-yellow-500/[0.05]"
-          accentLine="linear-gradient(90deg, rgba(234,179,8,0.8), rgba(245,158,11,0.5), transparent)"
+          valueColor="text-orange-500"
+          hoverColor="hover:bg-orange-50"
+          accentLine="linear-gradient(90deg, rgba(255,140,66,0.8), rgba(255,215,0,0.5), transparent)"
         />
         <MiniLeaderboard
           title="Best Win Rate"
           subtitle="Min. 10 matches played"
           icon="📈"
-          iconBg="linear-gradient(135deg, rgba(34,197,94,0.2), rgba(16,185,129,0.12))"
+          iconBg="linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.10))"
           iconBorder="rgba(34,197,94,0.25)"
-          headerGradient="linear-gradient(90deg, rgba(34,197,94,0.10), rgba(16,185,129,0.04), transparent)"
+          headerGradient="linear-gradient(90deg, rgba(34,197,94,0.07), rgba(16,185,129,0.03), transparent)"
           rows={topWinRates}
-          valueColor="text-green-300"
-          hoverColor="hover:bg-green-500/[0.05]"
+          valueColor="text-green-600"
+          hoverColor="hover:bg-green-50"
           accentLine="linear-gradient(90deg, rgba(34,197,94,0.8), rgba(16,185,129,0.5), transparent)"
         />
       </div>

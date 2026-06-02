@@ -33,85 +33,85 @@ const colorMap: Record<
   { text: string; glow: string; accent: string; iconBg: string; border: string; gradientFrom: string; gradientTo: string }
 > = {
   purple: {
-    text:         "text-purple-300",
-    glow:         "rgba(168,85,247,0.10)",
-    accent:       "rgba(168,85,247,0.8)",
-    iconBg:       "rgba(168,85,247,0.14)",
-    border:       "rgba(168,85,247,0.18)",
-    gradientFrom: "#7C3AED",
-    gradientTo:   "#A855F7",
+    text:         "text-sky-700",
+    glow:         "rgba(14,165,233,0.10)",
+    accent:       "rgba(14,165,233,0.8)",
+    iconBg:       "rgba(14,165,233,0.12)",
+    border:       "rgba(14,165,233,0.20)",
+    gradientFrom: "#0ea5e9",
+    gradientTo:   "#06b6d4",
   },
   blue: {
-    text:         "text-blue-300",
-    glow:         "rgba(79,142,247,0.10)",
-    accent:       "rgba(79,142,247,0.8)",
-    iconBg:       "rgba(79,142,247,0.14)",
-    border:       "rgba(79,142,247,0.18)",
-    gradientFrom: "#3B82F6",
-    gradientTo:   "#60A5FA",
-  },
-  green: {
-    text:         "text-green-300",
-    glow:         "rgba(34,197,94,0.10)",
-    accent:       "rgba(34,197,94,0.8)",
-    iconBg:       "rgba(34,197,94,0.14)",
-    border:       "rgba(34,197,94,0.18)",
-    gradientFrom: "#16A34A",
-    gradientTo:   "#4ADE80",
-  },
-  red: {
-    text:         "text-red-300",
-    glow:         "rgba(239,68,68,0.10)",
-    accent:       "rgba(239,68,68,0.8)",
-    iconBg:       "rgba(239,68,68,0.14)",
-    border:       "rgba(239,68,68,0.18)",
-    gradientFrom: "#DC2626",
-    gradientTo:   "#F87171",
-  },
-  yellow: {
-    text:         "text-yellow-300",
-    glow:         "rgba(234,179,8,0.10)",
-    accent:       "rgba(234,179,8,0.8)",
-    iconBg:       "rgba(234,179,8,0.14)",
-    border:       "rgba(234,179,8,0.18)",
-    gradientFrom: "#CA8A04",
-    gradientTo:   "#FDE047",
-  },
-  orange: {
-    text:         "text-orange-300",
-    glow:         "rgba(249,115,22,0.10)",
-    accent:       "rgba(249,115,22,0.8)",
-    iconBg:       "rgba(249,115,22,0.14)",
-    border:       "rgba(249,115,22,0.18)",
-    gradientFrom: "#EA580C",
-    gradientTo:   "#FB923C",
-  },
-  teal: {
-    text:         "text-cyan-300",
+    text:         "text-cyan-700",
     glow:         "rgba(6,182,212,0.10)",
     accent:       "rgba(6,182,212,0.8)",
-    iconBg:       "rgba(6,182,212,0.14)",
-    border:       "rgba(6,182,212,0.18)",
-    gradientFrom: "#0891B2",
-    gradientTo:   "#22D3EE",
+    iconBg:       "rgba(6,182,212,0.12)",
+    border:       "rgba(6,182,212,0.20)",
+    gradientFrom: "#06b6d4",
+    gradientTo:   "#0891b2",
+  },
+  green: {
+    text:         "text-green-700",
+    glow:         "rgba(34,197,94,0.10)",
+    accent:       "rgba(34,197,94,0.8)",
+    iconBg:       "rgba(34,197,94,0.12)",
+    border:       "rgba(34,197,94,0.20)",
+    gradientFrom: "#22c55e",
+    gradientTo:   "#16a34a",
+  },
+  red: {
+    text:         "text-red-600",
+    glow:         "rgba(255,107,107,0.10)",
+    accent:       "rgba(255,107,107,0.8)",
+    iconBg:       "rgba(255,107,107,0.12)",
+    border:       "rgba(255,107,107,0.20)",
+    gradientFrom: "#FF6B6B",
+    gradientTo:   "#ef4444",
+  },
+  yellow: {
+    text:         "text-amber-600",
+    glow:         "rgba(245,158,11,0.10)",
+    accent:       "rgba(245,158,11,0.8)",
+    iconBg:       "rgba(245,158,11,0.12)",
+    border:       "rgba(245,158,11,0.20)",
+    gradientFrom: "#f59e0b",
+    gradientTo:   "#fbbf24",
+  },
+  orange: {
+    text:         "text-orange-600",
+    glow:         "rgba(255,140,66,0.10)",
+    accent:       "rgba(255,140,66,0.8)",
+    iconBg:       "rgba(255,140,66,0.12)",
+    border:       "rgba(255,140,66,0.20)",
+    gradientFrom: "#FF8C42",
+    gradientTo:   "#f97316",
+  },
+  teal: {
+    text:         "text-teal-700",
+    glow:         "rgba(20,184,166,0.10)",
+    accent:       "rgba(20,184,166,0.8)",
+    iconBg:       "rgba(20,184,166,0.12)",
+    border:       "rgba(20,184,166,0.20)",
+    gradientFrom: "#14b8a6",
+    gradientTo:   "#0d9488",
   },
   coral: {
-    text:         "text-rose-300",
-    glow:         "rgba(244,63,94,0.10)",
-    accent:       "rgba(244,63,94,0.8)",
-    iconBg:       "rgba(244,63,94,0.14)",
-    border:       "rgba(244,63,94,0.18)",
-    gradientFrom: "#E11D48",
-    gradientTo:   "#FB7185",
+    text:         "text-rose-600",
+    glow:         "rgba(255,107,107,0.10)",
+    accent:       "rgba(255,107,107,0.8)",
+    iconBg:       "rgba(255,107,107,0.12)",
+    border:       "rgba(255,107,107,0.20)",
+    gradientFrom: "#FF6B6B",
+    gradientTo:   "#FF8C42",
   },
   lime: {
-    text:         "text-lime-300",
+    text:         "text-lime-700",
     glow:         "rgba(132,204,22,0.10)",
     accent:       "rgba(132,204,22,0.8)",
-    iconBg:       "rgba(132,204,22,0.14)",
-    border:       "rgba(132,204,22,0.18)",
-    gradientFrom: "#65A30D",
-    gradientTo:   "#A3E635",
+    iconBg:       "rgba(132,204,22,0.12)",
+    border:       "rgba(132,204,22,0.20)",
+    gradientFrom: "#84cc16",
+    gradientTo:   "#65a30d",
   },
 };
 
@@ -172,10 +172,10 @@ export default function StatCard({
     <div
       className={`stat-card-premium group animate-card-entrance gpu-accelerate ${className}`}
       style={{
-        background: "rgba(10,10,28,0.88)",
+        background: "rgba(255,255,255,0.92)",
         border: `1px solid ${cm.border}`,
         padding: "1.25rem",
-        boxShadow: `0 4px 20px rgba(0,0,0,0.3)`,
+        boxShadow: `0 4px 20px rgba(0,0,0,0.05)`,
         animationDelay: `${delay}ms`,
       }}
     >
@@ -199,7 +199,7 @@ export default function StatCard({
 
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">
             {title}
           </p>
           <p
@@ -210,7 +210,7 @@ export default function StatCard({
           </p>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             {note && (
-              <p className="text-[10px] text-zinc-600 transition-colors duration-200 group-hover:text-zinc-500">{note}</p>
+              <p className="text-[10px] text-gray-400 transition-colors duration-200 group-hover:text-gray-500">{note}</p>
             )}
             {trend !== undefined && (
               <span

@@ -19,23 +19,23 @@ interface CardProps {
 }
 
 const accentColors: Record<string, string> = {
-  purple: "linear-gradient(90deg, rgba(168,85,247,0.9), rgba(79,142,247,0.6), transparent)",
-  gold:   "linear-gradient(90deg, rgba(255,215,0,0.9), rgba(255,159,67,0.6), transparent)",
-  blue:   "linear-gradient(90deg, rgba(79,142,247,0.9), rgba(6,182,212,0.6), transparent)",
-  green:  "linear-gradient(90deg, rgba(34,197,94,0.9), rgba(6,182,212,0.5), transparent)",
-  red:    "linear-gradient(90deg, rgba(239,68,68,0.9), rgba(251,146,60,0.5), transparent)",
-  orange: "linear-gradient(90deg, rgba(249,115,22,0.9), rgba(250,204,21,0.5), transparent)",
-  teal:   "linear-gradient(90deg, rgba(6,182,212,0.9), rgba(79,142,247,0.5), transparent)",
+  purple: "linear-gradient(90deg, rgba(14,165,233,0.9), rgba(20,184,166,0.6), transparent)",
+  gold:   "linear-gradient(90deg, rgba(255,140,66,0.9), rgba(255,107,107,0.6), transparent)",
+  blue:   "linear-gradient(90deg, rgba(14,165,233,0.9), rgba(6,182,212,0.6), transparent)",
+  green:  "linear-gradient(90deg, rgba(34,197,94,0.9), rgba(20,184,166,0.5), transparent)",
+  red:    "linear-gradient(90deg, rgba(255,107,107,0.9), rgba(255,140,66,0.5), transparent)",
+  orange: "linear-gradient(90deg, rgba(255,140,66,0.9), rgba(255,215,0,0.5), transparent)",
+  teal:   "linear-gradient(90deg, rgba(20,184,166,0.9), rgba(14,165,233,0.5), transparent)",
 };
 
 const headerGradients: Record<string, string> = {
-  purple: "linear-gradient(90deg, rgba(124,58,237,0.09), transparent)",
-  blue:   "linear-gradient(90deg, rgba(79,142,247,0.09), transparent)",
-  green:  "linear-gradient(90deg, rgba(34,197,94,0.09), transparent)",
-  red:    "linear-gradient(90deg, rgba(239,68,68,0.09), transparent)",
-  orange: "linear-gradient(90deg, rgba(249,115,22,0.09), transparent)",
-  teal:   "linear-gradient(90deg, rgba(6,182,212,0.09), transparent)",
-  gold:   "linear-gradient(90deg, rgba(255,215,0,0.09), transparent)",
+  purple: "linear-gradient(90deg, rgba(14,165,233,0.08), transparent)",
+  blue:   "linear-gradient(90deg, rgba(6,182,212,0.08), transparent)",
+  green:  "linear-gradient(90deg, rgba(34,197,94,0.08), transparent)",
+  red:    "linear-gradient(90deg, rgba(255,107,107,0.08), transparent)",
+  orange: "linear-gradient(90deg, rgba(255,140,66,0.08), transparent)",
+  teal:   "linear-gradient(90deg, rgba(20,184,166,0.08), transparent)",
+  gold:   "linear-gradient(90deg, rgba(255,215,0,0.08), transparent)",
 };
 
 export default function Card({
@@ -49,7 +49,7 @@ export default function Card({
   noAnimation = false,
 }: CardProps) {
   const hoverClasses = hoverable
-    ? "glass-card-premium hover:border-white/[0.13] hover:shadow-[0_20px_60px_rgba(0,0,0,0.6),0_0_0_1px_rgba(168,85,247,0.10)] hover:-translate-y-1"
+    ? "glass-card-premium hover:border-sky-300/50 hover:shadow-[0_20px_60px_rgba(14,165,233,0.12),0_0_0_1px_rgba(14,165,233,0.15)] hover:-translate-y-1"
     : "glass-card-premium";
 
   const animClass = noAnimation ? "" : "animate-card-entrance";

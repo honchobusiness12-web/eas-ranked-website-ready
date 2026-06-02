@@ -108,10 +108,10 @@ export default function LeaderboardPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-500/15 text-xl" style={{ border: "1px solid rgba(168,85,247,0.2)" }}>🏆</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-xl" style={{ border: "1px solid rgba(14,165,233,0.2)" }}>🏆</div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight">Leaderboard</h1>
-              <p className="text-xs text-zinc-600 mt-0.5">
+              <h1 className="text-2xl font-black tracking-tight text-gray-800">Leaderboard</h1>
+              <p className="text-xs text-gray-400 mt-0.5">
                 {loading ? "Loading players…" : `${sorted.length.toLocaleString()} players ranked`}
               </p>
             </div>
@@ -119,14 +119,14 @@ export default function LeaderboardPage() {
         </div>
         <button
           onClick={() => { setLoading(true); window.location.reload(); }}
-          className="flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-zinc-400 transition-all duration-200 hover:border-white/[0.12] hover:bg-white/[0.07] hover:text-white"
+          className="flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-bold text-sky-600 transition-all duration-200 hover:border-sky-300 hover:bg-sky-100 hover:text-sky-700"
         >
           🔄 Refresh
         </button>
       </div>
 
       {/* ── Controls bar — search + sort + filters ── */}
-      <div className="mb-4 rounded-2xl border border-white/[0.06] p-4 backdrop-blur-sm" style={{ background: "rgba(9,9,25,0.85)" }}>
+      <div className="mb-4 rounded-2xl border border-sky-100 p-4 backdrop-blur-sm bg-white/90">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
@@ -145,8 +145,8 @@ export default function LeaderboardPage() {
                 onClick={() => handleSort(key)}
                 className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-200 ${
                   sortKey === key
-                    ? "border-purple-500/40 bg-purple-500/15 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
-                    : "border-white/[0.07] bg-white/[0.04] text-zinc-500 hover:border-white/[0.12] hover:text-zinc-300"
+                    ? "border-sky-300 bg-sky-100 text-sky-700 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                    : "border-gray-200 bg-white text-gray-500 hover:border-sky-200 hover:text-sky-600"
                 }`}
               >
                 {key === "cr" ? "CR" : key === "mvp_count" ? "MVPs" : key.charAt(0).toUpperCase() + key.slice(1)}
@@ -158,13 +158,13 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Filters panel — always visible */}
-        <div className="mt-4 pt-4 border-t border-white/[0.05] flex flex-wrap items-end gap-4">
+        <div className="mt-4 pt-4 border-t border-sky-100 flex flex-wrap items-end gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-1.5">Rank Tier</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Rank Tier</p>
             <select
               value={rankFilter}
               onChange={(e) => { setRankFilter(e.target.value); setPage(1); }}
-              className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white transition-all duration-200 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
+              className="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-gray-700 transition-all duration-200 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-200"
             >
               <option value="all">All Ranks</option>
               <option value="rookie">R1 Rookie</option>
@@ -180,11 +180,11 @@ export default function LeaderboardPage() {
             </select>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-1.5">Win Rate</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Win Rate</p>
             <select
               value={winRateFilter}
               onChange={(e) => { setWinRateFilter(e.target.value); setPage(1); }}
-              className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white transition-all duration-200 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
+              className="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-gray-700 transition-all duration-200 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-200"
             >
               <option value="all">All Win Rates</option>
               <option value="60plus">60%+ Win Rate</option>
@@ -208,19 +208,19 @@ export default function LeaderboardPage() {
         <SkeletonTable rows={10} />
       ) : (
         <>
-          <div className="overflow-hidden rounded-2xl border border-white/[0.06] backdrop-blur-sm" style={{ background: "rgba(9,9,25,0.85)" }}>
+          <div className="overflow-hidden rounded-2xl border border-sky-100 backdrop-blur-sm bg-white/90">
             {/* Column headers */}
-            <div className="hidden md:grid grid-cols-[56px_1fr_160px_100px_130px_80px] items-center border-b border-white/[0.06] px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-700" style={{ background: "linear-gradient(90deg, rgba(124,58,237,0.05), transparent)" }}>
+            <div className="hidden md:grid grid-cols-[56px_1fr_160px_100px_130px_80px] items-center border-b border-sky-100 px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400" style={{ background: "linear-gradient(90deg, rgba(14,165,233,0.05), transparent)" }}>
               <span>#</span>
               <span>Player</span>
               <span>Rank</span>
-              <button onClick={() => handleSort("cr")} className="text-left transition-colors hover:text-purple-400">
+              <button onClick={() => handleSort("cr")} className="text-left transition-colors hover:text-sky-500">
                 CR{sortIcon("cr")}
               </button>
-              <button onClick={() => handleSort("wins")} className="text-left transition-colors hover:text-purple-400">
+              <button onClick={() => handleSort("wins")} className="text-left transition-colors hover:text-sky-500">
                 W / L{sortIcon("wins")}
               </button>
-              <button onClick={() => handleSort("kills")} className="text-left transition-colors hover:text-purple-400">
+              <button onClick={() => handleSort("kills")} className="text-left transition-colors hover:text-sky-500">
                 Kills{sortIcon("kills")}
               </button>
             </div>
@@ -241,7 +241,7 @@ export default function LeaderboardPage() {
                     href={`/profile/${p.user_id}`}
                     key={p.user_id}
                     soundType="click"
-                    className="group grid grid-cols-[56px_1fr] md:grid-cols-[56px_1fr_160px_100px_130px_80px] items-center border-b border-white/[0.04] px-6 py-4 transition-all duration-200 hover:bg-purple-500/[0.05] last:border-0"
+                    className="group grid grid-cols-[56px_1fr] md:grid-cols-[56px_1fr_160px_100px_130px_80px] items-center border-b border-sky-50 px-6 py-4 transition-all duration-200 hover:bg-sky-50 last:border-0"
                   >
                     <span className="text-xs font-black">
                       {globalIndex === 0 ? (
@@ -257,23 +257,23 @@ export default function LeaderboardPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-9 w-9" />
                       <div className="min-w-0">
-                        <p className="text-sm font-bold truncate group-hover:text-white transition-colors">{p.name}</p>
-                        <p className="text-xs text-zinc-600 truncate">{p.username || "—"}</p>
+                        <p className="text-sm font-bold truncate text-gray-800 group-hover:text-sky-700 transition-colors">{p.name}</p>
+                        <p className="text-xs text-gray-400 truncate">{p.username || "—"}</p>
                       </div>
                     </div>
                     <div className="hidden md:block">
                       <RankBadge cr={Number(p.cr || 0)} size="sm" />
                     </div>
                     <div className="hidden md:flex items-center">
-                      <span className="text-sm font-black text-purple-300 group-hover:text-purple-200 transition-colors">{(p.cr || 0).toLocaleString()}</span>
+                      <span className="text-sm font-black text-sky-600 group-hover:text-sky-700 transition-colors">{(p.cr || 0).toLocaleString()}</span>
                     </div>
                     <div className="hidden md:flex items-center gap-1.5 text-xs">
-                      <span className="text-green-400 font-bold">{p.wins || 0}W</span>
-                      <span className="text-zinc-700">/</span>
-                      <span className="text-red-400">{p.losses || 0}L</span>
-                      <span className="rounded-md bg-white/[0.04] px-1.5 py-0.5 text-zinc-500 font-medium">{winRate}%</span>
+                      <span className="text-green-600 font-bold">{p.wins || 0}W</span>
+                      <span className="text-gray-300">/</span>
+                      <span className="text-red-500">{p.losses || 0}L</span>
+                      <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-gray-500 font-medium">{winRate}%</span>
                     </div>
-                    <span className="hidden md:block text-xs font-bold text-zinc-500 group-hover:text-zinc-400 transition-colors">{(p.kills || 0).toLocaleString()}</span>
+                    <span className="hidden md:block text-xs font-bold text-gray-400 group-hover:text-gray-600 transition-colors">{(p.kills || 0).toLocaleString()}</span>
                   </SoundLink>
                 );
               })

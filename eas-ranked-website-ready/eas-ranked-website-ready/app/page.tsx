@@ -50,29 +50,29 @@ export default async function HomePage() {
       <section className="hero-section-v2 mb-7 gpu-accelerate">
         {/* Animated gradient overlay */}
         <div className="pointer-events-none absolute inset-0 rounded-[1.5rem]" style={{
-          background: "linear-gradient(135deg, rgba(124,58,237,0.22) 0%, rgba(79,142,247,0.12) 35%, rgba(168,85,247,0.16) 65%, rgba(6,182,212,0.08) 100%)",
+          background: "linear-gradient(135deg, rgba(14,165,233,0.14) 0%, rgba(20,184,166,0.09) 35%, rgba(6,182,212,0.12) 65%, rgba(255,107,107,0.06) 100%)",
           backgroundSize: "300% 300%",
         }} />
 
         {/* Floating orbs */}
         <div className="glow-orb animate-orb pointer-events-none"
-          style={{ right: "-80px", top: "-80px", width: "380px", height: "380px", opacity: 0.22,
-            background: "radial-gradient(circle, rgba(124,58,237,0.8), transparent 70%)" }} />
+          style={{ right: "-80px", top: "-80px", width: "380px", height: "380px", opacity: 0.18,
+            background: "radial-gradient(circle, rgba(14,165,233,0.7), transparent 70%)" }} />
         <div className="glow-orb animate-orb-2 pointer-events-none"
-          style={{ left: "-60px", bottom: "-60px", width: "300px", height: "300px", opacity: 0.16,
-            background: "radial-gradient(circle, rgba(79,142,247,0.8), transparent 70%)" }} />
+          style={{ left: "-60px", bottom: "-60px", width: "300px", height: "300px", opacity: 0.14,
+            background: "radial-gradient(circle, rgba(20,184,166,0.7), transparent 70%)" }} />
         <div className="glow-orb animate-orb-3 pointer-events-none"
-          style={{ left: "45%", top: "-40px", width: "200px", height: "200px", opacity: 0.12,
-            background: "radial-gradient(circle, rgba(6,182,212,0.8), transparent 70%)" }} />
+          style={{ left: "45%", top: "-40px", width: "200px", height: "200px", opacity: 0.10,
+            background: "radial-gradient(circle, rgba(255,107,107,0.6), transparent 70%)" }} />
 
         {/* Floating particles */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[1.5rem]">
           {[
-            { cls: "animate-particle",   top: "15%", left: "8%",  size: 4, color: "rgba(168,85,247,0.6)" },
-            { cls: "animate-particle-2", top: "70%", left: "15%", size: 3, color: "rgba(79,142,247,0.5)" },
+            { cls: "animate-particle",   top: "15%", left: "8%",  size: 4, color: "rgba(14,165,233,0.6)" },
+            { cls: "animate-particle-2", top: "70%", left: "15%", size: 3, color: "rgba(20,184,166,0.5)" },
             { cls: "animate-particle-3", top: "25%", left: "85%", size: 5, color: "rgba(6,182,212,0.5)" },
-            { cls: "animate-particle-4", top: "60%", left: "75%", size: 3, color: "rgba(168,85,247,0.4)" },
-            { cls: "animate-particle-5", top: "40%", left: "50%", size: 4, color: "rgba(255,159,67,0.4)" },
+            { cls: "animate-particle-4", top: "60%", left: "75%", size: 3, color: "rgba(255,107,107,0.4)" },
+            { cls: "animate-particle-5", top: "40%", left: "50%", size: 4, color: "rgba(255,140,66,0.4)" },
           ].map((p, i) => (
             <div key={i} className={`absolute rounded-full ${p.cls}`}
               style={{ top: p.top, left: p.left, width: p.size, height: p.size, background: p.color }} />
@@ -88,22 +88,22 @@ export default async function HomePage() {
 
         {/* Accent lines */}
         <div className="pointer-events-none absolute top-0 left-0 right-0 h-[1px] rounded-t-[1.5rem]"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(168,85,247,0.5), rgba(79,142,247,0.4), transparent)" }} />
+          style={{ background: "linear-gradient(90deg, transparent, rgba(14,165,233,0.5), rgba(20,184,166,0.4), transparent)" }} />
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[1px] rounded-b-[1.5rem]"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(79,142,247,0.2), transparent)" }} />
+          style={{ background: "linear-gradient(90deg, transparent, rgba(20,184,166,0.2), transparent)" }} />
 
         <div className="relative px-6 py-10 md:px-12 md:py-16 lg:py-20">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             {/* Left: copy */}
             <div className="flex-1 min-w-0">
               {/* Live badge */}
-              <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 backdrop-blur-sm animate-hero-reveal"
-                style={{ boxShadow: "0 0 20px rgba(168,85,247,0.1)" }}>
+              <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-sky-300 bg-sky-50 px-4 py-1.5 backdrop-blur-sm animate-hero-reveal"
+                style={{ boxShadow: "0 0 20px rgba(14,165,233,0.12)" }}>
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
                 </span>
-                <p className="text-xs font-bold uppercase tracking-widest text-purple-300">Live Ranked System</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-sky-600">Live Ranked System</p>
               </div>
 
               {/* Headline */}
@@ -116,7 +116,7 @@ export default async function HomePage() {
                 </span>
               </h1>
 
-              <p className="mt-5 max-w-2xl text-sm text-zinc-400 leading-relaxed md:text-base lg:text-lg animate-hero-reveal-4"
+              <p className="mt-5 max-w-2xl text-sm text-gray-500 leading-relaxed md:text-base lg:text-lg animate-hero-reveal-4"
                 style={{ animationDelay: "0.28s" }}>
                 Track CR, ranks, placements, MVPs, and live competitive activity — all powered by real-time data.
               </p>
@@ -133,21 +133,21 @@ export default async function HomePage() {
                 <SoundLink
                   href="/compare"
                   soundType="success"
-                  className="btn-press press-feedback inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm transition-all duration-200 hover:border-purple-500/30 hover:bg-purple-500/[0.08] hover:text-white hover:shadow-[0_4px_20px_rgba(168,85,247,0.15)]"
+                  className="btn-press press-feedback inline-flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-6 py-3 text-sm font-bold text-teal-700 backdrop-blur-sm transition-all duration-200 hover:border-teal-300 hover:bg-teal-100 hover:text-teal-800 hover:shadow-[0_4px_20px_rgba(20,184,166,0.15)]"
                 >
                   ⚔️ Compare
                 </SoundLink>
                 <SoundLink
                   href="/players"
                   soundType="success"
-                  className="btn-press press-feedback inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm transition-all duration-200 hover:border-blue-500/30 hover:bg-blue-500/[0.08] hover:text-white hover:shadow-[0_4px_20px_rgba(79,142,247,0.15)]"
+                  className="btn-press press-feedback inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-6 py-3 text-sm font-bold text-sky-700 backdrop-blur-sm transition-all duration-200 hover:border-sky-300 hover:bg-sky-100 hover:text-sky-800 hover:shadow-[0_4px_20px_rgba(14,165,233,0.15)]"
                 >
                   👥 Players
                 </SoundLink>
                 <SoundLink
                   href="/ranks"
                   soundType="success"
-                  className="btn-press press-feedback inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.05] px-6 py-3 text-sm font-bold text-zinc-300 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.22] hover:bg-white/[0.09] hover:text-white"
+                  className="btn-press press-feedback inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-bold text-gray-600 backdrop-blur-sm transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
                 >
                   🏷️ Ranks
                 </SoundLink>
@@ -159,13 +159,13 @@ export default async function HomePage() {
               <div className="relative">
                 {/* Outer glow ring */}
                 <div className="absolute -inset-4 rounded-[2rem] opacity-30 animate-glow-border"
-                  style={{ background: "radial-gradient(circle, rgba(168,85,247,0.3), transparent 70%)" }} />
+                  style={{ background: "radial-gradient(circle, rgba(14,165,233,0.25), transparent 70%)" }} />
                 <div
                   className="relative flex h-40 w-40 items-center justify-center rounded-[1.75rem] text-7xl animate-float backdrop-blur-sm"
                   style={{
-                    background: "linear-gradient(135deg, rgba(124,58,237,0.25), rgba(79,142,247,0.16))",
-                    border: "1px solid rgba(168,85,247,0.32)",
-                    boxShadow: "0 0 60px rgba(124,58,237,0.3), 0 0 120px rgba(168,85,247,0.12), inset 0 1px 0 rgba(255,255,255,0.1)",
+                    background: "linear-gradient(135deg, rgba(14,165,233,0.18), rgba(20,184,166,0.12))",
+                    border: "1px solid rgba(14,165,233,0.28)",
+                    boxShadow: "0 0 60px rgba(14,165,233,0.2), 0 0 120px rgba(20,184,166,0.10), inset 0 1px 0 rgba(255,255,255,0.6)",
                   }}
                 >
                   🏆
@@ -178,7 +178,7 @@ export default async function HomePage() {
               </div>
               <div className="text-center">
                 <p className="text-sm font-black summer-text-gradient uppercase tracking-widest animate-text-shimmer">EAS Arena</p>
-                <p className="text-[11px] text-zinc-600 mt-1 tracking-wide">Competitive Ranked</p>
+                <p className="text-[11px] text-gray-400 mt-1 tracking-wide">Competitive Ranked</p>
               </div>
             </div>
           </div>
@@ -205,32 +205,32 @@ export default async function HomePage() {
         >
           {/* Header */}
           <div
-            className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4"
-            style={{ background: "linear-gradient(90deg, rgba(124,58,237,0.10), rgba(79,142,247,0.04), transparent)" }}
+            className="flex items-center justify-between border-b border-sky-100 px-6 py-4"
+            style={{ background: "linear-gradient(90deg, rgba(14,165,233,0.07), rgba(20,184,166,0.03), transparent)" }}
           >
             <div className="flex items-center gap-3">
               <div
                 className="icon-wrap flex h-10 w-10 items-center justify-center rounded-xl text-lg"
-                style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.2), rgba(79,142,247,0.12))", border: "1px solid rgba(168,85,247,0.25)", boxShadow: "0 0 16px rgba(168,85,247,0.1)" }}
+                style={{ background: "linear-gradient(135deg, rgba(14,165,233,0.15), rgba(20,184,166,0.10))", border: "1px solid rgba(14,165,233,0.2)", boxShadow: "0 0 16px rgba(14,165,233,0.08)" }}
               >
                 🏆
               </div>
               <div>
-                <h2 className="text-base font-black tracking-tight">Top Players</h2>
-                <p className="text-[11px] text-zinc-500">Ranked by Competitive Rating</p>
+                <h2 className="text-base font-black tracking-tight text-gray-800">Top Players</h2>
+                <p className="text-[11px] text-gray-400">Ranked by Competitive Rating</p>
               </div>
             </div>
             <SoundLink
               href="/leaderboard"
               soundType="success"
-              className="press-feedback rounded-xl border border-purple-500/25 bg-purple-500/10 px-4 py-2 text-xs font-bold text-purple-300 transition-all duration-250 hover:border-purple-400/45 hover:bg-purple-500/20 hover:text-purple-200 hover:shadow-[0_4px_16px_rgba(168,85,247,0.2)]"
+              className="press-feedback rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-600 transition-all duration-250 hover:border-sky-300 hover:bg-sky-100 hover:text-sky-700 hover:shadow-[0_4px_16px_rgba(14,165,233,0.15)]"
             >
               Full Board →
             </SoundLink>
           </div>
 
           {/* Column headers */}
-          <div className="hidden md:grid grid-cols-[52px_1fr_160px_100px] items-center border-b border-white/[0.04] px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-700">
+          <div className="hidden md:grid grid-cols-[52px_1fr_160px_100px] items-center border-b border-sky-50 px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
             <span>#</span>
             <span>Player</span>
             <span>Rank</span>
@@ -254,7 +254,7 @@ export default async function HomePage() {
                 href={`/profile/${p.user_id}`}
                 key={p.user_id}
                 soundType="click"
-                className="lb-row-premium table-row-stagger group grid grid-cols-[52px_1fr] md:grid-cols-[52px_1fr_160px_100px] items-center border-b border-white/[0.04] px-6 py-3.5 last:border-0"
+                className="lb-row-premium table-row-stagger group grid grid-cols-[52px_1fr] md:grid-cols-[52px_1fr_160px_100px] items-center border-b border-sky-50 px-6 py-3.5 last:border-0"
               >
                 <span className="text-sm font-black">
                   {index === 0 ? (
@@ -272,14 +272,14 @@ export default async function HomePage() {
                     <PlayerAvatar name={p.name} avatar={p.avatar_url} size="h-9 w-9" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold truncate transition-colors duration-200 group-hover:text-white">{p.name || "Unknown Player"}</p>
-                    <p className="text-xs text-zinc-600 truncate">{p.username || "—"}</p>
+                    <p className="text-sm font-bold truncate text-gray-800 transition-colors duration-200 group-hover:text-sky-700">{p.name || "Unknown Player"}</p>
+                    <p className="text-xs text-gray-400 truncate">{p.username || "—"}</p>
                   </div>
                 </div>
                 <div className="hidden md:block">
                   <RankBadge cr={Number(p.cr || 0)} size="sm" />
                 </div>
-                <span className="hidden md:block text-right text-sm font-black tabular-nums text-purple-300 transition-colors duration-200 group-hover:text-purple-200">
+                <span className="hidden md:block text-right text-sm font-black tabular-nums text-sky-600 transition-colors duration-200 group-hover:text-sky-700">
                   {(p.cr || 0).toLocaleString()}
                 </span>
               </SoundLink>
@@ -297,20 +297,20 @@ export default async function HomePage() {
             style={{ animationDelay: "0.2s" }}
           >
             <div
-              className="border-b border-white/[0.06] px-5 py-4"
-              style={{ background: "linear-gradient(90deg, rgba(79,142,247,0.10), rgba(6,182,212,0.04), transparent)" }}
+              className="border-b border-sky-100 px-5 py-4"
+              style={{ background: "linear-gradient(90deg, rgba(20,184,166,0.07), rgba(6,182,212,0.03), transparent)" }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div
                     className="icon-wrap flex h-8 w-8 items-center justify-center rounded-lg text-sm"
-                    style={{ background: "linear-gradient(135deg, rgba(79,142,247,0.2), rgba(6,182,212,0.12))", border: "1px solid rgba(79,142,247,0.25)", boxShadow: "0 0 12px rgba(79,142,247,0.1)" }}
+                    style={{ background: "linear-gradient(135deg, rgba(20,184,166,0.15), rgba(6,182,212,0.10))", border: "1px solid rgba(20,184,166,0.2)", boxShadow: "0 0 12px rgba(20,184,166,0.08)" }}
                   >
                     ⚡
                   </div>
                   <div>
-                    <h3 className="text-sm font-black">Live Activity</h3>
-                    <p className="text-[10px] text-zinc-500">Recent match events</p>
+                    <h3 className="text-sm font-black text-gray-800">Live Activity</h3>
+                    <p className="text-[10px] text-gray-400">Recent match events</p>
                   </div>
                 </div>
                 {/* Live pulse indicator */}
@@ -335,13 +335,13 @@ export default async function HomePage() {
         <div className="section-header-premium animate-fadeInUp delay-300">
           <div
             className="icon-wrap flex h-10 w-10 items-center justify-center rounded-xl text-lg"
-            style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.2), rgba(79,142,247,0.12))", border: "1px solid rgba(6,182,212,0.25)", boxShadow: "0 0 16px rgba(6,182,212,0.1)" }}
+            style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.15), rgba(14,165,233,0.10))", border: "1px solid rgba(6,182,212,0.2)", boxShadow: "0 0 16px rgba(6,182,212,0.08)" }}
           >
             📊
           </div>
           <div>
-            <h2 className="text-xl font-black tracking-tight">Arena Statistics</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">Live performance data across all players</p>
+            <h2 className="text-xl font-black tracking-tight text-gray-800">Arena Statistics</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Live performance data across all players</p>
           </div>
         </div>
         <DashboardStats players={players as any} />
@@ -365,59 +365,59 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
           <div className="flex items-center gap-2.5">
             <div
               className="icon-wrap flex h-8 w-8 items-center justify-center rounded-lg text-sm"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ background: "rgba(14,165,233,0.10)", border: "1px solid rgba(14,165,233,0.15)" }}
             >
               🏆
             </div>
             <div>
-              <h3 className="text-sm font-black">Ranked Season</h3>
-              <p className="text-[10px] text-zinc-500">No active season</p>
+              <h3 className="text-sm font-black text-gray-800">Ranked Season</h3>
+              <p className="text-[10px] text-gray-400">No active season</p>
             </div>
           </div>
-          <span className="rounded-full border border-zinc-700/50 bg-zinc-800/60 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+          <span className="rounded-full border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
             Off Season
           </span>
         </div>
-        <p className="text-xs text-zinc-600 leading-relaxed">Stay tuned for the next season announcement.</p>
+        <p className="text-xs text-gray-400 leading-relaxed">Stay tuned for the next season announcement.</p>
       </div>
     );
   }
 
   const statusConfig = {
     active:   {
-      badge: "border-green-500/30 bg-green-500/12 text-green-300",
+      badge: "border-green-300 bg-green-50 text-green-700",
       label: "LIVE",
       barGradient: "linear-gradient(90deg, #22c55e, #10b981, #06b6d4)",
-      glow: "rgba(34,197,94,0.12)",
-      glowStrong: "rgba(34,197,94,0.25)",
-      accentLine: "linear-gradient(90deg, rgba(34,197,94,0.8), rgba(16,185,129,0.6), transparent)",
+      glow: "rgba(34,197,94,0.08)",
+      glowStrong: "rgba(34,197,94,0.18)",
+      accentLine: "linear-gradient(90deg, rgba(34,197,94,0.7), rgba(16,185,129,0.5), transparent)",
       pulsing: true,
     },
     paused:   {
-      badge: "border-yellow-500/30 bg-yellow-500/12 text-yellow-300",
+      badge: "border-yellow-300 bg-yellow-50 text-yellow-700",
       label: "PAUSED",
       barGradient: "linear-gradient(90deg, #eab308, #f59e0b)",
-      glow: "rgba(234,179,8,0.12)",
-      glowStrong: "rgba(234,179,8,0.2)",
-      accentLine: "linear-gradient(90deg, rgba(234,179,8,0.8), rgba(245,158,11,0.5), transparent)",
+      glow: "rgba(234,179,8,0.08)",
+      glowStrong: "rgba(234,179,8,0.15)",
+      accentLine: "linear-gradient(90deg, rgba(234,179,8,0.7), rgba(245,158,11,0.4), transparent)",
       pulsing: false,
     },
     ended:    {
-      badge: "border-red-500/30 bg-red-500/12 text-red-300",
+      badge: "border-red-300 bg-red-50 text-red-600",
       label: "ENDED",
       barGradient: "linear-gradient(90deg, #ef4444, #f43f5e)",
-      glow: "rgba(239,68,68,0.10)",
-      glowStrong: "rgba(239,68,68,0.18)",
-      accentLine: "linear-gradient(90deg, rgba(239,68,68,0.8), rgba(244,63,94,0.5), transparent)",
+      glow: "rgba(255,107,107,0.08)",
+      glowStrong: "rgba(255,107,107,0.15)",
+      accentLine: "linear-gradient(90deg, rgba(255,107,107,0.7), rgba(255,140,66,0.4), transparent)",
       pulsing: false,
     },
     upcoming: {
-      badge: "border-blue-500/30 bg-blue-500/12 text-blue-300",
+      badge: "border-sky-300 bg-sky-50 text-sky-700",
       label: "UPCOMING",
-      barGradient: "linear-gradient(90deg, #3b82f6, #6366f1)",
-      glow: "rgba(79,142,247,0.10)",
-      glowStrong: "rgba(79,142,247,0.2)",
-      accentLine: "linear-gradient(90deg, rgba(79,142,247,0.8), rgba(99,102,241,0.5), transparent)",
+      barGradient: "linear-gradient(90deg, #0ea5e9, #06b6d4)",
+      glow: "rgba(14,165,233,0.08)",
+      glowStrong: "rgba(14,165,233,0.15)",
+      accentLine: "linear-gradient(90deg, rgba(14,165,233,0.7), rgba(6,182,212,0.4), transparent)",
       pulsing: false,
     },
   };
@@ -435,9 +435,6 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
     const now = Date.now();
     if (end > start) {
       progressPct = Math.round((Math.max(0, Math.min(now - start, end - start)) / (end - start)) * 100);
-    }
-  }
-
   return (
     <div
       className="season-card-premium glass-card-premium gradient-border-animated p-5 animate-card-entrance"
@@ -457,11 +454,11 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
           <div className="flex items-center gap-2.5">
             <div
               className="icon-wrap flex h-8 w-8 items-center justify-center rounded-lg text-sm"
-              style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.2), rgba(79,142,247,0.12))", border: "1px solid rgba(168,85,247,0.25)", boxShadow: "0 0 12px rgba(168,85,247,0.1)" }}
+              style={{ background: "linear-gradient(135deg, rgba(14,165,233,0.15), rgba(20,184,166,0.10))", border: "1px solid rgba(14,165,233,0.2)", boxShadow: "0 0 12px rgba(14,165,233,0.08)" }}
             >
               🏆
             </div>
-            <h3 className="text-sm font-black truncate">{season.name}</h3>
+            <h3 className="text-sm font-black truncate text-gray-800">{season.name}</h3>
           </div>
           <span className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cfg.badge}`}>
             {cfg.pulsing && (
@@ -475,16 +472,16 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
         </div>
 
         {season.description && (
-          <p className="text-xs text-zinc-500 mb-3 line-clamp-2 leading-relaxed">{season.description}</p>
+          <p className="text-xs text-gray-400 mb-3 line-clamp-2 leading-relaxed">{season.description}</p>
         )}
 
         {/* Progress section */}
         {season.start_date && season.end_date && (
           <div className="mt-3 space-y-2">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-zinc-500 font-medium">{progressPct}% complete</span>
+              <span className="text-gray-400 font-medium">{progressPct}% complete</span>
               {daysLeft > 0 && (
-                <span className="font-bold text-purple-400 flex items-center gap-1">
+                <span className="font-bold text-sky-500 flex items-center gap-1">
                   <span className="text-[10px]">⏳</span>
                   {daysLeft}d remaining
                 </span>
@@ -505,8 +502,8 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
             <div className="flex justify-between px-0.5">
               {[25, 50, 75].map((milestone) => (
                 <div key={milestone} className="flex flex-col items-center gap-0.5">
-                  <div className={`h-1 w-px ${progressPct >= milestone ? "bg-purple-400/60" : "bg-white/10"} transition-colors duration-500`} />
-                  <span className={`text-[8px] font-bold ${progressPct >= milestone ? "text-purple-400/60" : "text-zinc-700"} transition-colors duration-500`}>{milestone}%</span>
+                  <div className={`h-1 w-px ${progressPct >= milestone ? "bg-sky-400/60" : "bg-gray-200"} transition-colors duration-500`} />
+                  <span className={`text-[8px] font-bold ${progressPct >= milestone ? "text-sky-400/60" : "text-gray-300"} transition-colors duration-500`}>{milestone}%</span>
                 </div>
               ))}
             </div>
@@ -515,7 +512,6 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
       </div>
     </div>
   );
-}
 
 // ---------------------------------------------------------------------------
 // Metric card — premium redesign with stat-pop animation
@@ -537,15 +533,15 @@ function MetricCard({
   delay?: number;
 }) {
   const colorMap: Record<string, { text: string; glow: string; iconBg: string; border: string; from: string; to: string; shadow: string }> = {
-    coral:  { text: "text-rose-300",   glow: "rgba(244,63,94,0.10)",   iconBg: "linear-gradient(135deg, rgba(244,63,94,0.18), rgba(251,113,133,0.10))",   border: "rgba(244,63,94,0.20)",   from: "#E11D48", to: "#FB7185", shadow: "rgba(244,63,94,0.25)" },
-    lime:   { text: "text-lime-300",   glow: "rgba(132,204,22,0.10)",  iconBg: "linear-gradient(135deg, rgba(132,204,22,0.18), rgba(163,230,53,0.10))",   border: "rgba(132,204,22,0.20)",  from: "#65A30D", to: "#A3E635", shadow: "rgba(132,204,22,0.25)" },
-    yellow: { text: "text-yellow-300", glow: "rgba(234,179,8,0.10)",   iconBg: "linear-gradient(135deg, rgba(234,179,8,0.18), rgba(253,224,71,0.10))",    border: "rgba(234,179,8,0.20)",   from: "#CA8A04", to: "#FDE047", shadow: "rgba(234,179,8,0.25)" },
-    teal:   { text: "text-cyan-300",   glow: "rgba(6,182,212,0.10)",   iconBg: "linear-gradient(135deg, rgba(6,182,212,0.18), rgba(34,211,238,0.10))",    border: "rgba(6,182,212,0.20)",   from: "#0891B2", to: "#22D3EE", shadow: "rgba(6,182,212,0.25)" },
-    orange: { text: "text-orange-300", glow: "rgba(249,115,22,0.10)",  iconBg: "linear-gradient(135deg, rgba(249,115,22,0.18), rgba(251,146,60,0.10))",   border: "rgba(249,115,22,0.20)",  from: "#EA580C", to: "#FB923C", shadow: "rgba(249,115,22,0.25)" },
-    purple: { text: "text-purple-300", glow: "rgba(168,85,247,0.10)",  iconBg: "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(196,139,253,0.10))",  border: "rgba(168,85,247,0.20)",  from: "#7C3AED", to: "#A855F7", shadow: "rgba(168,85,247,0.25)" },
-    green:  { text: "text-green-300",  glow: "rgba(34,197,94,0.10)",   iconBg: "linear-gradient(135deg, rgba(34,197,94,0.18), rgba(74,222,128,0.10))",    border: "rgba(34,197,94,0.20)",   from: "#16A34A", to: "#4ADE80", shadow: "rgba(34,197,94,0.25)" },
-    blue:   { text: "text-blue-300",   glow: "rgba(79,142,247,0.10)",  iconBg: "linear-gradient(135deg, rgba(79,142,247,0.18), rgba(96,165,250,0.10))",   border: "rgba(79,142,247,0.20)",  from: "#3B82F6", to: "#60A5FA", shadow: "rgba(79,142,247,0.25)" },
-    red:    { text: "text-red-300",    glow: "rgba(239,68,68,0.10)",   iconBg: "linear-gradient(135deg, rgba(239,68,68,0.18), rgba(248,113,113,0.10))",   border: "rgba(239,68,68,0.20)",   from: "#DC2626", to: "#F87171", shadow: "rgba(239,68,68,0.25)" },
+    coral:  { text: "text-rose-600",   glow: "rgba(255,107,107,0.10)",  iconBg: "linear-gradient(135deg, rgba(255,107,107,0.15), rgba(255,140,66,0.08))",  border: "rgba(255,107,107,0.20)",  from: "#FF6B6B", to: "#FF8C42", shadow: "rgba(255,107,107,0.20)" },
+    lime:   { text: "text-lime-700",   glow: "rgba(132,204,22,0.10)",   iconBg: "linear-gradient(135deg, rgba(132,204,22,0.15), rgba(163,230,53,0.08))",   border: "rgba(132,204,22,0.20)",   from: "#84cc16", to: "#65a30d", shadow: "rgba(132,204,22,0.20)" },
+    yellow: { text: "text-amber-600",  glow: "rgba(245,158,11,0.10)",   iconBg: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(253,224,71,0.08))",   border: "rgba(245,158,11,0.20)",   from: "#f59e0b", to: "#fbbf24", shadow: "rgba(245,158,11,0.20)" },
+    teal:   { text: "text-teal-700",   glow: "rgba(20,184,166,0.10)",   iconBg: "linear-gradient(135deg, rgba(20,184,166,0.15), rgba(45,212,191,0.08))",   border: "rgba(20,184,166,0.20)",   from: "#14b8a6", to: "#0d9488", shadow: "rgba(20,184,166,0.20)" },
+    orange: { text: "text-orange-600", glow: "rgba(255,140,66,0.10)",   iconBg: "linear-gradient(135deg, rgba(255,140,66,0.15), rgba(251,146,60,0.08))",   border: "rgba(255,140,66,0.20)",   from: "#FF8C42", to: "#f97316", shadow: "rgba(255,140,66,0.20)" },
+    purple: { text: "text-sky-700",    glow: "rgba(14,165,233,0.10)",   iconBg: "linear-gradient(135deg, rgba(14,165,233,0.15), rgba(6,182,212,0.08))",    border: "rgba(14,165,233,0.20)",   from: "#0ea5e9", to: "#06b6d4", shadow: "rgba(14,165,233,0.20)" },
+    green:  { text: "text-green-700",  glow: "rgba(34,197,94,0.10)",    iconBg: "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(74,222,128,0.08))",    border: "rgba(34,197,94,0.20)",    from: "#22c55e", to: "#16a34a", shadow: "rgba(34,197,94,0.20)" },
+    blue:   { text: "text-cyan-700",   glow: "rgba(6,182,212,0.10)",    iconBg: "linear-gradient(135deg, rgba(6,182,212,0.15), rgba(34,211,238,0.08))",    border: "rgba(6,182,212,0.20)",    from: "#06b6d4", to: "#0891b2", shadow: "rgba(6,182,212,0.20)" },
+    red:    { text: "text-red-600",    glow: "rgba(255,107,107,0.10)",  iconBg: "linear-gradient(135deg, rgba(255,107,107,0.15), rgba(248,113,113,0.08))",  border: "rgba(255,107,107,0.20)",  from: "#FF6B6B", to: "#ef4444", shadow: "rgba(255,107,107,0.20)" },
   };
   const cm = colorMap[color] ?? colorMap.coral;
 
@@ -553,11 +549,11 @@ function MetricCard({
     <div
       className="stat-card-premium group animate-card-entrance gpu-accelerate"
       style={{
-        background: "rgba(10,10,28,0.88)",
+        background: "rgba(255,255,255,0.92)",
         border: `1px solid ${cm.border}`,
         padding: "1.25rem",
         animationDelay: `${delay}ms`,
-        boxShadow: `0 4px 20px rgba(0,0,0,0.3)`,
+        boxShadow: `0 4px 20px rgba(0,0,0,0.05)`,
       }}
     >
       {/* Top accent line */}
@@ -578,14 +574,14 @@ function MetricCard({
 
       <div className="relative flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">{title}</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{title}</p>
           <p
             className={`mt-2.5 text-2xl font-black counter-number animate-stat-pop ${cm.text}`}
             style={{ letterSpacing: "-0.04em", lineHeight: 1.1, animationDelay: `${delay + 80}ms` }}
           >
             {value.toLocaleString()}
           </p>
-          <p className="mt-1.5 text-[10px] text-zinc-600 transition-colors duration-200 group-hover:text-zinc-500">{note}</p>
+          <p className="mt-1.5 text-[10px] text-gray-400 transition-colors duration-200 group-hover:text-gray-500">{note}</p>
         </div>
         {icon && (
           <div
