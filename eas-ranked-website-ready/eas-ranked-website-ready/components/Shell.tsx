@@ -5,13 +5,11 @@ import SoundToggle from "@/components/SoundToggle";
 import AuthButton from "@/components/AuthButton";
 import ProfileMenu from "@/components/ProfileMenu";
 import CopyButton from "@/components/CopyButton";
-import PlayerAvatar from "@/components/PlayerAvatar";
 import { PageTransition } from "@/components/PageTransition";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { DiscordUser } from "@/lib/auth";
-import { buildDiscordAvatarUrl } from "@/lib/avatar-utils";
 
 // ---------------------------------------------------------------------------
 // Navigation config
@@ -343,11 +341,9 @@ export default function Shell({
                   className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-200 group"
                   style={{ border: "1px solid rgba(0,207,255,0.2)", background: "rgba(0,207,255,0.07)" }}
                 >
-                  <PlayerAvatar
-                    name={user.global_name || user.username}
-                    avatar={buildDiscordAvatarUrl(user.id, user.avatar)}
-                    size="h-7 w-7"
-                  />
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 text-xs font-black text-white select-none">
+                    {(user.global_name || user.username || "?")[0].toUpperCase()}
+                  </span>
                   <span className="flex-1 truncate text-xs font-semibold transition-colors" style={{ color: "#A8FFF6" }}>
                     {user.global_name || user.username}
                   </span>
@@ -372,11 +368,9 @@ export default function Shell({
                 title={user.global_name || user.username || "My Profile"}
                 className="block rounded-full transition-all duration-200 ring-1 ring-white/10 hover:ring-[#00CFFF]/40"
               >
-                <PlayerAvatar
-                  name={user.global_name || user.username}
-                  avatar={buildDiscordAvatarUrl(user.id, user.avatar)}
-                  size="h-9 w-9"
-                />
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 text-sm font-black text-white select-none">
+                  {(user.global_name || user.username || "?")[0].toUpperCase()}
+                </span>
               </SoundLink>
             </div>
           )}
