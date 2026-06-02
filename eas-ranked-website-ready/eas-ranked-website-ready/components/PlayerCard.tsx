@@ -2,7 +2,6 @@
 
 import { memo } from "react";
 import type { RankTheme } from "@/lib/rankThemes";
-import PlayerAvatar from "@/components/PlayerAvatar";
 
 interface PlayerCardProps {
   name: string;
@@ -54,7 +53,26 @@ const PlayerCard = memo(function PlayerCard({
           style={{ background: `linear-gradient(135deg, ${theme.primary}90, ${theme.secondary}50)` }}
         >
           <div className="rounded-full bg-[#0a0a16] p-0.5">
-            <PlayerAvatar name={name} avatar={avatar} size="h-12 w-12" />
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatar}
+                alt={`${name}'s avatar`}
+                className="h-12 w-12 rounded-full object-cover"
+                style={{ borderRadius: "9999px" }}
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <div
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full select-none"
+                style={{ background: `linear-gradient(135deg, ${theme.primary}60, ${theme.secondary}40)`, borderRadius: "9999px" }}
+              >
+                <span className="text-white font-black text-sm leading-none">
+                  {(name || "?")[0].toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

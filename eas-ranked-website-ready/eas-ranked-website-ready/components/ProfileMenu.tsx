@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import PlayerAvatar from "@/components/PlayerAvatar";
 
 interface PlayerResult {
   user_id: string;
@@ -137,11 +136,21 @@ export default function ProfileMenu() {
                 onClick={() => handleSelect(player.user_id)}
                 className="group flex w-full items-center gap-2.5 px-3 py-2.5 transition-all duration-200 hover:bg-purple-500/[0.05] text-left border-t border-white/[0.04] first:border-t-0"
               >
-                <PlayerAvatar
-                  name={player.name}
-                  avatar={player.avatar_url}
-                  size="h-7 w-7"
-                />
+                {player.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={player.avatar_url}
+                    alt={`${player.name}'s avatar`}
+                    className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-white/10"
+                    style={{ borderRadius: "9999px" }}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 select-none ring-1 ring-white/10" style={{ borderRadius: "9999px" }}>
+                    <span className="text-white font-black text-xs leading-none">{(player.name || "?")[0].toUpperCase()}</span>
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-white truncate group-hover:text-purple-200 transition-colors">{player.name}</p>
                   {player.username && (
