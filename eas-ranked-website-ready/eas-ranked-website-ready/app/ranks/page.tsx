@@ -126,10 +126,10 @@ export default function RanksPage() {
           { label: "Sub-tiers",         value: "30",    note: "Low / Mid / High" },
           { label: "Max CR",            value: "5300+", note: "Hall of Fame High" },
         ].map(({ label, value, note }) => (
-          <div key={label} className="rounded-xl border border-white/[0.07] bg-[#0d0d18] px-4 py-4">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-600">{label}</p>
-            <p className="mt-1.5 text-xl font-black text-orange-300">{value}</p>
-            <p className="mt-0.5 text-[11px] text-zinc-600">{note}</p>
+          <div key={label} className="rounded-xl border border-sky-100 bg-white px-4 py-4 shadow-sm">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">{label}</p>
+            <p className="mt-1.5 text-xl font-black text-orange-500">{value}</p>
+            <p className="mt-0.5 text-[11px] text-gray-400">{note}</p>
           </div>
         ))}
       </div>
@@ -156,8 +156,8 @@ export default function RanksPage() {
                     <p className="mt-0.5 text-xs text-zinc-500 max-w-lg">{meta.description}</p>
                   </div>
                 </div>
-                <div className="shrink-0 rounded-lg border border-white/[0.07] bg-black/20 px-3 py-2 text-center">
-                  <p className="text-[10px] text-zinc-600 uppercase tracking-wider">CR Range</p>
+                <div className="shrink-0 rounded-lg border border-sky-100 bg-white px-3 py-2 text-center">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider">CR Range</p>
                   <p className={`text-sm font-black ${meta.color}`}>
                     {tierRanks[0]?.min.toLocaleString()} – {tierRanks[tierRanks.length - 1]?.min.toLocaleString()}+
                   </p>
@@ -176,22 +176,22 @@ export default function RanksPage() {
                   return (
                     <div
                       key={rank.name}
-                      className={`rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2.5 ${subOpacity[sub] ?? ""}`}
+                      className={`rounded-lg border border-sky-100 bg-white/80 px-3 py-2.5 ${subOpacity[sub] ?? ""}`}
                     >
                       <div className="flex items-center justify-between">
                         <p className={`text-xs font-bold ${meta.color}`}>{rank.name}</p>
                         <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{sub}</span>
                       </div>
-                      <p className="mt-1 text-base font-black text-white">{rank.min.toLocaleString()} CR</p>
+                      <p className="mt-1 text-base font-black text-gray-800">{rank.min.toLocaleString()} CR</p>
                     </div>
                   );
                 })}
               </div>
 
               {/* Tip */}
-              <div className="flex items-start gap-2 rounded-lg border border-white/[0.04] bg-black/15 px-3 py-2.5">
+              <div className="flex items-start gap-2 rounded-lg border border-sky-100 bg-sky-50/50 px-3 py-2.5">
                 <span className="text-xs mt-0.5">💡</span>
-                <p className="text-xs text-zinc-500">{meta.tip}</p>
+                <p className="text-xs text-gray-500">{meta.tip}</p>
               </div>
             </div>
           );
@@ -199,16 +199,16 @@ export default function RanksPage() {
       </div>
 
       {/* ── Footer CTA ── */}
-      <div className="mt-6 rounded-2xl border border-orange-700/20 bg-orange-950/10 p-6 text-center">
-        <p className="text-base font-black">Ready to climb?</p>
-        <p className="mt-1 text-sm text-zinc-500">
+      <div className="mt-6 rounded-2xl border border-orange-200 bg-orange-50 p-6 text-center">
+        <p className="text-base font-black text-gray-800">Ready to climb?</p>
+        <p className="mt-1 text-sm text-gray-500">
           Complete your 7 placement matches to earn your starting rank, then grind your way to Hall of Fame.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2.5 text-sm font-bold hover:opacity-90 transition-opacity">
+          <SoundLink href="/leaderboard" soundType="success" className="rounded-lg bg-gradient-to-r from-orange-400 to-coral-500 bg-gradient-to-r from-[#FF8C42] to-[#FF6B6B] px-4 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity">
             🏆 View Leaderboard
           </SoundLink>
-          <SoundLink href="/guide" soundType="success" className="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold hover:bg-white/10 transition-colors">
+          <SoundLink href="/guide" soundType="success" className="rounded-lg border border-sky-200 bg-white px-4 py-2.5 text-sm font-bold text-sky-600 hover:bg-sky-50 transition-colors">
             📖 How Ranked Works
           </SoundLink>
         </div>
