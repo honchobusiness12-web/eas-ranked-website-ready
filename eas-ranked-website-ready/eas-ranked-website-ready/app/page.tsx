@@ -515,6 +515,7 @@ function SeasonCard({ season }: { season: import("@/lib/seasons").Season | null 
       </div>
     </div>
   );
+}
 
 // ---------------------------------------------------------------------------
 // Metric card — premium redesign with stat-pop animation
@@ -535,6 +536,8 @@ function MetricCard({
   icon?: string;
   delay?: number;
 }) {
+
+
   const colorMap: Record<string, { text: string; glow: string; iconBg: string; border: string; from: string; to: string; shadow: string }> = {
     coral:  { text: "text-rose-600",   glow: "rgba(255,107,107,0.10)",  iconBg: "linear-gradient(135deg, rgba(255,107,107,0.15), rgba(255,140,66,0.08))",  border: "rgba(255,107,107,0.20)",  from: "#FF6B6B", to: "#FF8C42", shadow: "rgba(255,107,107,0.20)" },
     lime:   { text: "text-lime-700",   glow: "rgba(132,204,22,0.10)",   iconBg: "linear-gradient(135deg, rgba(132,204,22,0.15), rgba(163,230,53,0.08))",   border: "rgba(132,204,22,0.20)",   from: "#84cc16", to: "#65a30d", shadow: "rgba(132,204,22,0.20)" },
