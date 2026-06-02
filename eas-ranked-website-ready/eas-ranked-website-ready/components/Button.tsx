@@ -16,19 +16,19 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-gradient-to-r from-[#FF6B6B] to-[#FF8C42] text-white border-transparent shadow-[0_4px_16px_rgba(255,107,107,0.35)] hover:shadow-[0_8px_24px_rgba(255,107,107,0.5)] hover:opacity-92 hover:-translate-y-0.5",
+    "bg-gradient-to-r from-[#FF7F50] to-[#FF8C42] text-white border-transparent shadow-[0_4px_20px_rgba(255,127,80,0.4)] hover:shadow-[0_8px_32px_rgba(255,127,80,0.6)] hover:opacity-92 hover:-translate-y-1",
   secondary:
-    "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 hover:border-sky-300 hover:text-sky-800 hover:-translate-y-0.5",
+    "border hover:border-[rgba(0,207,255,0.45)] hover:-translate-y-0.5",
   ghost:
-    "bg-transparent text-gray-500 border-transparent hover:bg-sky-50 hover:text-sky-700",
+    "bg-transparent border-transparent hover:border-[rgba(0,207,255,0.2)]",
   danger:
-    "bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 hover:text-red-700 hover:-translate-y-0.5",
+    "border hover:border-[rgba(255,127,80,0.45)] hover:-translate-y-0.5",
   gold:
-    "bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-transparent shadow-[0_4px_16px_rgba(255,165,0,0.25)] hover:shadow-[0_8px_24px_rgba(255,165,0,0.4)] hover:opacity-92 hover:-translate-y-0.5",
+    "bg-gradient-to-r from-[#F2D9A6] to-[#FF7F50] text-[#062B45] border-transparent shadow-[0_4px_20px_rgba(242,217,166,0.3)] hover:shadow-[0_8px_32px_rgba(242,217,166,0.5)] hover:opacity-92 hover:-translate-y-1",
   success:
-    "bg-gradient-to-r from-green-500 to-emerald-400 text-white border-transparent shadow-[0_4px_16px_rgba(34,197,94,0.25)] hover:shadow-[0_8px_24px_rgba(34,197,94,0.4)] hover:opacity-92 hover:-translate-y-0.5",
+    "bg-gradient-to-r from-green-500 to-emerald-400 text-white border-transparent shadow-[0_4px_16px_rgba(34,197,94,0.3)] hover:shadow-[0_8px_28px_rgba(34,197,94,0.5)] hover:opacity-92 hover:-translate-y-0.5",
   outline:
-    "bg-transparent text-sky-600 border-sky-300 hover:bg-sky-50 hover:border-sky-400 hover:text-sky-700 hover:-translate-y-0.5",
+    "bg-transparent border hover:border-[rgba(0,207,255,0.5)] hover:-translate-y-0.5",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -58,7 +58,7 @@ export default function Button({
       className={`
         inline-flex items-center justify-center font-bold border
         transition-all duration-200 active:scale-[0.97] active:translate-y-0
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(0,207,255,0.6)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#062B45]
         disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
         ${variantClasses[variant]}
         ${sizeClasses[size]}

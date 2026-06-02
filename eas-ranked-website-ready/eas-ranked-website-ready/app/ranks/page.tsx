@@ -103,15 +103,16 @@ export default function RanksPage() {
       {/* ── Header ── */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">🏷️ Rank System</h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
+          <h1 className="text-2xl font-black tracking-tight" style={{ color: "#e2f4ff" }}>🏷️ Rank System</h1>
+          <p className="mt-0.5 text-sm" style={{ color: "rgba(168,255,246,0.55)" }}>
             All 30 rank tiers across 10 divisions — Rookie to Hall of Fame.
           </p>
         </div>
         <SoundLink
           href="/guide"
           soundType="success"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-orange-600/40 bg-orange-950/20 px-3 py-2 text-xs font-bold text-orange-300 hover:bg-orange-950/40 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition-colors"
+          style={{ border: "1px solid rgba(255,127,80,0.35)", background: "rgba(255,127,80,0.10)", color: "#FF7F50" }}
         >
           📖 How Ranked Works →
         </SoundLink>
@@ -126,10 +127,10 @@ export default function RanksPage() {
           { label: "Sub-tiers",         value: "30",    note: "Low / Mid / High" },
           { label: "Max CR",            value: "5300+", note: "Hall of Fame High" },
         ].map(({ label, value, note }) => (
-          <div key={label} className="rounded-xl border border-sky-100 bg-white px-4 py-4 shadow-sm">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">{label}</p>
-            <p className="mt-1.5 text-xl font-black text-orange-500">{value}</p>
-            <p className="mt-0.5 text-[11px] text-gray-400">{note}</p>
+          <div key={label} className="rounded-xl px-4 py-4 animate-card-entrance" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(6,43,69,0.75)", boxShadow: "0 4px 20px rgba(0,0,0,0.25)" }}>
+            <p className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "rgba(168,255,246,0.5)" }}>{label}</p>
+            <p className="mt-1.5 text-xl font-black" style={{ color: "#FF7F50" }}>{value}</p>
+            <p className="mt-0.5 text-[11px]" style={{ color: "rgba(168,255,246,0.4)" }}>{note}</p>
           </div>
         ))}
       </div>
@@ -144,7 +145,7 @@ export default function RanksPage() {
             .replace(/\s(Low|Mid|High)$/, "") ?? tier;
 
           return (
-            <div key={tier} className={`rounded-2xl border ${meta.border} ${meta.bg} p-5`}>
+            <div key={tier} className="rounded-2xl p-5 animate-card-entrance" style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(6,43,69,0.72)", backdropFilter: "blur(16px)" }}>
               {/* Tier header */}
               <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3">
@@ -153,11 +154,11 @@ export default function RanksPage() {
                     <h2 className={`text-base font-black ${meta.color}`}>
                       {tier} · {tierName}
                     </h2>
-                    <p className="mt-0.5 text-xs text-zinc-500 max-w-lg">{meta.description}</p>
+                    <p className="mt-0.5 text-xs max-w-lg" style={{ color: "rgba(168,255,246,0.55)" }}>{meta.description}</p>
                   </div>
                 </div>
-                <div className="shrink-0 rounded-lg border border-sky-100 bg-white px-3 py-2 text-center">
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider">CR Range</p>
+                <div className="shrink-0 rounded-lg px-3 py-2 text-center" style={{ border: "1px solid rgba(0,207,255,0.2)", background: "rgba(0,207,255,0.07)" }}>
+                  <p className="text-[10px] uppercase tracking-wider" style={{ color: "rgba(168,255,246,0.5)" }}>CR Range</p>
                   <p className={`text-sm font-black ${meta.color}`}>
                     {tierRanks[0]?.min.toLocaleString()} – {tierRanks[tierRanks.length - 1]?.min.toLocaleString()}+
                   </p>
@@ -176,22 +177,23 @@ export default function RanksPage() {
                   return (
                     <div
                       key={rank.name}
-                      className={`rounded-lg border border-sky-100 bg-white/80 px-3 py-2.5 ${subOpacity[sub] ?? ""}`}
+                      className={`rounded-lg px-3 py-2.5 ${subOpacity[sub] ?? ""}`}
+                      style={{ border: "1px solid rgba(0,207,255,0.15)", background: "rgba(0,207,255,0.05)" }}
                     >
                       <div className="flex items-center justify-between">
                         <p className={`text-xs font-bold ${meta.color}`}>{rank.name}</p>
-                        <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{sub}</span>
+                        <span className="text-[10px] uppercase tracking-wider" style={{ color: "rgba(168,255,246,0.45)" }}>{sub}</span>
                       </div>
-                      <p className="mt-1 text-base font-black text-gray-800">{rank.min.toLocaleString()} CR</p>
+                      <p className="mt-1 text-base font-black" style={{ color: "#e2f4ff" }}>{rank.min.toLocaleString()} CR</p>
                     </div>
                   );
                 })}
               </div>
 
               {/* Tip */}
-              <div className="flex items-start gap-2 rounded-lg border border-sky-100 bg-sky-50/50 px-3 py-2.5">
+              <div className="flex items-start gap-2 rounded-lg px-3 py-2.5" style={{ border: "1px solid rgba(0,207,255,0.15)", background: "rgba(0,207,255,0.06)" }}>
                 <span className="text-xs mt-0.5">💡</span>
-                <p className="text-xs text-gray-500">{meta.tip}</p>
+                <p className="text-xs" style={{ color: "rgba(168,255,246,0.6)" }}>{meta.tip}</p>
               </div>
             </div>
           );
@@ -199,16 +201,16 @@ export default function RanksPage() {
       </div>
 
       {/* ── Footer CTA ── */}
-      <div className="mt-6 rounded-2xl border border-orange-200 bg-orange-50 p-6 text-center">
-        <p className="text-base font-black text-gray-800">Ready to climb?</p>
-        <p className="mt-1 text-sm text-gray-500">
+      <div className="mt-6 rounded-2xl p-6 text-center animate-card-entrance" style={{ border: "1px solid rgba(255,127,80,0.25)", background: "rgba(255,127,80,0.07)" }}>
+        <p className="text-base font-black" style={{ color: "#e2f4ff" }}>Ready to climb?</p>
+        <p className="mt-1 text-sm" style={{ color: "rgba(168,255,246,0.6)" }}>
           Complete your 7 placement matches to earn your starting rank, then grind your way to Hall of Fame.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <SoundLink href="/leaderboard" soundType="success" className="rounded-lg bg-gradient-to-r from-orange-400 to-coral-500 bg-gradient-to-r from-[#FF8C42] to-[#FF6B6B] px-4 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity">
+          <SoundLink href="/leaderboard" soundType="success" className="rounded-lg px-4 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg, #FF7F50, #FF8C42)", boxShadow: "0 4px 16px rgba(255,127,80,0.35)" }}>
             🏆 View Leaderboard
           </SoundLink>
-          <SoundLink href="/guide" soundType="success" className="rounded-lg border border-sky-200 bg-white px-4 py-2.5 text-sm font-bold text-sky-600 hover:bg-sky-50 transition-colors">
+          <SoundLink href="/guide" soundType="success" className="rounded-lg px-4 py-2.5 text-sm font-bold transition-colors" style={{ border: "1px solid rgba(0,207,255,0.25)", background: "rgba(0,207,255,0.08)", color: "#00CFFF" }}>
             📖 How Ranked Works
           </SoundLink>
         </div>
@@ -216,3 +218,4 @@ export default function RanksPage() {
     </Shell>
   );
 }
+

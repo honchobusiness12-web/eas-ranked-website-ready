@@ -55,15 +55,15 @@ function SeasonStatusWidget({ season }: { season: ShellSeason | null }) {
       <div className="flex items-center gap-2.5">
         <div
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm"
-          style={{ background: "rgba(14,165,233,0.08)" }}
+          style={{ background: "rgba(0,207,255,0.10)", border: "1px solid rgba(0,207,255,0.2)" }}
         >
           🏆
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-gray-500 truncate">No active season</p>
-          <p className="text-[10px] text-gray-400">Off season</p>
+          <p className="text-xs font-semibold truncate" style={{ color: "rgba(168,255,246,0.7)" }}>No active season</p>
+          <p className="text-[10px]" style={{ color: "rgba(168,255,246,0.45)" }}>Off season</p>
         </div>
-        <span className="shrink-0 rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gray-500">
+        <span className="shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider" style={{ borderColor: "rgba(0,207,255,0.25)", background: "rgba(0,207,255,0.08)", color: "rgba(0,207,255,0.7)" }}>
           OFF
         </span>
       </div>
@@ -71,11 +71,11 @@ function SeasonStatusWidget({ season }: { season: ShellSeason | null }) {
   }
 
   const statusBadge = {
-    active:   { label: "LIVE",   cls: "border-green-300 bg-green-50 text-green-700" },
-    paused:   { label: "PAUSED", cls: "border-yellow-300 bg-yellow-50 text-yellow-700" },
-    ended:    { label: "ENDED",  cls: "border-red-300 bg-red-50 text-red-600" },
-    upcoming: { label: "SOON",   cls: "border-sky-300 bg-sky-50 text-sky-700" },
-  }[season.status] ?? { label: "OFF", cls: "border-gray-200 bg-gray-100 text-gray-500" };
+    active:   { label: "LIVE",   cls: "border-green-500/40 bg-green-500/10 text-green-400" },
+    paused:   { label: "PAUSED", cls: "border-yellow-500/40 bg-yellow-500/10 text-yellow-400" },
+    ended:    { label: "ENDED",  cls: "border-red-500/40 bg-red-500/10 text-red-400" },
+    upcoming: { label: "SOON",   cls: "border-cyan-500/40 bg-cyan-500/10 text-cyan-400" },
+  }[season.status] ?? { label: "OFF", cls: "border-white/10 bg-white/5 text-white/40" };
 
   let daysLeft = 0;
   let progressPct = 0;
@@ -94,11 +94,11 @@ function SeasonStatusWidget({ season }: { season: ShellSeason | null }) {
       <div className="flex items-center gap-2">
         <div
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm"
-          style={{ background: "rgba(14,165,233,0.12)" }}
+          style={{ background: "rgba(0,207,255,0.12)", border: "1px solid rgba(0,207,255,0.22)" }}
         >
           🏆
         </div>
-        <p className="flex-1 text-xs font-semibold text-gray-700 truncate min-w-0">{season.name}</p>
+        <p className="flex-1 text-xs font-semibold truncate min-w-0" style={{ color: "#A8FFF6" }}>{season.name}</p>
         <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${statusBadge.cls}`}>
           {statusBadge.label}
         </span>
@@ -106,16 +106,16 @@ function SeasonStatusWidget({ season }: { season: ShellSeason | null }) {
       {season.start_date && season.end_date && (
         <div>
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-gray-500">{progressPct}% complete</span>
-            {daysLeft > 0 && <span className="text-[10px] font-semibold text-sky-500">⏳ {daysLeft}d left</span>}
+            <span className="text-[10px]" style={{ color: "rgba(168,255,246,0.5)" }}>{progressPct}% complete</span>
+            {daysLeft > 0 && <span className="text-[10px] font-semibold" style={{ color: "#00CFFF" }}>⏳ {daysLeft}d left</span>}
           </div>
-          <div className="h-1 w-full rounded-full overflow-hidden" style={{ background: "rgba(14,165,233,0.10)" }}>
+          <div className="h-1 w-full rounded-full overflow-hidden" style={{ background: "rgba(0,207,255,0.12)" }}>
             <div
               className="h-full rounded-full season-progress-bar"
               style={{
                 width: `${progressPct}%`,
-                background: "linear-gradient(90deg, #0ea5e9, #06b6d4, #14b8a6)",
-                boxShadow: "0 0 6px rgba(14,165,233,0.4)",
+                background: "linear-gradient(90deg, #00CFFF, #4DEEEA, #A8FFF6)",
+                boxShadow: "0 0 8px rgba(0,207,255,0.6)",
               }}
             />
           </div>
@@ -162,7 +162,7 @@ export default function Shell({
   const contentML = sidebarCollapsed ? "md:ml-[68px]" : "md:ml-64";
 
   return (
-    <main className="min-h-screen text-gray-800" style={{ background: "#f0f9ff" }}>
+    <main className="min-h-screen" style={{ background: "#062B45", color: "#e2f4ff" }}>
       <div className="flex">
 
         {/* ── Sidebar — desktop ── */}
@@ -170,31 +170,32 @@ export default function Shell({
           className={`fixed left-0 top-0 hidden h-screen flex-col md:flex transition-all duration-300 ${sidebarW} z-40 overflow-y-auto sidebar-premium`}
         >
           {/* Logo + collapse */}
-          <div className="flex items-center justify-between px-3 py-4 border-b border-sky-100">
+          <div className="flex items-center justify-between px-3 py-4" style={{ borderBottom: "1px solid rgba(0,207,255,0.15)" }}>
             {!sidebarCollapsed ? (
               <>
                 <SoundLink href="/" soundType="click" className="group flex items-center gap-2.5 min-w-0">
                   <div
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg logo-glow"
                     style={{
-                      background: "linear-gradient(135deg, rgba(14,165,233,0.25), rgba(20,184,166,0.18))",
-                      border: "1px solid rgba(14,165,233,0.3)",
+                      background: "linear-gradient(135deg, rgba(0,207,255,0.22), rgba(77,238,234,0.15))",
+                      border: "1px solid rgba(0,207,255,0.35)",
                     }}
                   >
-                    🏖️
+                    🌊
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-black tracking-tight text-gray-800 group-hover:text-sky-600 transition-colors leading-none">
+                    <p className="text-sm font-black tracking-tight leading-none" style={{ color: "#e2f4ff" }}>
                       EAS <span className="summer-text-gradient">ARENA</span>
                     </p>
-                    <p className="text-[9px] text-gray-400 font-medium tracking-widest uppercase leading-none mt-0.5">
+                    <p className="text-[9px] font-medium tracking-widest uppercase leading-none mt-0.5" style={{ color: "rgba(168,255,246,0.45)" }}>
                       Ranked Dashboard
                     </p>
                   </div>
                 </SoundLink>
                 <button
                   onClick={() => setSidebarCollapsed(true)}
-                  className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-sky-100 bg-sky-50 text-gray-400 transition-all duration-200 hover:bg-sky-100 hover:text-sky-600 text-sm"
+                  className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm transition-all duration-200"
+                  style={{ border: "1px solid rgba(0,207,255,0.2)", background: "rgba(0,207,255,0.08)", color: "rgba(0,207,255,0.6)" }}
                   title="Collapse sidebar"
                 >
                   ‹
@@ -207,15 +208,16 @@ export default function Shell({
                   soundType="click"
                   className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl text-lg logo-glow"
                   style={{
-                    background: "linear-gradient(135deg, rgba(14,165,233,0.25), rgba(20,184,166,0.18))",
-                    border: "1px solid rgba(14,165,233,0.3)",
+                    background: "linear-gradient(135deg, rgba(0,207,255,0.22), rgba(77,238,234,0.15))",
+                    border: "1px solid rgba(0,207,255,0.35)",
                   }}
                 >
-                  🏖️
+                  🌊
                 </SoundLink>
                 <button
                   onClick={() => setSidebarCollapsed(false)}
-                  className="absolute -right-3 top-[72px] flex h-6 w-6 items-center justify-center rounded-full border border-sky-200 bg-white text-sky-400 shadow-lg transition-all duration-200 hover:text-sky-600 text-xs"
+                  className="absolute -right-3 top-[72px] flex h-6 w-6 items-center justify-center rounded-full shadow-lg transition-all duration-200 text-xs"
+                  style={{ border: "1px solid rgba(0,207,255,0.3)", background: "#062B45", color: "#00CFFF" }}
                   title="Expand sidebar"
                 >
                   ›
@@ -235,9 +237,10 @@ export default function Shell({
                     soundType="success"
                     className={`nav-item-premium relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 ${sidebarCollapsed ? "justify-center" : ""} ${
                       isActive
-                        ? "active bg-sky-100 text-sky-700 border border-sky-200"
-                        : "text-gray-500 hover:bg-sky-50 hover:text-sky-700 border border-transparent"
+                        ? "active border"
+                        : "border border-transparent"
                     }`}
+                    style={isActive ? {} : { color: "rgba(168,255,246,0.65)" }}
                     title={sidebarCollapsed ? label : undefined}
                   >
                     {/* Active indicator bar */}
@@ -279,14 +282,14 @@ export default function Shell({
                 {!sidebarCollapsed ? (
                   <div className="pt-4 pb-1.5 px-1">
                     <div className="flex items-center gap-2">
-                      <div className="h-px flex-1 bg-gradient-to-r from-red-500/25 to-transparent" />
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-red-500/50">Admin</p>
-                      <div className="h-px flex-1 bg-gradient-to-l from-red-500/25 to-transparent" />
+                      <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,127,80,0.3), transparent)" }} />
+                      <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,127,80,0.6)" }}>Admin</p>
+                      <div className="h-px flex-1" style={{ background: "linear-gradient(270deg, rgba(255,127,80,0.3), transparent)" }} />
                     </div>
                   </div>
                 ) : (
                   <div className="pt-3 pb-1 flex justify-center">
-                    <div className="h-px w-8 bg-red-500/25" />
+                    <div className="h-px w-8" style={{ background: "rgba(255,127,80,0.3)" }} />
                   </div>
                 )}
                 {adminLinks.map(({ label, href, emoji }) => {
@@ -298,13 +301,16 @@ export default function Shell({
                         soundType="success"
                         className={`relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-150 ${sidebarCollapsed ? "justify-center" : ""} ${
                           isActive
-                            ? "bg-coral-50 text-red-600 border border-red-200 bg-red-50"
-                            : "text-gray-500 hover:bg-red-50 hover:text-red-500 border border-transparent"
+                            ? "border"
+                            : "border border-transparent"
                         }`}
+                        style={isActive
+                          ? { background: "rgba(255,127,80,0.12)", color: "#FF7F50", borderColor: "rgba(255,127,80,0.3)" }
+                          : { color: "rgba(255,127,80,0.6)" }}
                         title={sidebarCollapsed ? label : undefined}
                       >
                         {isActive && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-red-400 tab-indicator" />
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full tab-indicator" style={{ background: "linear-gradient(180deg, #FF7F50, #FF8C42)", boxShadow: "0 0 6px rgba(255,127,80,0.6)" }} />
                         )}
                         <span className="relative shrink-0 text-base leading-none">{emoji}</span>
                         {!sidebarCollapsed && <span className="relative truncate text-[13px] font-medium">{label}</span>}
@@ -312,9 +318,9 @@ export default function Shell({
 
                       {sidebarCollapsed && (
                         <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 hidden group-hover:block z-50 pointer-events-none">
-                          <div className="rounded-lg bg-white border border-red-200 px-2.5 py-1.5 text-xs font-bold text-gray-700 whitespace-nowrap shadow-lg">
+                          <div className="rounded-lg px-2.5 py-1.5 text-xs font-bold whitespace-nowrap shadow-lg" style={{ background: "rgba(5,31,53,0.97)", border: "1px solid rgba(255,127,80,0.3)", color: "#FF7F50" }}>
                             {label}
-                            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-white" />
+                            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent" style={{ borderRightColor: "rgba(5,31,53,0.97)" }} />
                           </div>
                         </div>
                       )}
@@ -327,20 +333,21 @@ export default function Shell({
 
           {/* Bottom section */}
           {!sidebarCollapsed && (
-            <div className="border-t border-sky-100 px-3 py-3 space-y-2.5">
+            <div className="px-3 py-3 space-y-2.5" style={{ borderTop: "1px solid rgba(0,207,255,0.15)" }}>
               {user && (
                 <SoundLink
                   href={`/profile/${user.id}`}
                   soundType="click"
-                  className="flex items-center gap-2.5 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2.5 transition-all duration-200 hover:border-sky-300 hover:bg-sky-100 group"
+                  className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-200 group"
+                  style={{ border: "1px solid rgba(0,207,255,0.2)", background: "rgba(0,207,255,0.07)" }}
                 >
                   <div
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm"
-                    style={{ background: "linear-gradient(135deg, rgba(14,165,233,0.3), rgba(20,184,166,0.2))" }}
+                    style={{ background: "linear-gradient(135deg, rgba(0,207,255,0.3), rgba(77,238,234,0.2))" }}
                   >
                     👤
                   </div>
-                  <span className="flex-1 truncate text-xs font-semibold text-sky-700 group-hover:text-sky-800 transition-colors">
+                  <span className="flex-1 truncate text-xs font-semibold transition-colors" style={{ color: "#A8FFF6" }}>
                     {user.global_name || user.username}
                   </span>
                   <CopyButton text={user.id} size="xs" className="ml-auto shrink-0 opacity-40 hover:opacity-100" />
@@ -349,19 +356,21 @@ export default function Shell({
               <SoundLink
                 href={isOwner ? "/admin/seasons" : "/"}
                 soundType="click"
-                className="block rounded-xl border border-teal-200 bg-teal-50 px-3 py-2.5 transition-all duration-200 hover:border-teal-300 hover:bg-teal-100"
+                className="block rounded-xl px-3 py-2.5 transition-all duration-200"
+                style={{ border: "1px solid rgba(0,207,255,0.18)", background: "rgba(0,207,255,0.06)" }}
               >
                 <SeasonStatusWidget season={season} />
               </SoundLink>
             </div>
           )}
           {sidebarCollapsed && user && (
-            <div className="border-t border-sky-100 px-2 py-3 flex justify-center">
+            <div className="px-2 py-3 flex justify-center" style={{ borderTop: "1px solid rgba(0,207,255,0.15)" }}>
               <SoundLink
                 href={`/profile/${user.id}`}
                 soundType="click"
                 title="My Profile"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-sky-200 bg-sky-50 text-base transition-all duration-200 hover:bg-sky-100"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-base transition-all duration-200"
+                style={{ border: "1px solid rgba(0,207,255,0.2)", background: "rgba(0,207,255,0.08)" }}
               >
                 👤
               </SoundLink>
@@ -378,7 +387,8 @@ export default function Shell({
           <header className="sticky top-0 z-30 flex h-14 items-center gap-3 px-4 md:px-6 header-premium">
             {/* Mobile menu button */}
             <button
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-sky-200 bg-sky-50 text-sm transition-all duration-200 hover:bg-sky-100 hover:text-sky-700 md:hidden"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm transition-all duration-200 md:hidden"
+              style={{ border: "1px solid rgba(0,207,255,0.25)", background: "rgba(0,207,255,0.08)", color: "#00CFFF" }}
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Toggle menu"
             >
@@ -389,13 +399,13 @@ export default function Shell({
             <div className="flex-1 min-w-0 flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-60" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-sky-400" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ background: "#00CFFF" }} />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "#00CFFF" }} />
                 </span>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-sky-500 animated-underline">EAS Arena</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest animated-underline" style={{ color: "#00CFFF" }}>EAS Arena</p>
               </div>
-              <div className="hidden md:block h-4 w-px bg-sky-200" />
-              <p className="text-sm font-black tracking-tight text-gray-600">Ranked Dashboard</p>
+              <div className="hidden md:block h-4 w-px" style={{ background: "rgba(0,207,255,0.25)" }} />
+              <p className="text-sm font-black tracking-tight" style={{ color: "rgba(168,255,246,0.8)" }}>Ranked Dashboard</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -408,19 +418,20 @@ export default function Shell({
           {/* ── Mobile nav drawer ── */}
           {mobileOpen && (
             <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileOpen(false)}>
-              <div className="absolute inset-0 bg-sky-900/20 backdrop-blur-sm animate-fade-in" />
+              <div className="absolute inset-0 backdrop-blur-sm animate-fade-in" style={{ background: "rgba(6,43,69,0.7)" }} />
               <div
-                className="absolute left-0 top-0 h-full w-72 border-r border-sky-100 flex flex-col animate-slide-in sidebar-premium"
-                style={{ boxShadow: "4px 0 32px rgba(14,165,233,0.12)" }}
+                className="absolute left-0 top-0 h-full w-72 flex flex-col animate-slide-in sidebar-premium"
+                style={{ boxShadow: "4px 0 40px rgba(0,0,0,0.5), 4px 0 20px rgba(0,207,255,0.08)", borderRight: "1px solid rgba(0,207,255,0.18)" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between px-5 py-4 border-b border-sky-100">
-                  <SoundLink href="/" soundType="click" className="text-xl font-black text-gray-800" onClick={() => setMobileOpen(false)}>
+                <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(0,207,255,0.15)" }}>
+                  <SoundLink href="/" soundType="click" className="text-xl font-black" style={{ color: "#e2f4ff" }} onClick={() => setMobileOpen(false)}>
                     EAS <span className="summer-text-gradient">ARENA</span>
                   </SoundLink>
                   <button
                     onClick={() => setMobileOpen(false)}
-                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-sky-200 bg-sky-50 text-gray-500 hover:text-sky-700 transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-xl transition-colors"
+                    style={{ border: "1px solid rgba(0,207,255,0.2)", background: "rgba(0,207,255,0.08)", color: "#00CFFF" }}
                   >
                     ✕
                   </button>
@@ -434,11 +445,12 @@ export default function Shell({
                         key={href}
                         href={href}
                         soundType="success"
-                        className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-150 ${
-                          isActive
-                            ? "bg-sky-100 text-sky-700 border border-sky-200"
-                            : "text-gray-500 hover:bg-sky-50 hover:text-sky-700 border border-transparent"
+                        className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-150 border ${
+                          isActive ? "" : "border-transparent"
                         }`}
+                        style={isActive
+                          ? { background: "rgba(0,207,255,0.14)", color: "#00CFFF", borderColor: "rgba(0,207,255,0.28)" }
+                          : { color: "rgba(168,255,246,0.65)" }}
                         onClick={() => setMobileOpen(false)}
                       >
                         <span className="text-base">{emoji}</span>
@@ -456,12 +468,13 @@ export default function Shell({
                   {user && (
                     <>
                       <div className="pt-4 pb-1.5 px-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-sky-500">Profile</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#00CFFF" }}>Profile</p>
                       </div>
                       <SoundLink
                         href={`/profile/${user.id}`}
                         soundType="click"
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-gray-500 transition-all duration-150 hover:bg-sky-50 hover:text-sky-700 border border-transparent"
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-150 border border-transparent"
+                        style={{ color: "rgba(168,255,246,0.65)" }}
                         onClick={() => setMobileOpen(false)}
                       >
                         <span className="text-base">👤</span>
@@ -473,7 +486,7 @@ export default function Shell({
                   {isOwner && (
                     <>
                       <div className="pt-4 pb-1.5 px-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">Admin</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,127,80,0.7)" }}>Admin</p>
                       </div>
                       {adminLinks.map(({ label, href, emoji }) => {
                         const isActive = pathname === href || pathname.startsWith(href);
@@ -482,11 +495,12 @@ export default function Shell({
                             key={href}
                             href={href}
                             soundType="success"
-                            className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-150 ${
-                              isActive
-                                ? "bg-red-50 text-red-600 border border-red-200"
-                                : "text-gray-500 hover:bg-red-50 hover:text-red-500 border border-transparent"
+                            className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-150 border ${
+                              isActive ? "" : "border-transparent"
                             }`}
+                            style={isActive
+                              ? { background: "rgba(255,127,80,0.12)", color: "#FF7F50", borderColor: "rgba(255,127,80,0.3)" }
+                              : { color: "rgba(255,127,80,0.6)" }}
                             onClick={() => setMobileOpen(false)}
                           >
                             <span className="text-base">{emoji}</span>
@@ -514,15 +528,15 @@ export default function Shell({
             </div>
           </PageTransition>
 
-          <footer className="border-t border-sky-100 px-8 py-6 mt-4 bg-white/50">
+          <footer className="px-8 py-6 mt-4" style={{ borderTop: "1px solid rgba(0,207,255,0.12)", background: "rgba(5,31,53,0.5)" }}>
             <div className="flex flex-col items-center gap-2 text-center">
               <p className="text-sm font-black">
                 <span className="summer-text-gradient animate-text-shimmer">EAS Arena</span>
               </p>
-              <p className="text-[11px] text-gray-400">© 2026 Elevate All-Stars · All rights reserved</p>
-              {/* Subtle footer accent line */}
+              <p className="text-[11px]" style={{ color: "rgba(168,255,246,0.4)" }}>© 2026 Elevate All-Stars · All rights reserved</p>
+              {/* Ocean accent line */}
               <div className="mt-1 h-px w-24 rounded-full"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(14,165,233,0.4), transparent)" }} />
+                style={{ background: "linear-gradient(90deg, transparent, rgba(0,207,255,0.5), transparent)", boxShadow: "0 0 6px rgba(0,207,255,0.3)" }} />
             </div>
           </footer>
         </section>
