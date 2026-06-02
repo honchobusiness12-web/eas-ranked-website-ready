@@ -11,7 +11,7 @@ import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { DiscordUser } from "@/lib/auth";
-import { getAvatarUrl } from "@/lib/auth";
+import { buildDiscordAvatarUrl } from "@/lib/avatar-utils";
 
 // ---------------------------------------------------------------------------
 // Navigation config
@@ -345,7 +345,7 @@ export default function Shell({
                 >
                   <PlayerAvatar
                     name={user.global_name || user.username}
-                    avatar={getAvatarUrl(user)}
+                    avatar={buildDiscordAvatarUrl(user.id, user.avatar)}
                     size="h-7 w-7"
                   />
                   <span className="flex-1 truncate text-xs font-semibold transition-colors" style={{ color: "#A8FFF6" }}>
@@ -374,7 +374,7 @@ export default function Shell({
               >
                 <PlayerAvatar
                   name={user.global_name || user.username}
-                  avatar={getAvatarUrl(user)}
+                  avatar={buildDiscordAvatarUrl(user.id, user.avatar)}
                   size="h-9 w-9"
                 />
               </SoundLink>
