@@ -3,8 +3,10 @@ import {
   exchangeCodeForToken,
   getDiscordUser,
   createSession,
+  getAvatarUrl,
 } from "@/lib/auth";
 import { syncPremiumFromDiscord } from "@/lib/discord-sync";
+import { pool } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -32,6 +34,19 @@ export async function GET(req: NextRequest) {
     } catch (syncErr) {
       // Non-fatal — log and continue
       console.warn("[auth] Premium sync failed (non-fatal):", syncErr);
+    }
+
+    // Update player avatar in database on every login
+    try {
+      const avatarUrl = getAvatarUrl(discordUser);
+      if (avatarUrl) {
+        await pool.query(
+          `UPDATE players SET data = jsonb_set(data, '{avatar_url}', to_jsonb($1::text)) WHERE user_id = $2`,
+          [avatarUrl, discordUser.id]
+        );
+      }
+    } catch (err) {
+      console.warn("[auth] Failed to update avatar:", err);
     }
 
     // Redirect to the user's profile page
