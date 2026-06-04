@@ -47,6 +47,10 @@ interface ShopItem {
   category: string;
   stock_remaining: number;
   total_sold: number;
+  rarity?: string | null;
+  is_sold_out?: boolean;
+  is_limited?: boolean;
+  resale_supply?: number;
 }
 
 interface Transaction {
@@ -527,22 +531,31 @@ function StarpointExchange({ data, loading }: { data: MarketOverview | null; loa
 // Shop Table
 // ---------------------------------------------------------------------------
 
+const RARITY_COLORS_MARKET: Record<string, string> = {
+  common: "#9ca3af",
+  uncommon: "#22c55e",
+  rare: "#3b82f6",
+  epic: "#a855f7",
+  legendary: "#f59e0b",
+  mythic: "#ef4444",
+};
+
 function ShopTable({ items, loading }: { items: ShopItem[]; loading: boolean }) {
   return (
-    <SectionCard icon="🛍️" title="Limited Shop Stock" subtitle="Available items and remaining inventory">
+    <SectionCard icon="🛍️" title="Market Shop" subtitle="Available items and remaining inventory">
       {/* Desktop header */}
       <div
         className="hidden md:grid items-center px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest"
         style={{
-          gridTemplateColumns: "1fr 100px 120px 100px 80px 110px",
+          gridTemplateColumns: "1fr 90px 120px 110px 80px 120px",
           borderBottom: "1px solid rgba(0,207,255,0.10)",
           color: "rgba(168,255,246,0.45)",
         }}
       >
         <span>Item</span>
-        <span>Category</span>
-        <span>Price</span>
-        <span>Remaining</span>
+        <span>Rarity</span>
+        <span>Value</span>
+        <span>Stock</span>
         <span>Sold</span>
         <span>Status</span>
       </div>
@@ -553,7 +566,12 @@ function ShopTable({ items, loading }: { items: ShopItem[]; loading: boolean }) 
         <EmptyState icon="🏪" message="No shop items configured yet" />
       ) : (
         items.map((item) => {
-          const { label, color } = stockStatusLabel(item.stock_remaining);
+          const soldOut = item.is_sold_out ?? item.stock_remaining <= 0;
+          const { label, color } = soldOut
+            ? { label: "Out of Stock", color: "#ef4444" }
+            : stockStatusLabel(item.stock_remaining);
+          const rarityColor = item.rarity ? (RARITY_COLORS_MARKET[item.rarity] ?? "#6b7280") : null;
+
           return (
             <div
               key={item.id}
@@ -563,27 +581,61 @@ function ShopTable({ items, loading }: { items: ShopItem[]; loading: boolean }) 
               {/* Desktop */}
               <div
                 className="hidden md:grid items-center px-5 py-3.5 hover:bg-[rgba(0,207,255,0.04)] transition-colors"
-                style={{ gridTemplateColumns: "1fr 100px 120px 100px 80px 110px" }}
+                style={{ gridTemplateColumns: "1fr 90px 120px 110px 80px 120px" }}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-base shrink-0">{categoryIcon(item.category)}</span>
-                  <p className="text-sm font-bold truncate" style={{ color: "#e2f4ff" }}>{item.name}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate" style={{ color: "#e2f4ff" }}>{item.name}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span
+                        className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold capitalize"
+                        style={{ background: "rgba(0,207,255,0.08)", border: "1px solid rgba(0,207,255,0.18)", color: "#4DEEEA" }}
+                      >
+                        {item.category}
+                      </span>
+                      {item.is_limited && (
+                        <span
+                          className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold"
+                          style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", color: "#f59e0b" }}
+                        >
+                          Limited
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <span
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold capitalize"
-                  style={{ background: "rgba(0,207,255,0.08)", border: "1px solid rgba(0,207,255,0.18)", color: "#4DEEEA" }}
-                >
-                  {item.category}
-                </span>
+                {/* Rarity */}
+                <div>
+                  {rarityColor ? (
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold capitalize"
+                      style={{ background: `${rarityColor}22`, border: `1px solid ${rarityColor}60`, color: rarityColor }}
+                    >
+                      {item.rarity}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-600 text-xs">—</span>
+                  )}
+                </div>
+                {/* Value */}
                 <span className="text-sm font-black tabular-nums" style={{ color: "#f59e0b" }}>
                   {fmt(item.price)} SP
                 </span>
-                <span className="text-sm font-bold tabular-nums" style={{ color }}>
-                  {item.stock_remaining}
-                </span>
+                {/* Stock */}
+                <div>
+                  <span className="text-sm font-bold tabular-nums" style={{ color }}>
+                    {item.stock_remaining}
+                  </span>
+                  {(item.resale_supply ?? 0) > 0 && (
+                    <p className="text-[10px] text-zinc-500">+{item.resale_supply} resale</p>
+                  )}
+                </div>
+                {/* Sold */}
                 <span className="text-sm tabular-nums" style={{ color: "rgba(168,255,246,0.5)" }}>
                   {item.total_sold}
                 </span>
+                {/* Status */}
                 <span
                   className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
                   style={{ background: `${color}18`, border: `1px solid ${color}40`, color }}
@@ -599,12 +651,28 @@ function ShopTable({ items, loading }: { items: ShopItem[]; loading: boolean }) 
                     <span className="text-base shrink-0">{categoryIcon(item.category)}</span>
                     <div className="min-w-0">
                       <p className="text-sm font-bold truncate" style={{ color: "#e2f4ff" }}>{item.name}</p>
-                      <p className="text-[10px] capitalize" style={{ color: "rgba(168,255,246,0.4)" }}>{item.category}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <p className="text-[10px] capitalize" style={{ color: "rgba(168,255,246,0.4)" }}>{item.category}</p>
+                        {rarityColor && (
+                          <span
+                            className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold capitalize"
+                            style={{ background: `${rarityColor}22`, border: `1px solid ${rarityColor}60`, color: rarityColor }}
+                          >
+                            {item.rarity}
+                          </span>
+                        )}
+                        {item.is_limited && (
+                          <span className="text-[9px] font-bold" style={{ color: "#f59e0b" }}>Limited</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-sm font-black tabular-nums" style={{ color: "#f59e0b" }}>{fmtCurrency(item.price)} SP</p>
                     <p className="text-xs font-bold" style={{ color }}>{label}</p>
+                    {(item.resale_supply ?? 0) > 0 && (
+                      <p className="text-[10px] text-zinc-500">+{item.resale_supply} resale</p>
+                    )}
                   </div>
                 </div>
               </div>
