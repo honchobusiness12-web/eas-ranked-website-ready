@@ -247,16 +247,25 @@ function OverviewStats({ data, loading }: { data: MarketOverview | null; loading
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div
+      className="grid gap-3"
+      style={{
+        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+        gridAutoRows: "1fr",
+      }}
+    >
       {stats.map((s) => (
         <div
           key={s.label}
-          className="rounded-2xl p-4 backdrop-blur-sm"
+          className="rounded-2xl p-4 backdrop-blur-sm transition-all duration-200 hover:scale-105"
           style={{ border: "1px solid rgba(0,207,255,0.15)", background: "rgba(6,43,69,0.75)" }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">{s.icon}</span>
-            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(168,255,246,0.5)" }}>
+            <span className="text-lg shrink-0">{s.icon}</span>
+            <p
+              className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap"
+              style={{ color: "rgba(168,255,246,0.5)" }}
+            >
               {s.label}
             </p>
           </div>
@@ -266,7 +275,7 @@ function OverviewStats({ data, loading }: { data: MarketOverview | null; loading
             <div>
               <p className="text-xl font-black tabular-nums" style={{ color: s.color }}>{s.value}</p>
               {s.sub && (
-                <p className="text-xs font-bold mt-0.5" style={{ color: s.sub.positive ? "#10b981" : "#ef4444" }}>
+                <p className="text-xs font-bold mt-0.5 tabular-nums" style={{ color: s.sub.positive ? "#10b981" : "#ef4444" }}>
                   {s.sub.positive ? "▲" : "▼"} {s.sub.value} 24h
                 </p>
               )}
@@ -389,57 +398,126 @@ function StocksTable({ stocks, loading }: { stocks: Stock[]; loading: boolean })
 function StarpointExchange({ data, loading }: { data: MarketOverview | null; loading: boolean }) {
   const isPositive = (data?.starpoint_24h_change ?? 0) >= 0;
   const changeColor = isPositive ? "#10b981" : "#ef4444";
+  const changeArrow = isPositive ? "▲" : "▼";
+
+  // Calculate derived values
+  const currentValue = data?.starpoint_value ?? 1.0;
+  const change24h = data?.starpoint_24h_change ?? 0;
+  const high24h = currentValue + Math.abs(change24h);
+  const low24h = currentValue - Math.abs(change24h);
+  const changePct = currentValue > 0 ? (change24h / currentValue) * 100 : 0;
+
+  // Convert SP to USD (1 SP = $1,000,000)
+  const spToUsd = (sp: number) => sp * 1_000_000;
+
+  const stats = [
+    {
+      label: "Current Value",
+      icon: "⭐",
+      value: loading ? null : currentValue.toFixed(4),
+      usd: loading ? null : spToUsd(currentValue),
+      pct: null as string | null,
+      color: "#f59e0b",
+    },
+    {
+      label: "24H Change",
+      icon: "📊",
+      value: loading ? null : `${changeArrow} ${change24h >= 0 ? "+" : ""}${change24h.toFixed(4)}`,
+      usd: null as number | null,
+      pct: loading ? null : `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`,
+      color: changeColor,
+    },
+    {
+      label: "24H High",
+      icon: "📈",
+      value: loading ? null : high24h.toFixed(4),
+      usd: loading ? null : spToUsd(high24h),
+      pct: null as string | null,
+      color: "#10b981",
+    },
+    {
+      label: "24H Low",
+      icon: "📉",
+      value: loading ? null : low24h.toFixed(4),
+      usd: loading ? null : spToUsd(low24h),
+      pct: null as string | null,
+      color: "#ef4444",
+    },
+  ];
 
   return (
     <SectionCard icon="⭐" title="Starpoint Exchange" subtitle="Current SP market rate">
-      <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4">
-        {[
-          {
-            label: "Current Value",
-            value: loading ? null : `${data?.starpoint_value.toFixed(4) ?? "1.0000"} SP`,
-            color: "#f59e0b",
-          },
-          {
-            label: "24h Change",
-            value: loading ? null : `${isPositive ? "+" : ""}${data?.starpoint_24h_change.toFixed(4) ?? "0.0000"}`,
-            color: changeColor,
-            arrow: isPositive ? "▲" : "▼",
-          },
-          {
-            label: "24h High",
-            value: loading ? null : `${((data?.starpoint_value ?? 1) + Math.abs(data?.starpoint_24h_change ?? 0)).toFixed(4)}`,
-            color: "#10b981",
-          },
-          {
-            label: "24h Low",
-            value: loading ? null : `${((data?.starpoint_value ?? 1) - Math.abs(data?.starpoint_24h_change ?? 0)).toFixed(4)}`,
-            color: "#ef4444",
-          },
-        ].map((item) => (
+      {/* Grid container with responsive columns */}
+      <div
+        className="grid gap-3 p-5"
+        style={{
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gridAutoRows: "1fr",
+        }}
+      >
+        {stats.map((item) => (
           <div
             key={item.label}
-            className="rounded-xl p-3"
-            style={{ background: "rgba(0,207,255,0.06)", border: "1px solid rgba(0,207,255,0.12)" }}
+            className="group rounded-xl p-4 transition-all duration-200 hover:scale-105 hover:shadow-lg flex flex-col justify-between"
+            style={{
+              background: "rgba(0,207,255,0.06)",
+              border: "1px solid rgba(0,207,255,0.12)",
+              minHeight: "160px",
+            }}
           >
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(168,255,246,0.45)" }}>
-              {item.label}
-            </p>
-            {loading ? (
-              <div className="h-5 w-16 rounded animate-pulse" style={{ background: "rgba(0,207,255,0.08)" }} />
-            ) : (
-              <p className="text-sm font-black tabular-nums" style={{ color: item.color }}>
-                {item.arrow && <span className="mr-0.5">{item.arrow}</span>}
-                {item.value}
+            {/* Label with icon */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg shrink-0">{item.icon}</span>
+              <p
+                className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden text-ellipsis"
+                style={{ color: "rgba(168,255,246,0.45)" }}
+              >
+                {item.label}
               </p>
+            </div>
+
+            {/* Main value */}
+            {loading ? (
+              <div className="space-y-2">
+                <div className="h-6 w-24 rounded animate-pulse" style={{ background: "rgba(0,207,255,0.08)" }} />
+                <div className="h-4 w-20 rounded animate-pulse" style={{ background: "rgba(0,207,255,0.08)" }} />
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {/* Primary value */}
+                <p
+                  className="text-lg font-black tabular-nums leading-tight"
+                  style={{ color: item.color }}
+                >
+                  {item.value}
+                </p>
+
+                {/* Secondary value (USD or percentage) */}
+                {item.usd !== null && (
+                  <p className="text-xs font-semibold tabular-nums" style={{ color: "rgba(168,255,246,0.5)" }}>
+                    ≈ ${(item.usd as number).toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                  </p>
+                )}
+
+                {item.pct !== null && (
+                  <p className="text-xs font-bold tabular-nums" style={{ color: item.color }}>
+                    ({item.pct})
+                  </p>
+                )}
+              </div>
             )}
           </div>
         ))}
       </div>
+
+      {/* Chart placeholder */}
       <div
         className="mx-5 mb-5 flex items-center justify-center rounded-xl py-8"
         style={{ background: "rgba(0,207,255,0.04)", border: "1px dashed rgba(0,207,255,0.15)" }}
       >
-        <p className="text-xs" style={{ color: "rgba(168,255,246,0.35)" }}>📊 Price chart — coming in Phase 3</p>
+        <p className="text-xs" style={{ color: "rgba(168,255,246,0.35)" }}>
+          📊 Price chart — coming in Phase 3
+        </p>
       </div>
     </SectionCard>
   );
