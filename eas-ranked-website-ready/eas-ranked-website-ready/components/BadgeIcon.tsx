@@ -48,7 +48,7 @@ export default function BadgeIcon({
 
   return (
     <div
-      className={`group relative inline-flex items-center justify-center ${sizeClass} ${className}`}
+      className={`group relative inline-flex flex-shrink-0 items-center justify-center ${sizeClass} ${className}`}
       title={showTooltip ? undefined : name}
     >
       {/* Badge image or fallback */}
@@ -74,11 +74,20 @@ export default function BadgeIcon({
         </div>
       )}
 
-      {/* Tooltip */}
+      {/* Tooltip — renders below the badge to avoid covering section headers */}
       {showTooltip && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 pointer-events-none">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover:block z-50 pointer-events-auto">
+          {/* Arrow pointing up */}
           <div
-            className="rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap shadow-xl"
+            className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0"
+            style={{
+              borderLeft: '5px solid transparent',
+              borderRight: '5px solid transparent',
+              borderBottom: `5px solid ${color}50`,
+            }}
+          />
+          <div
+            className="rounded-xl px-3 py-2 text-xs font-bold shadow-xl max-w-xs break-words"
             style={{
               background: 'rgba(10,10,20,0.95)',
               border: `1px solid ${color}50`,
@@ -96,15 +105,6 @@ export default function BadgeIcon({
               {rarity}
             </p>
           </div>
-          {/* Arrow */}
-          <div
-            className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
-            style={{
-              borderLeft: '5px solid transparent',
-              borderRight: '5px solid transparent',
-              borderTop: `5px solid ${color}50`,
-            }}
-          />
         </div>
       )}
     </div>

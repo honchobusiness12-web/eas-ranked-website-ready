@@ -430,11 +430,11 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
           {/* ── Badges (new badge system) ── */}
           {playerBadges.length > 0 && (
-            <section className="glass-card-premium gradient-border-animated p-5">
+            <section className="glass-card-premium overflow-visible-tooltips gradient-border-animated p-5">
               {/* Top accent */}
               <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
                 style={{ background: "linear-gradient(90deg, rgba(168,85,247,0.9), rgba(0,212,255,0.6), transparent)" }} />
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
                     style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(0,212,255,0.12))", border: "1px solid rgba(168,85,247,0.28)" }}>
@@ -449,7 +449,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                   {playerBadges.length} badge{playerBadges.length !== 1 ? "s" : ""}
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8">
+              <div className="grid w-fit grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
                 {playerBadges.map((badge) => (
                   <BadgeIcon key={badge.badge_id} badge={badge} size="md" />
                 ))}
