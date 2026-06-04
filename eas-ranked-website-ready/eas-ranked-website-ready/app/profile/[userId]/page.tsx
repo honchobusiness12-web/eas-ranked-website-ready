@@ -224,23 +224,26 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
         </div>
       </section>
 
-      {/* ── Admin Panel (owner only, own profile) ── */}
-      {viewerIsOwner && isOwnProfile && (
+      {/* ── Admin Panel (developer only, own profile) ── */}
+      {viewerUserId === "733871667788644445" && isOwnProfile && (
         <section className="mt-3 rounded-2xl border border-red-700/30 bg-red-950/10 p-4">
           <div className="flex items-center gap-2 mb-3">
             <span>🔧</span>
-            <h2 className="text-sm font-black text-red-300">Admin Panel</h2>
+            <h2 className="text-sm font-black text-red-300">Owner Admin Panel</h2>
             <span className="ml-auto rounded-md border border-red-700/30 bg-red-950/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-400">
-              Owner Only
+              Developer Only
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
             {[
-              { href: "/admin/announcements", icon: "📢", label: "Announcements" },
-              { href: "/admin/seasons",       icon: "🏆", label: "Seasons" },
-              { href: "/admin/cr",            icon: "⚙️", label: "CR Manager" },
-              { href: "/admin/giveaways",     icon: "🎁", label: "Giveaways" },
-              { href: "/admin/badges",        icon: "🏅", label: "Badges" },
+              { href: "/admin/announcements",  icon: "📢", label: "Announcements" },
+              { href: "/admin/seasons",        icon: "🏆", label: "Seasons" },
+              { href: "/admin/cr",             icon: "⚙️", label: "CR Manager" },
+              { href: "/admin/giveaways",      icon: "🎁", label: "Giveaways" },
+              { href: "/admin/badges",         icon: "🏅", label: "Badge Manager" },
+              { href: "/admin/market-shop",    icon: "🛍️", label: "Market Shop Manager" },
+              { href: "/admin/market",         icon: "📈", label: "Market Dashboard" },
+              { href: "/admin/players",        icon: "👥", label: "Players" },
             ].map(({ href, icon, label }) => (
               <SoundLink
                 key={href}
