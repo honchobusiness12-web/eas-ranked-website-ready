@@ -34,6 +34,7 @@ const adminLinks = [
   { label: "Announcements",     href: "/admin/announcements",emoji: "📢" },
   { label: "Seasons",           href: "/admin/seasons",      emoji: "🏆" },
   { label: "Badge Manager",     href: "/admin/badges",       emoji: "🏅" },
+  { label: "Shop Admin",        href: "/admin/shop",         emoji: "🛍️" },
   { label: "Player Management", href: "/admin/players",      emoji: "👥" },
   { label: "Leaderboard Mgmt",  href: "/admin/leaderboard",  emoji: "📋" },
   { label: "Analytics",         href: "/admin/analytics",    emoji: "📊" },
