@@ -24,7 +24,7 @@ interface ToastMsg {
   text: string;
 }
 
-type ActiveTab = 'search' | 'audit' | 'create';
+type ActiveTab = 'search' | 'audit' | 'create' | 'cleanup';
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -840,6 +840,239 @@ function CreateBadgeTab({
 }
 
 // ---------------------------------------------------------------------------
+// Cleanup Tab
+// ---------------------------------------------------------------------------
+
+interface LegacyBadgeSample {
+  user_id: string;
+  badge_id: string;
+  added_at: string;
+}
+
+function CleanupTab({ setToast }: { setToast: (t: ToastMsg | null) => void }) {
+  const [previewCount, setPreviewCount] = useState<number | null>(null);
+  const [sample, setSample] = useState<LegacyBadgeSample[]>([]);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
+  const [lastResult, setLastResult] = useState<{
+    removed: number;
+    badgeIds: string[];
+    message: string;
+  } | null>(null);
+
+  async function loadPreview() {
+    setLoadingPreview(true);
+    try {
+      const res = await fetch('/api/admin/badges/cleanup');
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewCount(data.count ?? 0);
+        setSample(data.sample ?? []);
+      } else {
+        setToast({ type: 'error', text: 'Failed to load legacy badge count' });
+      }
+    } catch {
+      setToast({ type: 'error', text: 'An unexpected error occurred' });
+    } finally {
+      setLoadingPreview(false);
+    }
+  }
+
+  useEffect(() => {
+    loadPreview();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleCleanup() {
+    if (cleaning) return;
+    setCleaning(true);
+    try {
+      const res = await fetch('/api/admin/badges/cleanup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Admin cleanup via Badge Manager panel' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setLastResult({
+          removed: data.removed,
+          badgeIds: data.badgeIds ?? [],
+          message: data.message,
+        });
+        setToast({ type: 'success', text: `🧹 ${data.message}` });
+        setConfirmOpen(false);
+        // Refresh preview
+        await loadPreview();
+      } else {
+        setToast({ type: 'error', text: data.error ?? 'Cleanup failed' });
+      }
+    } catch {
+      setToast({ type: 'error', text: 'An unexpected error occurred' });
+    } finally {
+      setCleaning(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      {/* Confirm modal */}
+      {confirmOpen && (
+        <ConfirmModal
+          title="🧹 Cleanup Legacy Badges"
+          message={`This will permanently remove ${previewCount} legacy badge assignment${previewCount !== 1 ? 's' : ''} from player_badges where the badge_id is not in badge_definitions. This cannot be undone.`}
+          confirmLabel={cleaning ? '⟳ Cleaning…' : '🧹 Run Cleanup'}
+          confirmColor="linear-gradient(135deg, #f59e0b, #d97706)"
+          onConfirm={handleCleanup}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
+
+      {/* Info card */}
+      <div
+        className="rounded-3xl p-6"
+        style={{ border: '2px solid rgba(245,158,11,0.30)', background: 'rgba(245,158,11,0.04)' }}
+      >
+        <div className="flex items-start gap-4">
+          <span className="text-3xl flex-shrink-0">🧹</span>
+          <div className="flex-1">
+            <h3 className="text-lg font-black text-white mb-1">Legacy Badge Cleanup</h3>
+            <p className="text-sm text-zinc-400 leading-relaxed">
+              Removes all <code className="font-mono text-amber-400 text-xs">player_badges</code> entries where the{' '}
+              <code className="font-mono text-amber-400 text-xs">badge_id</code> is <strong className="text-white">not</strong> present
+              in <code className="font-mono text-amber-400 text-xs">badge_definitions</code>. This cleans up orphaned badge
+              assignments from old badge IDs that no longer exist in the canonical registry.
+            </p>
+            <div
+              className="mt-4 rounded-xl p-3 text-xs font-bold"
+              style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.20)' }}
+            >
+              <p className="text-amber-400 font-black mb-1">⚠️ What this does:</p>
+              <ul className="list-disc list-inside space-y-1 text-zinc-400">
+                <li>Deletes player_badges rows where badge_id ∉ badge_definitions</li>
+                <li>Does NOT affect valid badges (those in badge_definitions)</li>
+                <li>Does NOT modify badge_definitions itself</li>
+                <li>Logs the cleanup action to the console audit trail</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Preview card */}
+      <div
+        className="rounded-3xl p-6"
+        style={{ border: '2px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.01)' }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-sm font-black text-zinc-300 uppercase tracking-widest">Legacy Badge Count</h4>
+          <button
+            onClick={loadPreview}
+            disabled={loadingPreview}
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-black text-zinc-300 hover:bg-white/10 transition disabled:opacity-40"
+          >
+            {loadingPreview ? '⟳ Loading…' : '↻ Refresh'}
+          </button>
+        </div>
+
+        {loadingPreview ? (
+          <p className="text-zinc-400 animate-pulse font-bold">Counting legacy badges…</p>
+        ) : previewCount === null ? (
+          <p className="text-zinc-500 font-bold">Click Refresh to check</p>
+        ) : previewCount === 0 ? (
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <p className="font-black text-green-400">No legacy badges found</p>
+              <p className="text-xs text-zinc-500 mt-0.5">All player_badges entries have valid badge_ids</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <p className="font-black text-amber-400 text-lg">{previewCount} legacy badge assignment{previewCount !== 1 ? 's' : ''} found</p>
+                <p className="text-xs text-zinc-500 mt-0.5">These will be removed by the cleanup</p>
+              </div>
+            </div>
+
+            {sample.length > 0 && (
+              <div>
+                <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-2">
+                  Sample (up to 20)
+                </p>
+                <div
+                  className="rounded-2xl overflow-hidden"
+                  style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  <div
+                    className="grid px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-600"
+                    style={{ gridTemplateColumns: '1fr 1fr 1fr', background: 'rgba(255,255,255,0.02)' }}
+                  >
+                    <div>User ID</div>
+                    <div>Badge ID (Legacy)</div>
+                    <div>Added At</div>
+                  </div>
+                  {sample.map((row, i) => (
+                    <div
+                      key={i}
+                      className="grid px-4 py-2.5 border-t border-white/5 text-xs"
+                      style={{ gridTemplateColumns: '1fr 1fr 1fr' }}
+                    >
+                      <span className="font-mono text-zinc-400 truncate">{row.user_id}</span>
+                      <span className="font-mono text-amber-400/80 truncate">{row.badge_id}</span>
+                      <span className="text-zinc-500">
+                        {new Date(row.added_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setConfirmOpen(true)}
+              className="w-full rounded-2xl py-3 text-sm font-black text-white transition-all hover:opacity-90 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}
+            >
+              🧹 Run Cleanup ({previewCount} to remove)
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Last result */}
+      {lastResult && (
+        <div
+          className="rounded-3xl p-6"
+          style={{ border: '2px solid rgba(16,185,129,0.30)', background: 'rgba(16,185,129,0.04)' }}
+        >
+          <h4 className="text-sm font-black text-green-400 mb-2">✅ Last Cleanup Result</h4>
+          <p className="text-sm text-zinc-300 font-bold">{lastResult.message}</p>
+          {lastResult.badgeIds.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-2">Removed Badge IDs</p>
+              <div className="flex flex-wrap gap-2">
+                {lastResult.badgeIds.map((id) => (
+                  <span
+                    key={id}
+                    className="font-mono text-xs rounded-lg px-2 py-1"
+                    style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.30)', color: '#f87171' }}
+                  >
+                    {id}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 
@@ -921,6 +1154,7 @@ export default function AdminBadgesPage() {
     { id: 'search',  label: 'Player Search',  icon: '🔍' },
     { id: 'audit',   label: 'Audit Log',       icon: '📋' },
     { id: 'create',  label: 'Create Badge',    icon: '✨' },
+    { id: 'cleanup', label: 'Cleanup Legacy',  icon: '🧹' },
   ];
 
   return (
@@ -1017,6 +1251,7 @@ export default function AdminBadgesPage() {
           setToast={setToast}
         />
       )}
+      {activeTab === 'cleanup' && <CleanupTab setToast={setToast} />}
     </Shell>
   );
 }
