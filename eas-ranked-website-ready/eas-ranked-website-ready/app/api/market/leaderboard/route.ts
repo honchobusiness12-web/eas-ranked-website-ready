@@ -58,7 +58,15 @@ export async function GET() {
       [MAIN_GUILD_ID, ...FAKE_PLAYER_IDS]
     ).catch(() => ({ rows: [] }));
 
-    let users;
+    let users: Array<{
+      rank: number;
+      user_id: string;
+      username: string;
+      net_worth: number;
+      balance: number;
+      portfolio_value: number;
+      wealth_role: string;
+    }>;
 
     if (economyResult.rows.length > 0) {
       users = economyResult.rows.map((row: any, idx: number) => {
