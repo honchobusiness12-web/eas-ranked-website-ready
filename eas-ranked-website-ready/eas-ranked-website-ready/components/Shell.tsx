@@ -24,6 +24,8 @@ const links = [
   { label: "Placements",       href: "/placements",  emoji: "📋" },
   { label: "Live",             href: "/live",        emoji: "🔴", live: true },
   { label: "Market",           href: "/market",      emoji: "📈" },
+  { label: "Shop",             href: "/shop",        emoji: "🛍️" },
+  { label: "Inventory",        href: "/inventory",   emoji: "🎒" },
   { label: "Ranks",            href: "/ranks",       emoji: "🏷️" },
   { label: "How Ranked Works", href: "/guide",       emoji: "📖" },
 ];
