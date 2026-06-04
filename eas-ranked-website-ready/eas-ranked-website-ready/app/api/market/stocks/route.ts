@@ -59,7 +59,19 @@ export async function GET() {
       [MAIN_GUILD_ID, ...FAKE_PLAYER_IDS]
     ).catch(() => ({ rows: [] }));
 
-    let stocks;
+    let stocks: Array<{
+      rank: number;
+      player_id: string;
+      player_name: string;
+      price: number;
+      price_change: number;
+      price_change_percent: number;
+      cr: number;
+      status: string;
+      wins: number;
+      losses: number;
+      mvps: number;
+    }>;
 
     if (stocksTableResult.rows.length > 0) {
       // Use dedicated stocks table data

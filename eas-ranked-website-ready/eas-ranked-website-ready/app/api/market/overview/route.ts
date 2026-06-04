@@ -83,7 +83,14 @@ export async function GET() {
       [MAIN_GUILD_ID]
     ).catch(() => ({ rows: [{ total: 0 }] }));
 
-    const overview = {
+    const overview: {
+      total_stocks: number;
+      active_players: number;
+      total_users: number;
+      last_updated: string;
+      starpoint_value: number;
+      starpoint_24h_change: number;
+    } = {
       total_stocks: parseInt(stocksResult.rows[0]?.total ?? "0", 10),
       active_players: parseInt(activeResult.rows[0]?.total ?? "0", 10),
       total_users: parseInt(usersResult.rows[0]?.total ?? "0", 10),

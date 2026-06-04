@@ -48,7 +48,15 @@ export async function GET() {
       [MAIN_GUILD_ID, ...FAKE_PLAYER_IDS]
     ).catch(() => ({ rows: [] }));
 
-    let transactions;
+    let transactions: Array<{
+      id: string | number;
+      type: string;
+      player_name: string;
+      shares: number;
+      price: number;
+      total: number;
+      timestamp: string;
+    }>;
 
     if (txResult.rows.length > 0) {
       transactions = txResult.rows.map((row: any) => ({

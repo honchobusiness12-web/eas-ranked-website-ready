@@ -45,7 +45,14 @@ export async function GET() {
       [MAIN_GUILD_ID]
     ).catch(() => ({ rows: [] }));
 
-    let items;
+    let items: Array<{
+      id: string | number;
+      name: string;
+      price: number;
+      category: string;
+      stock_remaining: number;
+      total_sold: number;
+    }>;
 
     if (shopResult.rows.length > 0) {
       items = shopResult.rows.map((row: any) => {
