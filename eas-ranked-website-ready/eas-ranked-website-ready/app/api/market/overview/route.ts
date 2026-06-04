@@ -6,16 +6,13 @@ import { pool } from "@/lib/db";
 // ---------------------------------------------------------------------------
 
 const MAIN_GUILD_ID = "1467697766837915804";
-const FAKE_PLAYER_MIN = 9000000001n;
-const FAKE_PLAYER_MAX = 9000000010n;
+const FAKE_PLAYER_IDS = [
+  "9000000001","9000000002","9000000003","9000000004","9000000005",
+  "9000000006","9000000007","9000000008","9000000009","9000000010",
+];
 
 function isFakePlayer(playerId: string): boolean {
-  try {
-    const id = BigInt(playerId);
-    return id >= FAKE_PLAYER_MIN && id <= FAKE_PLAYER_MAX;
-  } catch {
-    return false;
-  }
+  return FAKE_PLAYER_IDS.includes(playerId);
 }
 
 // Cache: 30 seconds
