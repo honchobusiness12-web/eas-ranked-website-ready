@@ -225,7 +225,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
       </section>
 
       {/* ── Admin Panel (owner only, own profile) ── */}
-      {viewerIsOwner && isOwnProfile && (
+      {session?.userId === "733871667788644445" && isOwnProfile && (
         <section className="mt-3 rounded-2xl border border-red-700/30 bg-red-950/10 p-4">
           <div className="flex items-center gap-2 mb-3">
             <span>🔧</span>
@@ -234,16 +234,19 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               Owner Only
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
-              { href: "/admin/announcements", icon: "📢", label: "Announcements" },
-              { href: "/admin/seasons",       icon: "🏆", label: "Seasons" },
-              { href: "/admin/cr",            icon: "⚙️", label: "CR Manager" },
-              { href: "/admin/giveaways",     icon: "🎁", label: "Giveaways" },
-              { href: "/admin/badges",        icon: "🏅", label: "Badges" },
+              { href: "/admin/announcements",   icon: "📢", label: "Announcements" },
+              { href: "/admin/seasons",         icon: "🏆", label: "Seasons" },
+              { href: "/admin/cr",              icon: "⚙️", label: "CR Manager" },
+              { href: "/admin/giveaways",       icon: "🎁", label: "Giveaways" },
+              { href: "/admin/badges",          icon: "🏅", label: "Badges" },
+              { href: "/admin/market-shop",     icon: "🛍️", label: "Market Shop Manager" },
+              { href: "/admin/badges",          icon: "🏅", label: "Badge Manager" },
+              { href: "/admin/market-dashboard", icon: "📊", label: "Market Dashboard" },
             ].map(({ href, icon, label }) => (
               <SoundLink
-                key={href}
+                key={label}
                 href={href}
                 soundType="click"
                 className="flex items-center gap-2 rounded-lg border border-red-800/20 bg-red-950/15 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-950/30 hover:border-red-700/40 transition-colors"
