@@ -41,8 +41,26 @@ interface Investor {
 }
 
 interface ShopItem {
-  id: string | number;
+  id: number;
+  item_id: string;
   name: string;
+  description: string | null;
+  type: string;
+  rarity: string | null;
+  current_stock: number;
+  max_stock: number;
+  resale_supply: number;
+  is_limited: boolean;
+  is_sold_out: boolean;
+  current_value: number;
+  base_value: number;
+  resale_percent: number;
+  total_bought: number;
+  total_resold: number;
+  value_24h_change: number;
+  value_24h_change_percent: number;
+  last_value_update: string | null;
+  // Legacy compat
   price: number;
   category: string;
   stock_remaining: number;
@@ -524,26 +542,52 @@ function StarpointExchange({ data, loading }: { data: MarketOverview | null; loa
 }
 
 // ---------------------------------------------------------------------------
+// Rarity color helper (for market page)
+// ---------------------------------------------------------------------------
+
+const MARKET_RARITY_COLORS: Record<string, string> = {
+  common:    "#9ca3af",
+  uncommon:  "#22c55e",
+  rare:      "#3b82f6",
+  epic:      "#a855f7",
+  legendary: "#f59e0b",
+  mythic:    "#ef4444",
+};
+
+function RarityPill({ rarity }: { rarity: string | null }) {
+  if (!rarity) return null;
+  const color = MARKET_RARITY_COLORS[rarity] ?? "#6b7280";
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest"
+      style={{ background: `${color}22`, border: `1px solid ${color}60`, color }}
+    >
+      {rarity}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Shop Table
 // ---------------------------------------------------------------------------
 
 function ShopTable({ items, loading }: { items: ShopItem[]; loading: boolean }) {
   return (
-    <SectionCard icon="🛍️" title="Limited Shop Stock" subtitle="Available items and remaining inventory">
+    <SectionCard icon="🛍️" title="Market Shop" subtitle="Dynamic pricing — main server only">
       {/* Desktop header */}
       <div
         className="hidden md:grid items-center px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest"
         style={{
-          gridTemplateColumns: "1fr 100px 120px 100px 80px 110px",
+          gridTemplateColumns: "1fr 90px 130px 110px 110px 110px",
           borderBottom: "1px solid rgba(0,207,255,0.10)",
           color: "rgba(168,255,246,0.45)",
         }}
       >
         <span>Item</span>
-        <span>Category</span>
-        <span>Price</span>
-        <span>Remaining</span>
-        <span>Sold</span>
+        <span>Rarity</span>
+        <span>Value</span>
+        <span>24h Change</span>
+        <span>Stock</span>
         <span>Status</span>
       </div>
 
@@ -553,7 +597,16 @@ function ShopTable({ items, loading }: { items: ShopItem[]; loading: boolean }) 
         <EmptyState icon="🏪" message="No shop items configured yet" />
       ) : (
         items.map((item) => {
-          const { label, color } = stockStatusLabel(item.stock_remaining);
+          const stockRemaining = item.current_stock;
+          const { label: stockLabel, color: stockColor } = stockStatusLabel(stockRemaining);
+          const isUp = item.value_24h_change >= 0;
+          const changeColor = isUp ? "#10b981" : "#ef4444";
+          const changeArrow = isUp ? "▲" : "▼";
+
+          // Override status if sold out
+          const displayLabel = item.is_sold_out ? "Sold Out" : stockLabel;
+          const displayColor = item.is_sold_out ? "#ef4444" : stockColor;
+
           return (
             <div
               key={item.id}
@@ -563,32 +616,50 @@ function ShopTable({ items, loading }: { items: ShopItem[]; loading: boolean }) 
               {/* Desktop */}
               <div
                 className="hidden md:grid items-center px-5 py-3.5 hover:bg-[rgba(0,207,255,0.04)] transition-colors"
-                style={{ gridTemplateColumns: "1fr 100px 120px 100px 80px 110px" }}
+                style={{ gridTemplateColumns: "1fr 90px 130px 110px 110px 110px" }}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base shrink-0">{categoryIcon(item.category)}</span>
-                  <p className="text-sm font-bold truncate" style={{ color: "#e2f4ff" }}>{item.name}</p>
+                  <span className="text-base shrink-0">{categoryIcon(item.type ?? item.category)}</span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-bold truncate" style={{ color: "#e2f4ff" }}>{item.name}</p>
+                      {item.is_limited && (
+                        <span className="shrink-0 text-[9px] font-black text-amber-400 border border-amber-500/40 rounded-full px-1.5 py-0.5 bg-amber-500/10">
+                          LIMITED
+                        </span>
+                      )}
+                    </div>
+                    {item.description && (
+                      <p className="text-[10px] truncate" style={{ color: "rgba(168,255,246,0.4)" }}>{item.description}</p>
+                    )}
+                  </div>
                 </div>
-                <span
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold capitalize"
-                  style={{ background: "rgba(0,207,255,0.08)", border: "1px solid rgba(0,207,255,0.18)", color: "#4DEEEA" }}
-                >
-                  {item.category}
-                </span>
+                <RarityPill rarity={item.rarity} />
                 <span className="text-sm font-black tabular-nums" style={{ color: "#f59e0b" }}>
-                  {fmt(item.price)} SP
+                  {fmtCurrency(item.current_value)} SP
                 </span>
-                <span className="text-sm font-bold tabular-nums" style={{ color }}>
-                  {item.stock_remaining}
+                <span className="text-sm font-bold tabular-nums" style={{ color: changeColor }}>
+                  {changeArrow} {fmtCurrency(Math.abs(item.value_24h_change))}
+                  <span className="text-[10px] ml-1">
+                    ({item.value_24h_change_percent >= 0 ? "+" : ""}{item.value_24h_change_percent.toFixed(1)}%)
+                  </span>
                 </span>
-                <span className="text-sm tabular-nums" style={{ color: "rgba(168,255,246,0.5)" }}>
-                  {item.total_sold}
+                <span className="text-sm font-bold tabular-nums" style={{ color: displayColor }}>
+                  {item.is_sold_out
+                    ? <span className="text-[10px] font-black">SOLD OUT</span>
+                    : <>{item.current_stock}<span className="text-zinc-600">/{item.max_stock}</span></>
+                  }
+                  {item.resale_supply > 0 && (
+                    <span className="block text-[9px]" style={{ color: "rgba(168,255,246,0.4)" }}>
+                      +{item.resale_supply} resale
+                    </span>
+                  )}
                 </span>
                 <span
                   className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
-                  style={{ background: `${color}18`, border: `1px solid ${color}40`, color }}
+                  style={{ background: `${displayColor}18`, border: `1px solid ${displayColor}40`, color: displayColor }}
                 >
-                  {label}
+                  {displayLabel}
                 </span>
               </div>
 
@@ -596,21 +667,43 @@ function ShopTable({ items, loading }: { items: ShopItem[]; loading: boolean }) 
               <div className="md:hidden px-4 py-3.5 hover:bg-[rgba(0,207,255,0.04)] transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base shrink-0">{categoryIcon(item.category)}</span>
+                    <span className="text-base shrink-0">{categoryIcon(item.type ?? item.category)}</span>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold truncate" style={{ color: "#e2f4ff" }}>{item.name}</p>
-                      <p className="text-[10px] capitalize" style={{ color: "rgba(168,255,246,0.4)" }}>{item.category}</p>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <p className="text-sm font-bold truncate" style={{ color: "#e2f4ff" }}>{item.name}</p>
+                        {item.is_limited && <span className="shrink-0 text-[9px] font-black text-amber-400">✦</span>}
+                      </div>
+                      <RarityPill rarity={item.rarity} />
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-black tabular-nums" style={{ color: "#f59e0b" }}>{fmtCurrency(item.price)} SP</p>
-                    <p className="text-xs font-bold" style={{ color }}>{label}</p>
+                    <p className="text-sm font-black tabular-nums" style={{ color: "#f59e0b" }}>{fmtCurrency(item.current_value)} SP</p>
+                    <p className="text-xs font-bold tabular-nums" style={{ color: changeColor }}>
+                      {changeArrow} {item.value_24h_change_percent >= 0 ? "+" : ""}{item.value_24h_change_percent.toFixed(1)}%
+                    </p>
+                    <p className="text-[10px] font-bold" style={{ color: displayColor }}>{displayLabel}</p>
                   </div>
                 </div>
+                {item.is_sold_out && item.resale_supply > 0 && (
+                  <p className="mt-1.5 text-[10px] font-bold" style={{ color: "#f59e0b" }}>
+                    🔄 Resale Market Active — {item.resale_supply} available
+                  </p>
+                )}
               </div>
             </div>
           );
         })
+      )}
+
+      {/* Sold-out resale notice */}
+      {items.some((i) => i.is_sold_out && i.resale_supply > 0) && (
+        <div
+          className="mx-5 mb-4 mt-2 flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs"
+          style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)", color: "rgba(245,158,11,0.8)" }}
+        >
+          <span>🔄</span>
+          <span>Some items are sold out but available on the resale market. Trade via Discord commands.</span>
+        </div>
       )}
     </SectionCard>
   );
