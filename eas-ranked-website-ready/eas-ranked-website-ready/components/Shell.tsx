@@ -23,6 +23,7 @@ const links = [
   { label: "Compare",          href: "/compare",     emoji: "⚔️" },
   { label: "Placements",       href: "/placements",  emoji: "📋" },
   { label: "Live",             href: "/live",        emoji: "🔴", live: true },
+  { label: "Market",           href: "/market",      emoji: "📈" },
   { label: "Ranks",            href: "/ranks",       emoji: "🏷️" },
   { label: "How Ranked Works", href: "/guide",       emoji: "📖" },
 ];
