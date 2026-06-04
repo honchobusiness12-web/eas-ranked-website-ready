@@ -2304,6 +2304,11 @@ p {
     0 1px 0 rgba(0,207,255,0.12) inset;
 }
 
+/* Allow tooltips/dropdowns to overflow glass cards (e.g. badge tooltips) */
+.glass-card-premium.overflow-visible-tooltips {
+  overflow: visible;
+}
+
 /* ── Premium section header ── */
 .section-header-premium {
   display: flex;
