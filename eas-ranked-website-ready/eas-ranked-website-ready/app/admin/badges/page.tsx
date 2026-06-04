@@ -24,7 +24,7 @@ interface ToastMsg {
   text: string;
 }
 
-type ActiveTab = 'search' | 'audit' | 'create';
+type ActiveTab = 'search' | 'audit' | 'create' | 'cleanup';
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -840,6 +840,131 @@ function CreateBadgeTab({
 }
 
 // ---------------------------------------------------------------------------
+// Cleanup Tab
+// ---------------------------------------------------------------------------
+
+function CleanupTab({ setToast }: { setToast: (t: ToastMsg | null) => void }) {
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<{
+    affectedUsers: number;
+    badgesRemoved: number;
+    message: string;
+  } | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+
+  async function runCleanup() {
+    if (!confirmed) {
+      setToast({ type: 'error', text: 'Please confirm before running cleanup' });
+      return;
+    }
+    setRunning(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/badges/cleanup-legacy', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResult({
+          affectedUsers: data.affectedUsers,
+          badgesRemoved: data.badgesRemoved,
+          message: data.message,
+        });
+        setToast({ type: 'success', text: `✅ ${data.message}` });
+      } else {
+        setToast({ type: 'error', text: data.error ?? 'Cleanup failed' });
+      }
+    } catch {
+      setToast({ type: 'error', text: 'An unexpected error occurred' });
+    } finally {
+      setRunning(false);
+      setConfirmed(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      {/* Warning banner */}
+      <div
+        className="rounded-3xl p-6"
+        style={{ border: '2px solid rgba(239,68,68,0.40)', background: 'rgba(239,68,68,0.06)' }}
+      >
+        <div className="flex items-start gap-4">
+          <span className="text-3xl flex-shrink-0">⚠️</span>
+          <div>
+            <h3 className="text-base font-black text-red-300 mb-2">Remove All Legacy Badges</h3>
+            <p className="text-sm text-zinc-400 mb-3">
+              This will permanently remove the following legacy badges from{' '}
+              <strong className="text-white">all players</strong> in the database:
+            </p>
+            <ul className="space-y-1 mb-4">
+              {['contentCreator', 'tournamentWinner', 'staff'].map((b) => (
+                <li key={b} className="flex items-center gap-2 text-sm">
+                  <span className="text-red-400">✕</span>
+                  <code className="font-mono text-zinc-300 text-xs bg-zinc-900/60 px-2 py-0.5 rounded">{b}</code>
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm text-zinc-400 mb-1">
+              <strong className="text-green-400">✅ Kept:</strong> Rank badges, new{' '}
+              <code className="font-mono text-xs">player_badges</code> table entries, all player data.
+            </p>
+            <p className="text-sm text-zinc-400">
+              Every removal is logged to <code className="font-mono text-xs">badge_audit_log</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Confirmation checkbox */}
+      <label className="flex items-center gap-3 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={confirmed}
+          onChange={(e) => setConfirmed(e.target.checked)}
+          className="w-5 h-5 rounded accent-red-500 cursor-pointer"
+        />
+        <span className="text-sm font-bold text-zinc-300">
+          I understand this is irreversible and will remove legacy badges from all users
+        </span>
+      </label>
+
+      {/* Action button */}
+      <button
+        onClick={runCleanup}
+        disabled={running || !confirmed}
+        className="w-full rounded-2xl py-3.5 text-sm font-black text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+        style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}
+      >
+        {running ? '⟳ Running cleanup…' : '🗑️ Remove All Legacy Badges from All Users'}
+      </button>
+
+      {/* Result */}
+      {result && (
+        <div
+          className="rounded-3xl p-6"
+          style={{ border: '2px solid rgba(16,185,129,0.40)', background: 'rgba(16,185,129,0.06)' }}
+        >
+          <p className="text-base font-black text-green-300 mb-3">✅ Cleanup Complete</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.20)' }}>
+              <p className="text-2xl font-black text-green-400">{result.affectedUsers}</p>
+              <p className="text-xs font-bold text-zinc-500 mt-1">Users Affected</p>
+            </div>
+            <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.20)' }}>
+              <p className="text-2xl font-black text-red-400">{result.badgesRemoved}</p>
+              <p className="text-xs font-bold text-zinc-500 mt-1">Badges Removed</p>
+            </div>
+          </div>
+          <p className="text-sm text-zinc-400 mt-3">{result.message}</p>
+          <p className="text-xs text-zinc-600 mt-1">
+            All removals have been logged to the Audit Log tab.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 
@@ -921,6 +1046,7 @@ export default function AdminBadgesPage() {
     { id: 'search',  label: 'Player Search',  icon: '🔍' },
     { id: 'audit',   label: 'Audit Log',       icon: '📋' },
     { id: 'create',  label: 'Create Badge',    icon: '✨' },
+    { id: 'cleanup', label: 'Cleanup Legacy',  icon: '🗑️' },
   ];
 
   return (
@@ -1017,6 +1143,7 @@ export default function AdminBadgesPage() {
           setToast={setToast}
         />
       )}
+      {activeTab === 'cleanup' && <CleanupTab setToast={setToast} />}
     </Shell>
   );
 }

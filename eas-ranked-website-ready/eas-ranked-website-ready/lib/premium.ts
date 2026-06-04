@@ -2,7 +2,7 @@ import { pool } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 // ---------------------------------------------------------------------------
-// In-memory cache for premium / badge status (5-minute TTL)
+// In-memory cache for premium status (5-minute TTL)
 // ---------------------------------------------------------------------------
 
 const STATUS_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -13,8 +13,6 @@ interface StatusCacheEntry<T> {
 }
 
 const premiumCache = new Map<string, StatusCacheEntry<boolean>>();
-const staffCache   = new Map<string, StatusCacheEntry<boolean>>();
-const ccCache      = new Map<string, StatusCacheEntry<boolean>>();
 
 function getCachedBool(map: Map<string, StatusCacheEntry<boolean>>, key: string): boolean | null {
   const entry = map.get(key);
@@ -27,11 +25,9 @@ function setCachedBool(map: Map<string, StatusCacheEntry<boolean>>, key: string,
   map.set(key, { value, expiresAt: Date.now() + STATUS_CACHE_TTL_MS });
 }
 
-/** Invalidate all status caches for a user (call after badge/subscription changes). */
+/** Invalidate the premium status cache for a user (call after subscription changes). */
 export function invalidatePremiumStatusCache(userId: string): void {
   premiumCache.delete(userId);
-  staffCache.delete(userId);
-  ccCache.delete(userId);
 }
 
 // ---------------------------------------------------------------------------
@@ -39,21 +35,7 @@ export function invalidatePremiumStatusCache(userId: string): void {
 // ---------------------------------------------------------------------------
 export const PREMIUM_ROLE_ID = "1502426990995836928";
 
-// ---------------------------------------------------------------------------
-// Hardcoded badge holders — no premium required, assigned in code
-// ---------------------------------------------------------------------------
 
-/** Users who always have the Content Creator badge, regardless of DB roles. */
-export const HARDCODED_CONTENT_CREATORS: string[] = [
-  // Add content creator Discord user IDs here, e.g.:
-  // "123456789012345678",
-];
-
-/** Users who always have the Staff badge, regardless of DB roles. */
-export const HARDCODED_STAFF: string[] = [
-  // Add staff Discord user IDs here, e.g.:
-  // "987654321098765432",
-];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -311,7 +293,7 @@ export async function upsertSubscription(
 }
 
 // ---------------------------------------------------------------------------
-// Developer / Staff / Badge helpers
+// Developer helpers
 // ---------------------------------------------------------------------------
 
 /** The one and only developer user ID. */
@@ -320,299 +302,6 @@ export const DEVELOPER_USER_ID = "733871667788644445";
 /** Returns true if the given user ID is the developer. */
 export function isDeveloper(userId: string): boolean {
   return userId === DEVELOPER_USER_ID;
-}
-
-/**
- * Discord role IDs that grant the Staff badge.
- * Add any additional staff / moderator role IDs here.
- */
-export const STAFF_ROLE_IDS = [
-  "1234567890000000001", // Staff role
-  "1234567890000000002", // Moderator role
-];
-
-/**
- * Discord role IDs that grant the Content Creator badge.
- */
-export const CONTENT_CREATOR_ROLE_IDS = [
-  "1234567890000000003", // Content Creator role
-  "1234567890000000004", // Verified Creator role
-];
-
-/**
- * Discord role IDs that grant the Tournament Winner badge.
- */
-export const TOURNAMENT_WINNER_ROLE_IDS = [
-  "1234567890000000005", // Tournament Winner role
-];
-
-export interface UserBadge {
-  id: "developer" | "contentCreator" | "staff" | "tournamentWinner";
-  label: string;
-  icon: string;
-  color: string;
-  description: string;
-}
-
-/**
- * Returns true if the user holds the staff badge in the DB player record
- * (stored in data->'badges' as a JSON array of badge ID strings),
- * OR is in the HARDCODED_STAFF list, OR has a matching Discord staff role.
- *
- * Results are cached in-process for 5 minutes.
- */
-export async function isStaffUser(userId: string): Promise<boolean> {
-  // Developer is implicitly staff
-  if (userId === DEVELOPER_USER_ID) return true;
-
-  // Hardcoded staff list — no DB lookup needed
-  if (HARDCODED_STAFF.includes(userId)) return true;
-
-  // Check cache
-  const cached = getCachedBool(staffCache, userId);
-  if (cached !== null) return cached;
-
-  try {
-    const { pool } = await import("@/lib/db");
-    const result = await pool.query(
-      `SELECT data->'badges' AS badges, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
-      [userId]
-    );
-    if (result.rows.length === 0) {
-      setCachedBool(staffCache, userId, false);
-      return false;
-    }
-    // Check dedicated badges array first (set by admin badge manager)
-    const badges: string[] = result.rows[0].badges ?? [];
-    if (badges.includes("staff")) {
-      setCachedBool(staffCache, userId, true);
-      return true;
-    }
-    // Fall back to Discord role IDs in the roles array (set by bot sync)
-    const roles: string[] = result.rows[0].roles ?? [];
-    const isStaff = STAFF_ROLE_IDS.some((id) => roles.includes(id));
-    setCachedBool(staffCache, userId, isStaff);
-    return isStaff;
-  } catch (err) {
-    console.error(`[premium] isStaffUser(${userId}) failed:`, err);
-    return false;
-  }
-}
-
-/**
- * Returns true if the user holds the contentCreator badge in the DB player record
- * (stored in data->'badges' as a JSON array of badge ID strings),
- * OR is in the HARDCODED_CONTENT_CREATORS list, OR has a matching Discord role.
- *
- * Results are cached in-process for 5 minutes.
- */
-export async function isContentCreator(userId: string): Promise<boolean> {
-  // Hardcoded content creator list — no DB lookup needed
-  if (HARDCODED_CONTENT_CREATORS.includes(userId)) return true;
-
-  // Check cache
-  const cached = getCachedBool(ccCache, userId);
-  if (cached !== null) return cached;
-
-  try {
-    const { pool } = await import("@/lib/db");
-    const result = await pool.query(
-      `SELECT data->'badges' AS badges, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
-      [userId]
-    );
-    if (result.rows.length === 0) {
-      setCachedBool(ccCache, userId, false);
-      return false;
-    }
-    // Check dedicated badges array first (set by admin badge manager)
-    const badges: string[] = result.rows[0].badges ?? [];
-    if (badges.includes("contentCreator")) {
-      setCachedBool(ccCache, userId, true);
-      return true;
-    }
-    // Fall back to Discord role IDs in the roles array (set by bot sync)
-    const roles: string[] = result.rows[0].roles ?? [];
-    const isCC = CONTENT_CREATOR_ROLE_IDS.some((id) => roles.includes(id));
-    setCachedBool(ccCache, userId, isCC);
-    return isCC;
-  } catch (err) {
-    console.error(`[premium] isContentCreator(${userId}) failed:`, err);
-    return false;
-  }
-}
-
-/**
- * Returns true if the user holds the tournamentWinner badge in the DB player record
- * (stored in data->'badges' as a JSON array of badge ID strings),
- * OR has a matching Discord tournament-winner role.
- */
-export async function isTournamentWinner(userId: string): Promise<boolean> {
-  try {
-    const { pool } = await import("@/lib/db");
-    const result = await pool.query(
-      `SELECT data->'badges' AS badges, data->'roles' AS roles FROM players WHERE user_id = $1 LIMIT 1`,
-      [userId]
-    );
-    if (result.rows.length === 0) return false;
-    // Check dedicated badges array first (set by admin badge manager)
-    const badges: string[] = result.rows[0].badges ?? [];
-    if (badges.includes("tournamentWinner")) return true;
-    // Fall back to Discord role IDs in the roles array (set by bot sync)
-    const roles: string[] = result.rows[0].roles ?? [];
-    return TOURNAMENT_WINNER_ROLE_IDS.some((id) => roles.includes(id));
-  } catch (err) {
-    console.error(`[premium] isTournamentWinner(${userId}) failed:`, err);
-    return false;
-  }
-}
-
-/**
- * Returns the full list of badges a user has earned.
- * Order: developer → contentCreator → staff → tournamentWinner.
- */
-export async function getUserBadges(userId: string): Promise<UserBadge[]> {
-  const [developer, contentCreator, staff, tournamentWinner] = await Promise.all([
-    Promise.resolve(userId === DEVELOPER_USER_ID),
-    isContentCreator(userId),
-    isStaffUser(userId),
-    isTournamentWinner(userId),
-  ]);
-
-  const badges: UserBadge[] = [];
-
-  if (developer) {
-    badges.push({
-      id: "developer",
-      label: "Developer",
-      icon: "👑",
-      color: "#FFD700",
-      description: "EAS Ranked Developer",
-    });
-  }
-
-  if (contentCreator) {
-    badges.push({
-      id: "contentCreator",
-      label: "Content Creator",
-      icon: "🎬",
-      color: "#00D4FF",
-      description: "Verified Content Creator",
-    });
-  }
-
-  // Staff badge shown for non-developer staff members only (developer already has a badge)
-  if (staff && !developer) {
-    badges.push({
-      id: "staff",
-      label: "Staff",
-      icon: "👮",
-      color: "#00FF88",
-      description: "EAS Ranked Staff Member",
-    });
-  }
-
-  if (tournamentWinner) {
-    badges.push({
-      id: "tournamentWinner",
-      label: "Tournament Winner",
-      icon: "🏆",
-      color: "#FFD700",
-      description: "Tournament Champion",
-    });
-  }
-
-  return badges;
-}
-
-// ---------------------------------------------------------------------------
-// Badge assignment helpers (admin use)
-// ---------------------------------------------------------------------------
-
-/**
- * Assigns a badge to a user by adding the badge ID to data->'badges' in the DB.
- * The badgeId should be one of: "staff", "contentCreator", "tournamentWinner".
- * This is independent of Discord role IDs — the website checks data->'badges'
- * directly, so changes are visible immediately without a Discord sync.
- * Invalidates the in-process status cache and revalidates public pages.
- */
-export async function assignBadgeRole(userId: string, badgeId: string): Promise<void> {
-  try {
-    const { pool } = await import("@/lib/db");
-    const result = await pool.query(
-      `
-      UPDATE players
-      SET data = jsonb_set(
-        COALESCE(data, '{}'),
-        '{badges}',
-        (
-          SELECT jsonb_agg(DISTINCT b)
-          FROM jsonb_array_elements_text(
-            COALESCE(data->'badges', '[]'::jsonb) || $2::jsonb
-          ) AS b
-        )
-      )
-      WHERE user_id = $1
-      RETURNING user_id, data->'badges' AS badges
-      `,
-      [userId, JSON.stringify([badgeId])]
-    );
-    if (result.rowCount === 0) {
-      throw new Error(`Player ${userId} not found in database`);
-    }
-    console.log(`[premium] assignBadgeRole: assigned '${badgeId}' to user ${userId}. Badges now: ${JSON.stringify(result.rows[0]?.badges)}`);
-    // Bust the status cache so the next check reflects the new badge
-    invalidatePremiumStatusCache(userId);
-    // Revalidate all public pages that display badges
-    revalidatePath(`/profile/${userId}`);
-    revalidatePath("/leaderboard");
-    revalidatePath("/admin/badges");
-    revalidatePath("/");
-  } catch (err) {
-    console.error(`[premium] assignBadgeRole(${userId}, ${badgeId}) failed:`, err);
-    throw err;
-  }
-}
-
-/**
- * Removes a badge from a user's data->'badges' array in the DB.
- * The badgeId should be one of: "staff", "contentCreator", "tournamentWinner".
- * Invalidates the in-process status cache and revalidates public pages.
- */
-export async function removeBadgeRole(userId: string, badgeId: string): Promise<void> {
-  try {
-    const { pool } = await import("@/lib/db");
-    const result = await pool.query(
-      `
-      UPDATE players
-      SET data = jsonb_set(
-        COALESCE(data, '{}'),
-        '{badges}',
-        (
-          SELECT COALESCE(jsonb_agg(b), '[]'::jsonb)
-          FROM jsonb_array_elements_text(COALESCE(data->'badges', '[]'::jsonb)) AS b
-          WHERE b != $2
-        )
-      )
-      WHERE user_id = $1
-      RETURNING user_id, data->'badges' AS badges
-      `,
-      [userId, badgeId]
-    );
-    if (result.rowCount === 0) {
-      throw new Error(`Player ${userId} not found in database`);
-    }
-    console.log(`[premium] removeBadgeRole: removed '${badgeId}' from user ${userId}. Badges now: ${JSON.stringify(result.rows[0]?.badges)}`);
-    // Bust the status cache so the next check reflects the removed badge
-    invalidatePremiumStatusCache(userId);
-    // Revalidate all public pages that display badges
-    revalidatePath(`/profile/${userId}`);
-    revalidatePath("/leaderboard");
-    revalidatePath("/admin/badges");
-    revalidatePath("/");
-  } catch (err) {
-    console.error(`[premium] removeBadgeRole(${userId}, ${badgeId}) failed:`, err);
-    throw err;
-  }
 }
 
 // ---------------------------------------------------------------------------

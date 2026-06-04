@@ -3,7 +3,6 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import AchievementBadge from "@/components/AchievementBadge";
-import BadgeDisplay from "@/components/BadgeDisplay";
 import BadgeIcon from "@/components/BadgeIcon";
 import CopyButton from "@/components/CopyButton";
 import { WinLossChart } from "@/components/StatsChart";
@@ -19,7 +18,7 @@ import { getRank, getNextRank } from "@/lib/ranks";
 import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression, getTierColor } from "@/lib/charts";
-import { getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
+import { DEVELOPER_USER_ID } from "@/lib/premium";
 import { getBadgesForPlayer } from "@/lib/badges";
 import { getSession } from "@/lib/auth";
 import { getRankTheme } from "@/lib/rankThemes";
@@ -44,8 +43,6 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
 
   // Is the viewer looking at their own profile?
   const isOwnProfile = viewerUserId !== null && viewerUserId === userId;
-
-  const badges = await getUserBadges(userId);
 
   // New badge system — fetch from player_badges table (gracefully handle missing table)
   let playerBadges: Awaited<ReturnType<typeof getBadgesForPlayer>> = [];
@@ -172,12 +169,7 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                 </div>
               </div>
 
-              {/* Legacy badges row (developer, staff, content creator, etc.) */}
-              {badges.length > 0 && (
-                <BadgeDisplay badges={badges} size="md" className="mt-2" />
-              )}
-
-              {/* New badge system — player_badges table */}
+              {/* Badges from the new badge system (player_badges table) */}
               {playerBadges.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {playerBadges.map((badge) => (
