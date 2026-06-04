@@ -4,6 +4,7 @@ import SoundLink from "@/components/SoundLink";
 import RankBadge from "@/components/RankBadge";
 import AchievementBadge from "@/components/AchievementBadge";
 import BadgeDisplay from "@/components/BadgeDisplay";
+import BadgeIcon from "@/components/BadgeIcon";
 import CopyButton from "@/components/CopyButton";
 import { WinLossChart } from "@/components/StatsChart";
 import {
@@ -19,6 +20,7 @@ import { getPlayerFromDB } from "@/lib/cache";
 import { getAchievements, getUnlockedCount } from "@/lib/achievements";
 import { parseCrProgression, getTierColor } from "@/lib/charts";
 import { getUserBadges, DEVELOPER_USER_ID } from "@/lib/premium";
+import { getBadgesForPlayer } from "@/lib/badges";
 import { getSession } from "@/lib/auth";
 import { getRankTheme } from "@/lib/rankThemes";
 import { getMVPHistory, getCRHistory } from "@/lib/db";
@@ -44,6 +46,14 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
   const isOwnProfile = viewerUserId !== null && viewerUserId === userId;
 
   const badges = await getUserBadges(userId);
+
+  // New badge system — fetch from player_badges table (gracefully handle missing table)
+  let playerBadges: Awaited<ReturnType<typeof getBadgesForPlayer>> = [];
+  try {
+    playerBadges = await getBadgesForPlayer(userId);
+  } catch {
+    // Table may not exist yet — silently ignore
+  }
 
   // Fetch MVP and CR history (gracefully handle missing tables)
   let mvpHistory: Array<{ id: string; match_id: string; season_id: string; awarded_at: string }> = [];
@@ -162,9 +172,18 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
                 </div>
               </div>
 
-              {/* Badges row */}
+              {/* Legacy badges row (developer, staff, content creator, etc.) */}
               {badges.length > 0 && (
                 <BadgeDisplay badges={badges} size="md" className="mt-2" />
+              )}
+
+              {/* New badge system — player_badges table */}
+              {playerBadges.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {playerBadges.map((badge) => (
+                    <BadgeIcon key={badge.badge_id} badge={badge} size="md" />
+                  ))}
+                </div>
               )}
 
               {/* Rank + status chips */}
@@ -413,6 +432,35 @@ export default async function ProfilePage(context: { params: Promise<{ userId: s
               ))}
             </div>
           </section>
+
+          {/* ── Badges (new badge system) ── */}
+          {playerBadges.length > 0 && (
+            <section className="glass-card-premium gradient-border-animated p-5">
+              {/* Top accent */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[1.5rem]"
+                style={{ background: "linear-gradient(90deg, rgba(168,85,247,0.9), rgba(0,212,255,0.6), transparent)" }} />
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(0,212,255,0.12))", border: "1px solid rgba(168,85,247,0.28)" }}>
+                    🏅
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black" style={{ color: "#e2f4ff" }}>Badges</h2>
+                    <p className="text-[10px]" style={{ color: "rgba(168,255,246,0.50)" }}>Earned badges &amp; collectibles</p>
+                  </div>
+                </div>
+                <span className="rounded-full border px-3 py-1 text-xs font-black" style={{ borderColor: "rgba(168,85,247,0.30)", background: "rgba(168,85,247,0.10)", color: "#a855f7" }}>
+                  {playerBadges.length} badge{playerBadges.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8">
+                {playerBadges.map((badge) => (
+                  <BadgeIcon key={badge.badge_id} badge={badge} size="md" />
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* ── MVP History ── */}
           {mvpHistory.length > 0 && (

@@ -1,0 +1,96 @@
+{
+  "version": "1.0.0",
+  "badges": {
+    "staff": {
+      "id": "staff",
+      "name": "Staff",
+      "icon": "/badges/staff.svg",
+      "rarity": "legendary",
+      "category": "staff",
+      "description": "EAS Arena Staff Member",
+      "color": "#ff6b6b",
+      "stackable": false,
+      "source": "admin"
+    },
+    "owner": {
+      "id": "owner",
+      "name": "Owner",
+      "icon": "/badges/owner.svg",
+      "rarity": "mythic",
+      "category": "owner",
+      "description": "EAS Arena Owner",
+      "color": "#ffd700",
+      "stackable": false,
+      "source": "admin"
+    },
+    "developer": {
+      "id": "developer",
+      "name": "Developer",
+      "icon": "/badges/developer.svg",
+      "rarity": "legendary",
+      "category": "developer",
+      "description": "EAS Arena Developer",
+      "color": "#00d4ff",
+      "stackable": false,
+      "source": "admin"
+    },
+    "content_creator": {
+      "id": "content_creator",
+      "name": "Content Creator",
+      "icon": "/badges/content_creator.svg",
+      "rarity": "epic",
+      "category": "content_creator",
+      "description": "EAS Arena Content Creator",
+      "color": "#a855f7",
+      "stackable": false,
+      "source": "admin"
+    },
+    "investor": {
+      "id": "investor",
+      "name": "Investor",
+      "icon": "/badges/investor.svg",
+      "rarity": "rare",
+      "category": "investor",
+      "description": "EAS Market Investor",
+      "color": "#10b981",
+      "stackable": false,
+      "source": "market"
+    },
+    "market_badge_bronze": {
+      "id": "market_badge_bronze",
+      "name": "Bronze Investor Badge",
+      "icon": "/badges/market_badge_bronze.svg",
+      "rarity": "common",
+      "category": "market",
+      "description": "Bronze Investor Badge from Market Shop",
+      "color": "#cd7f32",
+      "stackable": true,
+      "source": "market",
+      "price": 250000
+    },
+    "market_badge_silver": {
+      "id": "market_badge_silver",
+      "name": "Silver Investor Badge",
+      "icon": "/badges/market_badge_silver.svg",
+      "rarity": "uncommon",
+      "category": "market",
+      "description": "Silver Investor Badge from Market Shop",
+      "color": "#c0c0c0",
+      "stackable": true,
+      "source": "market",
+      "price": 500000
+    },
+    "market_badge_gold": {
+      "id": "market_badge_gold",
+      "name": "Gold Investor Badge",
+      "icon": "/badges/market_badge_gold.svg",
+      "rarity": "rare",
+      "category": "market",
+      "description": "Gold Investor Badge from Market Shop",
+      "color": "#ffd700",
+      "stackable": true,
+      "source": "market",
+      "price": 1000000
+    }
+  }
+}
