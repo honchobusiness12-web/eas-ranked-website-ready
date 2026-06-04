@@ -11,7 +11,6 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { DiscordUser } from "@/lib/auth";
-import { getAvatarUrl } from "@/lib/auth";
 
 // ---------------------------------------------------------------------------
 // Navigation config
@@ -345,7 +344,7 @@ export default function Shell({
                 >
                   <PlayerAvatar
                     name={user.global_name || user.username}
-                    avatar={getAvatarUrl(user)}
+                    avatar={user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${user.avatar.startsWith("a_") ? "gif" : "webp"}?size=256` : null}
                     size="h-7 w-7"
                   />
                   <span className="flex-1 truncate text-xs font-semibold transition-colors" style={{ color: "#A8FFF6" }}>
@@ -374,7 +373,7 @@ export default function Shell({
               >
                 <PlayerAvatar
                   name={user.global_name || user.username}
-                  avatar={getAvatarUrl(user)}
+                  avatar={user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${user.avatar.startsWith("a_") ? "gif" : "webp"}?size=256` : null}
                   size="h-9 w-9"
                 />
               </SoundLink>
