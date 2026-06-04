@@ -18,14 +18,15 @@ async function requireDeveloper() {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireDeveloper();
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const id = parseInt(params.id, 10);
+  const { id: idParam } = await params;
+  const id = parseInt(idParam, 10);
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid item ID' }, { status: 400 });
   }
@@ -57,7 +58,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireDeveloper();
   if ('error' in auth) {
@@ -65,7 +66,8 @@ export async function PUT(
   }
   const { session } = auth;
 
-  const id = parseInt(params.id, 10);
+  const { id: idParam } = await params;
+  const id = parseInt(idParam, 10);
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid item ID' }, { status: 400 });
   }
@@ -224,7 +226,7 @@ export async function PUT(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireDeveloper();
   if ('error' in auth) {
@@ -232,7 +234,8 @@ export async function DELETE(
   }
   const { session } = auth;
 
-  const id = parseInt(params.id, 10);
+  const { id: idParam } = await params;
+  const id = parseInt(idParam, 10);
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid item ID' }, { status: 400 });
   }
